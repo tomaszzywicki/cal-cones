@@ -6,7 +6,7 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - ./backend/app:/app/app
+      - ./backend:/app
     depends_on:
       - db
     env_file:
