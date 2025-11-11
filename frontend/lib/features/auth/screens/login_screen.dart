@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/auth/screens/signup_screen.dart';
 import 'package:frontend/features/auth/services/firebase_auth_service.dart';
 import 'package:provider/provider.dart';
 
@@ -40,7 +41,14 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text("Don't have an account?"),
-                  TextButton(onPressed: () {}, child: Text("Sign up")),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => SignupScreen()),
+                      );
+                    },
+                    child: Text("Sign up"),
+                  ),
                 ],
               ),
             ],
