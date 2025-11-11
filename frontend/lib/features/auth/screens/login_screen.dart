@@ -17,11 +17,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final String email = _emailController.text;
     final String password = _passwordController.text;
 
-    final authservice = Provider.of<FirebaseAuthService>(
+    final authService = Provider.of<FirebaseAuthService>(
       context,
       listen: false,
     );
-    authservice.signInWithEmailAndPassword(email, password);
+    authService.signInWithEmailAndPassword(email, password);
   }
 
   @override

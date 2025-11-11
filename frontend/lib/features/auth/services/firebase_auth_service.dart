@@ -4,18 +4,21 @@ class FirebaseAuthService {
   final _firebaseAuth = FirebaseAuth.instance;
 
   // void test() {
-  //   _firebaseAuth.
+  //   _firebaseAuth.signout
   // }
 
   Future<UserCredential> signInWithEmailAndPassword(
     String email,
     String password,
   ) {
-    print("Logging in with email: $email and password: $password");
     return _firebaseAuth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
+  }
+
+  Future<void> signOut() {
+    return _firebaseAuth.signOut();
   }
 
   Stream<User?> get userStream => _firebaseAuth.authStateChanges();
