@@ -2,7 +2,7 @@ import pytest
 
 
 class TestRegisterUserEndpoint:
-    """Tests /auth/create/ endpoint"""
+    """Tests /auth/signup/ endpoint"""
 
     # Success cases
 

@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/create/", response_model=UserResponse)
+@router.post("/signup/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(user_credential: UserCreate, db: Session = Depends(get_db)):
     try:
         user = create_user_account(db, user_credential)

@@ -7,18 +7,20 @@ class FirebaseAuthService {
 
   User? get currentUser => _firebaseAuth.currentUser;
 
-  Future<UserCredential> signInWithEmailAndPassword(
-    String email,
-    String password,
-  ) {
-    return _firebaseAuth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+  Future<UserCredential> signInWithEmailAndPassword(String email, String password) {
+    return _firebaseAuth.signInWithEmailAndPassword(email: email, password: password);
   }
 
-  Future<void> signOut() {
-    return _firebaseAuth.signOut();
+  Future<UserCredential> signUpWithEmailAndPassword(String email, String password) {
+    return _firebaseAuth.createUserWithEmailAndPassword(email: email, password: password);
+  }
+
+  Future<void> signOut() async {
+    return await _firebaseAuth.signOut();
+  }
+
+  Future<void> deleteFirebaseAccount(UserCredential userCredential) async {
+    return await userCredential.user!.delete();
   }
 
   Future<String?> getIdToken() async {

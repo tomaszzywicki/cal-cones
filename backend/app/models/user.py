@@ -22,7 +22,7 @@ class ActivityLevelEnum(str, Enum):
     VERY_ACTIVE = "very_active"
     SUPER_ACTIVE = "super_active"
 
-class Sex(str, Enum):
+class SexEnum(str, Enum):
     MALE = "male"
     FEMALE = "female"
 
@@ -35,7 +35,7 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(100))
     username: Mapped[str] = mapped_column(String(30), nullable=True, unique=True)
     birthday: Mapped[date] = mapped_column(Date, nullable=True)
-    sex: Mapped[Sex] = mapped_column(ENUM(Sex), nullable=True)
+    sex: Mapped[SexEnum] = mapped_column(ENUM(SexEnum), nullable=True)
     height: Mapped[int] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.now(timezone.utc)

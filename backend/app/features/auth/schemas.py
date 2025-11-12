@@ -1,6 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from datetime import datetime, date
 
+from app.models.user import DietTypeEnum, ActivityLevelEnum, SexEnum
 
 class UserCreate(BaseModel):
     uid: str
@@ -13,12 +14,13 @@ class UserResponse(BaseModel):
     email: EmailStr
     username: str | None
     birthday: date | None
-    sex: str | None
+    sex: SexEnum | None
     height: int | None
     created_at: datetime
     last_modified_at: datetime
-    # diet_type: str | None
-    activity_level: str | None
+    diet_type: DietTypeEnum | None
+    macro_split: dict | None
+    activity_level: ActivityLevelEnum | None
     setup_completed: bool
 
     class Config:
