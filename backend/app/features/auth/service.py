@@ -3,12 +3,15 @@ from datetime import datetime, timezone
 
 from app.models.user import User
 from .schemas import UserCreate, UserResponse
-from .exceptions import UserAlreadyExistsException
+from .exceptions import UserAlreadyExistsException, UserDoesNotExistsException
+from app.core.logger_setup import get_logger
+
+logger = get_logger(__name__)
 
 
 def create_user_account(db: Session, user_credential: UserCreate) -> UserResponse:
     """Creates a new user account in a database"""
-    if get_user_account_by_uid(db, user_credential.uid) or get_user_account_by_email(
+    if _get_user_account_by_uid(db, user_credential.uid) or _get_user_account_by_email(
         db, user_credential.email
     ):
         raise UserAlreadyExistsException("User already exists")
@@ -26,14 +29,24 @@ def create_user_account(db: Session, user_credential: UserCreate) -> UserRespons
     return UserResponse.model_validate(db_user)
 
 
-def delete_user_account():
-    """Deletes user account from a database"""
-    pass
+def delete_user_account(db: Session, uid: str) -> UserResponse:
+    """
+    Deletes user account from a database
+    based on a uid string
+    """
+    db_user = _get_user_account_by_uid(db, uid)
+    if not db_user:
+        logger.error(f'Error deleting user account: User with uid: {uid} does not exist.')
+        raise UserDoesNotExistsException("User does not exist")
+
+    db.delete(db_user)
+    db.commit()
+    return UserResponse.model_validate(db_user)
 
 
-def get_user_account_by_uid(db: Session, uid: str) -> User | None:
+def _get_user_account_by_uid(db: Session, uid: str) -> User | None:
     return db.query(User).filter(User.uid == uid).first()
 
 
-def get_user_account_by_email(db: Session, email: str) -> User | None:
+def _get_user_account_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()

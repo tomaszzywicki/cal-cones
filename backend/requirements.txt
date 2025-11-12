@@ -6,3 +6,8 @@ psycopg[binary,pool]
 pydantic[email,timezone]
 rich
 firebase-admin
+pytest
+pytest-asyncio           
+httpx                    
+pytest-cov              
+faker 

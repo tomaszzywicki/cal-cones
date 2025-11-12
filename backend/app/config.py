@@ -11,4 +11,4 @@ port = os.getenv("POSTGRES_PORT", "5432")
 DATABASE_URL = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db}"
 
 # Firebase
-FIREBASE_KEY_PATH = Path("/app/cal-cones-firebase-adminsdk-fbsvc-c2ea5e8376.json")
+FIREBASE_KEY_PATH = Path("/app/app/cal-cones-firebase-adminsdk-fbsvc-c2ea5e8376.json")
