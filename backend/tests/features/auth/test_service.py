@@ -16,6 +16,7 @@ from app.models.user import User
 
 
 class TestCreateUserAccount:
+    """Tests create_user_account function"""
 
     def test_create_user_account_success(self, db_session, sample_user_data):
 
