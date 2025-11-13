@@ -54,4 +54,41 @@ class UserModel extends UserEntity {
       'setup_completed': setupCompleted,
     };
   }
+
+  // UserModel to Map for local db inserts
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'uid': uid,
+      'email': email,
+      'username': username,
+      'birthday': birthday?.toIso8601String(),
+      'sex': sex,
+      'height': height,
+      'created_at': createdAt.toIso8601String(),
+      'last_modified_at': lastModifiedAt.toIso8601String(),
+      'diet_type': dietType,
+      'macro_split': macroSplit,
+      'activity_level': activityLevel,
+      'setup_completed': setupCompleted,
+    };
+  }
+
+  factory UserModel.fromMap(Map<String, dynamic> map) {
+    return UserModel(
+      id: map['id'] as int?,
+      uid: map['uid'] as String,
+      email: map['email'] as String,
+      username: map['username'] as String?,
+      birthday: map['birthday'] != null ? DateTime.parse(map['birthday'] as String) : null,
+      sex: map['sex'] as String?,
+      height: map['height'] as int?,
+      createdAt: DateTime.parse(map['created_at'] as String),
+      lastModifiedAt: DateTime.parse(map['last_modified_at'] as String),
+      dietType: map['diet_type'] as String?,
+      macroSplit: map['macro_split'] as Map<String, int>?,
+      activityLevel: map['activity_level'] as String?,
+      setupCompleted: map['setup_completed'] as bool,
+    );
+  }
 }

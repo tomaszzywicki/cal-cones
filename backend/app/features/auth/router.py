@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user_uid
 from app.core.logger_setup import get_logger
 from .schemas import UserCreate, UserResponse
-from .service import create_user_account
-from .exceptions import UserAlreadyExistsException
+from .service import create_user_account, get_user_account_by_uid
+from .exceptions import UserAlreadyExistsException, UserDoesNotExistsException
 
 
 logger = get_logger(__name__)
@@ -32,9 +32,17 @@ async def register_user(
     return user
 
 
-@router.get("/login/", response_model=UserResponse, status_code=status.HTTP_200_OK)
-async def login_user():
-    pass
+@router.post("/signin/", response_model=UserResponse, status_code=status.HTTP_200_OK)
+async def login_user(
+    db: Session = Depends(get_db), current_user_uid=Depends(get_current_user_uid)
+):
+    try:
+        user = get_user_account_by_uid(db, current_user_uid)
+    except UserDoesNotExistsException:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
+    return user
 
 
 @router.post("/delete/")

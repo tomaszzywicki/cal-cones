@@ -36,7 +36,9 @@ def delete_user_account(db: Session, uid: str) -> UserResponse:
     """
     db_user = _get_user_account_by_uid(db, uid)
     if not db_user:
-        logger.error(f'Error deleting user account: User with uid: {uid} does not exist.')
+        logger.error(
+            f"Error deleting user account: User with uid: {uid} does not exist."
+        )
         raise UserDoesNotExistsException("User does not exist")
 
     db.delete(db_user)
@@ -44,8 +46,17 @@ def delete_user_account(db: Session, uid: str) -> UserResponse:
     return UserResponse.model_validate(db_user)
 
 
+def get_user_account_by_uid(db: Session, uid: str) -> UserResponse:
+    db_user = db.query(User).filter(User.uid == uid).first()
+    if not db_user:
+        logger.error(f"User with uid: {uid} does not exist")
+        raise UserDoesNotExistsException("User does not exist")
+    return UserResponse.model_validate(db_user)
+
+
 def _get_user_account_by_uid(db: Session, uid: str) -> User | None:
-    return db.query(User).filter(User.uid == uid).first()
+    db_user = db.query(User).filter(User.uid == uid).first()
+    return db_user
 
 
 def _get_user_account_by_email(db: Session, email: str) -> User | None:
