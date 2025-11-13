@@ -1,9 +1,10 @@
 import logging
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 
 from app.core.logger_setup import get_logger
 from app.features.auth.router import router as auth_router
 from app.core.firebase import initialize_firebase
+from app.core.dependencies import verify_firebase_token, get_current_user_uid
 
 logger = get_logger(__name__, logging.DEBUG)
 
@@ -25,4 +26,3 @@ async def test():
     logger.info("Test info")
     logger.critical("test critical")
     return {"test": "test"}
-

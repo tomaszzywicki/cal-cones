@@ -28,9 +28,10 @@ class AuthService {
   }
 
   Future<UserModel> signUp(String email, String password) async {
+    UserCredential? userCredential;
     try {
       // 1. Create Firebase account and get UserCredential containing idToken
-      final userCredential = await _firebaseAuthService.signUpWithEmailAndPassword(email, password);
+      userCredential = await _firebaseAuthService.signUpWithEmailAndPassword(email, password);
 
       if (userCredential.user == null) {
         throw AuthException('Sign up failed: user is null');
@@ -56,8 +57,11 @@ class AuthService {
 
       return userModel;
     } on FirebaseAuthException catch (e) {
+      await _rollbackFirebaseAccount(userCredential);
       throw _handleFirebaseAuthException(e);
     } catch (e) {
+      await _rollbackFirebaseAccount(userCredential);
+
       if (e is AuthException) rethrow;
       throw AuthException('Unexpected error during sign up: $e');
     }
@@ -68,6 +72,21 @@ class AuthService {
       await _firebaseAuthService.signOut();
     } catch (e) {
       throw AuthException('Failed to sign out: $e');
+    }
+  }
+
+  Future<void> _rollbackFirebaseAccount(UserCredential? userCredential) async {
+    if (userCredential?.user != null) {
+      try {
+        print('🔄 Rolling back Firebase account creation...');
+
+        // Delete Firebase account
+        await _firebaseAuthService.deleteFirebaseAccount(userCredential!);
+
+        print('✅ Firebase account rollback successful');
+      } catch (rollbackError) {
+        print('❌ Firebase rollback failed: $rollbackError');
+      }
     }
   }
 

@@ -9,6 +9,10 @@ class AuthApiService extends ApiClient {
     return post('/auth/signup/', userAuthModel.toJson());
   }
 
+  Future<http.Response> signIn(UserAuthModel userAuthModel) {
+    return post('/auth/signin/', userAuthModel.toJson());
+  }
+
   Future<http.Response> deleteAccount() {
     // TODO
     throw UnimplementedError();

@@ -9,7 +9,7 @@ class ApiClient {
   ApiClient(this._firebaseAuthService);
 
   Future<Map<String, String>> _getHeaders() async {
-    final token = await _firebaseAuthService.getIdToken();
+    final token = await _firebaseAuthService.currentUser!.getIdToken();
     return {'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'};
   }
 
