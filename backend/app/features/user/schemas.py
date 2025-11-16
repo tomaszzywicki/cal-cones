@@ -2,18 +2,38 @@
 
 from pydantic import BaseModel
 from datetime import date, datetime
+from app.models.user import DietTypeEnum, ActivityLevelEnum, SexEnum
 
 
-class UserInfoCreate(BaseModel):
+class UserOnboardingCreate(BaseModel):
     id: int
     uid: str
-    email: str
     username: str
     birthday: date
-    sex: str
+    sex: SexEnum
     height: int
-    created_at: datetime
-    last_modified_at: datetime
-    diet_type: str
-    activity_level: str
-    setup_completed: bool
+    diet_type: DietTypeEnum
+    macro_split: dict
+    activity_level: ActivityLevelEnum
+    start_date: datetime
+    target_date: datetime
+    start_weight: float
+    target_weight: float
+    tempo: float
+
+
+class UserOnboardingResponse(BaseModel):
+    id: int
+    uid: str
+    username: str
+    birthday: date
+    sex: SexEnum
+    height: int
+    diet_type: DietTypeEnum
+    macro_split: dict
+    activity_level: ActivityLevelEnum
+    start_date: datetime
+    target_date: datetime
+    start_weight: float
+    target_weight: float
+    tempo: float
