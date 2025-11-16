@@ -4,17 +4,14 @@ import 'package:http/http.dart' as http;
 
 class ApiClient {
   // static const String baseUrl = 'http://192.168.0.107:8000';
-  static const String baseUrl = 'http://192.168.0.10:8000';
+  static const String baseUrl = 'http://192.168.0.107:8000';
   final FirebaseAuthService _firebaseAuthService;
 
   ApiClient(this._firebaseAuthService);
 
   Future<Map<String, String>> _getHeaders() async {
     final token = await _firebaseAuthService.currentUser!.getIdToken();
-    return {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
+    return {'Content-Type': 'application/json', if (token != null) 'Authorization': 'Bearer $token'};
   }
 
   Future<http.Response> get(String endpoint) async {
@@ -24,20 +21,12 @@ class ApiClient {
 
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
     final headers = await _getHeaders();
-    return http.post(
-      Uri.parse('$baseUrl$endpoint'),
-      body: json.encode(body),
-      headers: headers,
-    );
+    return http.post(Uri.parse('$baseUrl$endpoint'), body: json.encode(body), headers: headers);
   }
 
   Future<http.Response> put(String endpoint, Map<String, dynamic> body) async {
     final headers = await _getHeaders();
-    return http.put(
-      Uri.parse('$baseUrl$endpoint'),
-      body: json.encode(body),
-      headers: headers,
-    );
+    return http.put(Uri.parse('$baseUrl$endpoint'), body: json.encode(body), headers: headers);
   }
 
   Future<http.Response> delete(String endpoint) async {

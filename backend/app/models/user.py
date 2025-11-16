@@ -5,11 +5,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date, datetime, timezone
 
 from app.core.database import Base
+from app.models.goal import Goal
 
 from typing import TYPE_CHECKING, List
-
-if TYPE_CHECKING:
-    from app.models.goal import Goal
 
 
 class DietTypeEnum(str, Enum):
