@@ -23,4 +23,4 @@ class Goal(Base):
     is_current: Mapped[bool] = mapped_column(BOOLEAN, default=True)
 
     # relationship
-    user: Mapped["User"] = relationship("User", back_populates="goals")
+    user: Mapped["User"] = relationship("User", back_populates="goals")  # type: ignore

@@ -2,7 +2,7 @@ from pydantic import BaseModel, UUID4
 from datetime import date, datetime
 
 
-class UserGoalCreate(BaseModel):
+class GoalCreate(BaseModel):
     user_id: int
     start_date: datetime
     target_date: datetime
@@ -11,7 +11,7 @@ class UserGoalCreate(BaseModel):
     tempo: float
 
 
-class UserGoalResponse(BaseModel):
+class GoalResponse(BaseModel):
     uuid: UUID4
     user_id: int
     start_date: datetime

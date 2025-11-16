@@ -6,7 +6,7 @@ from app.models.user import DietTypeEnum, ActivityLevelEnum, SexEnum
 
 
 class UserOnboardingCreate(BaseModel):
-    id: int
+    id: int  # user_id
     uid: str
     username: str
     birthday: date
