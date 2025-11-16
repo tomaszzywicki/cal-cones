@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:frontend/core/logger/app_logger.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import 'tables.dart';
 
 class LocalDatabaseService {
   static Database? _database;
@@ -34,7 +36,11 @@ class LocalDatabaseService {
     if (await file.exists()) {
       await file.delete();
     }
+    AppLogger.info('Database reset: $_databaseName deleted.');
   }
 
-  Future<void> _onCreate(Database db, int version) async {}
+  Future<void> _onCreate(Database db, int version) async {
+    await initTables(db, version);
+    AppLogger.info('Database initialized with version $version.');
+  }
 }
