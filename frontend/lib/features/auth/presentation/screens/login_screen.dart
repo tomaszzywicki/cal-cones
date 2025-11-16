@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/app_widget.dart';
+import 'package:frontend/main_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/signup_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:provider/provider.dart';
@@ -32,7 +33,9 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } on AuthException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) {
@@ -54,7 +57,9 @@ class _LoginScreenState extends State<LoginScreen> {
               TextFormField(controller: _passwordController, obscureText: true),
               ElevatedButton(
                 onPressed: _isLoading ? null : signIn,
-                child: _isLoading ? CircularProgressIndicator() : Text('Log In'),
+                child: _isLoading
+                    ? CircularProgressIndicator()
+                    : Text('Log In'),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -62,7 +67,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   Text("Don't have an account?"),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignupScreen()));
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => SignupScreen()),
+                      );
                     },
                     child: Text("Sign up"),
                   ),
