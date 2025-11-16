@@ -20,6 +20,7 @@ void main() async {
   final currentUserService = CurrentUserService();
   final authService = AuthService(firebaseAuthService, authApiService, currentUserService);
 
+  await currentUserService.initialize();
   runApp(
     MultiProvider(
       providers: [
