@@ -57,7 +57,7 @@ class CurrentUserService extends ChangeNotifier {
 
       if (userJson != null) {
         final userData = jsonDecode(userJson);
-        _currentUser = UserModel.fromJson(userData);
+        _currentUser = UserModel.fromMap(userData);
         AppLogger.debug('[$_tag] User loaded from storage: ${_currentUser!.email}');
       } else {
         AppLogger.debug('[$_tag] No user found in storage');
@@ -71,8 +71,8 @@ class CurrentUserService extends ChangeNotifier {
   Future<void> _saveUserToStorage(UserModel user) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final userJson = jsonEncode(user.toJson());
-      await prefs.setString(_userKey, userJson);
+      final userMap = jsonEncode(user.toMap());
+      await prefs.setString(_userKey, userMap);
       AppLogger.debug('[$_tag] User saved to storage');
     } catch (e) {
       AppLogger.error('[$_tag] Failed to save user to storage', e);

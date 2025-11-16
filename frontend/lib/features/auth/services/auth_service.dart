@@ -33,6 +33,7 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final userModel = UserModel.fromJson(jsonDecode(response.body));
+        // 3. Save user to local storage
         await _currentUserService.setUser(userModel);
         return userModel;
       } else {
@@ -91,7 +92,9 @@ class AuthService {
   Future<void> signOut() async {
     try {
       await _firebaseAuthService.signOut();
+      AppLogger.info('User logging out...');
       await _currentUserService.clearUser();
+      AppLogger.info('User removed from local storage');
     } catch (e) {
       throw AuthException('Failed to sign out: $e');
     }
@@ -103,7 +106,7 @@ class AuthService {
         AppLogger.info('🔄 Rolling back Firebase account creation...');
 
         // Delete Firebase account
-        await _firebaseAuthService.deleteFirebaseAccount(userCredential!);
+        await userCredential!.user!.delete();
 
         AppLogger.info('✅ Firebase account rollback successful');
       } catch (rollbackError) {
