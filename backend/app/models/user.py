@@ -12,6 +12,7 @@ from typing import TYPE_CHECKING, List
 if TYPE_CHECKING:
     from app.models.goal import Goal
     from app.models.weight_log import WeightLog
+    from app.models.product import Product
 
 
 class DietTypeEnum(str, Enum):
@@ -54,3 +55,4 @@ class User(Base):
     # Relationship
     goals: Mapped[List["Goal"]] = relationship("Goal", back_populates="user")
     weight_logs: Mapped[List["WeightLog"]] = relationship("WeightLog", back_populates="user")
+    products: Mapped[List["Product"]] = relationship("Product", back_populates="user")
