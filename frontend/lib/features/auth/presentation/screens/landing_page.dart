@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
+// import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/presentation/screens/signup_screen.dart';
 
 class LandingPage extends StatefulWidget {
@@ -18,16 +18,10 @@ class _LandingPageState extends State<LandingPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text("Welcome to CalCones App"),
-            Placeholder(
-              color: Color(0xFF455A64),
-              fallbackWidth: 300.0,
-              fallbackHeight: 300.0,
-            ),
+            Placeholder(color: Color(0xFF455A64), fallbackWidth: 300.0, fallbackHeight: 300.0),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(
-                  context,
-                ).push(MaterialPageRoute(builder: (context) => SignupScreen()));
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignupScreen()));
               },
               child: Text("Get started"),
             ),

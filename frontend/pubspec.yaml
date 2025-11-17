@@ -23,6 +23,7 @@ dev_dependencies:
   path:
   logger: ^2.6.2
   shared_preferences: ^2.5.3
+  smooth_page_indicator: ^1.0.0
 
 flutter:
   uses-material-design: true
