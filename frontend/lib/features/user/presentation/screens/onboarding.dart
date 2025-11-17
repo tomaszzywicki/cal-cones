@@ -61,15 +61,6 @@ class _Onboarding extends State<Onboarding> {
                         },
                   child: Text("Back"),
                 ),
-                // GestureDetector(
-                //   child: Text("back"),
-                //   onTap: () {
-                //     _pageController.previousPage(
-                //       duration: Duration(microseconds: 200),
-                //       curve: Curves.easeInOut,
-                //     );
-                //   },
-                // ),
 
                 // progress indicator (dots on the screen)
                 SmoothPageIndicator(controller: _pageController, count: pages.length),
@@ -90,12 +81,6 @@ class _Onboarding extends State<Onboarding> {
                         },
                   child: onLastPage ? Text("Done") : Text("Next"),
                 ),
-                // GestureDetector(
-                //   child: Text("next"),
-                //   onTap: () {
-                //     _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
-                //   },
-                // ),
               ],
             ),
           ),
