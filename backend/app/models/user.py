@@ -5,9 +5,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date, datetime, timezone
 
 from app.core.database import Base
-from app.models.goal import Goal
+from app.models.weight_log import WeightLog
 
 from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from app.models.goal import Goal
+    from app.models.weight_log import WeightLog
 
 
 class DietTypeEnum(str, Enum):
@@ -49,3 +53,4 @@ class User(Base):
 
     # Relationship
     goals: Mapped[List["Goal"]] = relationship("Goal", back_populates="user")
+    weight_logs: Mapped[List["WeightLog"]] = relationship("WeightLog", back_populates="user")
