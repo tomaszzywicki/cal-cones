@@ -23,31 +23,29 @@ class _BasicInfoState extends State<BasicInfo> {
 
   @override
   Widget build(BuildContext context) {
-    // return const Placeholder();
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text("Basic info"),
-          Row(
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Your name: "),
-              Expanded(
-                child: TextFormField(
-                  controller: _nameController,
-                  decoration: InputDecoration(hintText: "Display name"),
-                ),
+              Text('What is your name?'),
+              const SizedBox(height: 20),
+              TextFormField(
+                controller: _nameController,
+                decoration: InputDecoration(hintText: "Display name"),
               ),
-            ],
-          ),
-          Row(
-            children: [
-              Text("Birthday: "),
-              Expanded(
+              SizedBox(height: 50),
+              Text('What is your birthday?'),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
                 child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
+                  // style: ElevatedButton.styleFrom(
+                  //   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  // ),,
                   onPressed: () async {
                     final pickedDate = await showDatePicker(
                       context: context,
@@ -59,12 +57,13 @@ class _BasicInfoState extends State<BasicInfo> {
                   },
                   child: Text(
                     "${_birthDay.day}/${_birthDay.month.toString().padLeft(2, '0')}/${_birthDay.year}",
+                    // style:
                   ),
                 ),
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

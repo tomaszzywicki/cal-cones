@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/basic_info.dart';
+import 'package:frontend/features/user/presentation/screens/onboarding_screens/diet_type.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/goal_setup.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/onboarding_summary.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/physical_data.dart';
-import 'package:frontend/features/user/presentation/screens/onboarding_screens/training_data.dart';
+import 'package:frontend/features/user/presentation/screens/onboarding_screens/activity_level.dart';
 import 'package:frontend/main_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:frontend/core/logger/app_logger.dart';
@@ -16,11 +17,18 @@ class Onboarding extends StatefulWidget {
 }
 
 class _Onboarding extends State<Onboarding> {
-  PageController _pageController = PageController();
+  final PageController _pageController = PageController();
   bool onFirstPage = true;
   bool onLastPage = false;
 
-  final List<Widget> pages = [BasicInfo(), PhysicalData(), TrainingData(), GoalSetup(), OnboardingSummary()];
+  final List<Widget> pages = [
+    BasicInfo(),
+    PhysicalData(),
+    ActivityLevel(),
+    DietType(),
+    GoalSetup(),
+    OnboardingSummary(),
+  ];
 
   void _saveOnboardingInfo() {
     AppLogger.debug("saving onbording info");
@@ -48,9 +56,6 @@ class _Onboarding extends State<Onboarding> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
                   onPressed: onFirstPage
                       ? null
                       : () {
@@ -66,9 +71,6 @@ class _Onboarding extends State<Onboarding> {
                 SmoothPageIndicator(controller: _pageController, count: pages.length),
 
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
                   onPressed: onLastPage
                       ? () {
                           _saveOnboardingInfo();
