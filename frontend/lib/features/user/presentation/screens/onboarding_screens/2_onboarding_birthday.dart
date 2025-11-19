@@ -35,6 +35,13 @@ class _OnboardingBirthdayState extends State<OnboardingBirthday> {
     "Dec",
   ];
 
+  bool isLeapYear(int year) {
+    if (year % 4 != 0) return false;
+    if (year % 100 != 0) return true;
+    if (year % 400 != 0) return false;
+    return true;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,7 +89,7 @@ class _OnboardingBirthdayState extends State<OnboardingBirthday> {
                             },
                             // jeszcze trzeba będzie lata przestępne dać xd
                             childCount: selectedMonth == 2
-                                ? 28
+                                ? (isLeapYear(selectedYear) ? 29 : 28)
                                 : ([1, 3, 5, 7, 8, 10, 12].contains(selectedMonth) ? 31 : 30),
                           ),
                         ),
