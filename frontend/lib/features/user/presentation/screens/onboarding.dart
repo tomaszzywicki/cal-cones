@@ -21,10 +21,10 @@ class Onboarding extends StatefulWidget {
   const Onboarding({super.key});
 
   @override
-  State<Onboarding> createState() => _Onboarding();
+  State<Onboarding> createState() => _OnboardingState();
 }
 
-class _Onboarding extends State<Onboarding> {
+class _OnboardingState extends State<Onboarding> {
   final PageController _pageController = PageController();
   bool onFirstPage = true;
   bool onLastPage = false;
@@ -44,34 +44,42 @@ class _Onboarding extends State<Onboarding> {
   double? _targetWeight;
   double? _tempo;
 
+  void _goToPreviousPage() {
+    _pageController.previousPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+  }
+
+  void _goToNextPage() {
+    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+  }
+
   void _updateName(String username) {
     setState(() => _name = username);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _goToNextPage();
   }
 
   void _updateBirthday(int day, int month, int year) {
     setState(() => _birthday = DateTime(year, month, day));
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _goToNextPage();
   }
 
   void _updateSex(String sex) {
     setState(() => _sex = sex);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _goToNextPage();
   }
 
   void _updateHeight(int height) {
     setState(() => _height = height);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _goToNextPage();
   }
 
   void _updateWeight(double weight) {
     setState(() => _startWeight = weight);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _goToNextPage();
   }
 
   void _updateActivityLevel(String activityLevel) {
     setState(() => _activityLevel = activityLevel);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _goToNextPage();
   }
 
   void _updateDietAndMacro(String dietType, Map<String, int> macroSplit) {
@@ -79,12 +87,12 @@ class _Onboarding extends State<Onboarding> {
       _dietType = dietType;
       _macroSplit = macroSplit;
     });
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _goToNextPage();
   }
 
   void _updateGoalType(String goalType) {
     setState(() => _goalType = goalType);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _goToNextPage();
   }
 
   void _updateGoalData(DateTime startDate, DateTime targetDate, double targetWeight, double tempo) {
@@ -94,7 +102,7 @@ class _Onboarding extends State<Onboarding> {
       _targetWeight = targetWeight;
       _tempo = tempo;
     });
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _goToNextPage();
   }
 
   void _saveOnboardingInfo() {
@@ -173,10 +181,7 @@ class _Onboarding extends State<Onboarding> {
                   onPressed: onFirstPage
                       ? null
                       : () {
-                          _pageController.previousPage(
-                            duration: Duration(microseconds: 200),
-                            curve: Curves.easeInOut,
-                          );
+                          _goToPreviousPage();
                         },
                   child: Text("Back"),
                 ),
@@ -188,10 +193,7 @@ class _Onboarding extends State<Onboarding> {
                           _saveOnboardingInfo();
                         }
                       : () {
-                          _pageController.nextPage(
-                            duration: Duration(microseconds: 200),
-                            curve: Curves.easeInOut,
-                          );
+                          _goToNextPage();
                         },
                   child: onLastPage ? Text("Done") : Text("Next"),
                 ),
