@@ -25,7 +25,7 @@ class Onboarding extends StatefulWidget {
 }
 
 class _OnboardingState extends State<Onboarding> {
-  final PageController _pageController = PageController();
+  final PageController _pageController = PageController(initialPage: 1);
   bool onFirstPage = true;
   bool onLastPage = false;
 

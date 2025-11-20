@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:frontend/features/user/presentation/widgets/onboarding_button.dart';
 
@@ -11,9 +12,23 @@ class OnboardingHeight extends StatefulWidget {
 }
 
 class _OnboardingHeightState extends State<OnboardingHeight> {
-  final TextEditingController _nameController = TextEditingController();
+  final int minHeight = 100;
+  final int maxHeight = 250;
+  int selectedHeight = 175;
 
-  int _height = 175;
+  late final FixedExtentScrollController _heightController;
+
+  @override
+  void initState() {
+    super.initState();
+    _heightController = FixedExtentScrollController(initialItem: selectedHeight - minHeight);
+  }
+
+  // @override
+  // void dispose() {
+  //   _heightController.dispose();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -26,18 +41,59 @@ class _OnboardingHeightState extends State<OnboardingHeight> {
           children: [
             SizedBox(height: 150),
             Text('What is your height?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-            Text('Tu ogólnie też tak jak birthday ma być'),
             SizedBox(height: 100),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(hintText: 'Height'),
-              keyboardType: TextInputType.numberWithOptions(),
+
+            Stack(
+              children: [
+                Container(
+                  height: 30,
+                  margin: EdgeInsets.only(top: 135),
+                  decoration: BoxDecoration(
+                    color: CupertinoColors.secondarySystemBackground,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+                Container(
+                  height: 300,
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ListWheelScrollView.useDelegate(
+                          controller: _heightController,
+                          itemExtent: 35,
+                          perspective: 0.0005,
+                          diameterRatio: 1.2,
+                          physics: FixedExtentScrollPhysics(),
+
+                          onSelectedItemChanged: (value) {
+                            setState(() => selectedHeight = value + minHeight);
+                          },
+                          childDelegate: ListWheelChildBuilderDelegate(
+                            builder: (context, index) {
+                              return Center(
+                                child: Text(
+                                  '${index + minHeight} cm',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                              );
+                            },
+                            // jeszcze trzeba będzie lata przestępne dać xd
+                            childCount: maxHeight - minHeight + 1,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
+
             Spacer(),
             OnboardingButton(
               text: 'Next',
               onPressed: () {
-                widget.setHeight(_height);
+                widget.setHeight(selectedHeight);
+                print(selectedHeight);
               },
             ),
           ],

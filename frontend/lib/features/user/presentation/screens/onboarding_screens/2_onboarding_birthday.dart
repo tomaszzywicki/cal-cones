@@ -12,13 +12,29 @@ class OnboardingBirthday extends StatefulWidget {
 }
 
 class _OnboardingBirthdayState extends State<OnboardingBirthday> {
-  final _dayController = FixedExtentScrollController(initialItem: 15);
-  final _monthController = FixedExtentScrollController(initialItem: 6);
-  final _yearController = FixedExtentScrollController(initialItem: 100);
-
   int selectedDay = 15;
   int selectedMonth = 6;
   int selectedYear = 2000;
+
+  late final FixedExtentScrollController _dayController;
+  late final FixedExtentScrollController _monthController;
+  late final FixedExtentScrollController _yearController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dayController = FixedExtentScrollController(initialItem: selectedDay - 1);
+    _monthController = FixedExtentScrollController(initialItem: selectedMonth - 1);
+    _yearController = FixedExtentScrollController(initialItem: selectedYear - 1900);
+  }
+
+  // @override
+  // void dispose() {
+  //   _dayController.dispose();
+  //   _monthController.dispose();
+  //   _yearController.dispose();
+  //   super.dispose();
+  // }
 
   final List<String> _monthList = [
     "Jan",
