@@ -8,7 +8,6 @@ import 'package:frontend/features/user/presentation/screens/onboarding_screens/4
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/5_onboarding_weight.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/6_onboarding_activity.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/7_onboarding_diet.dart';
-import 'package:frontend/features/user/presentation/screens/onboarding_screens/8_onboarding_goal_type.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/9_onboarding_goal_data.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/goal_setup.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/onboarding_summary.dart';
@@ -21,11 +20,11 @@ class Onboarding extends StatefulWidget {
   const Onboarding({super.key});
 
   @override
-  State<Onboarding> createState() => _OnboardingState();
+  State<Onboarding> createState() => _Onboarding();
 }
 
-class _OnboardingState extends State<Onboarding> {
-  final PageController _pageController = PageController(initialPage: 1);
+class _Onboarding extends State<Onboarding> {
+  final PageController _pageController = PageController();
   bool onFirstPage = true;
   bool onLastPage = false;
 
@@ -37,49 +36,40 @@ class _OnboardingState extends State<Onboarding> {
   String? _activityLevel;
   String? _dietType;
   Map<String, int>? _macroSplit;
-  String? _goalType; // lose / maintaint / gain  ale nie wiem czy to zapisywać wgl
   DateTime? _startDate;
   DateTime? _targetDate;
   double? _startWeight;
   double? _targetWeight;
   double? _tempo;
 
-  void _goToPreviousPage() {
-    _pageController.previousPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
-  }
-
-  void _goToNextPage() {
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
-  }
-
   void _updateName(String username) {
     setState(() => _name = username);
-    _goToNextPage();
+    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
   }
 
   void _updateBirthday(int day, int month, int year) {
     setState(() => _birthday = DateTime(year, month, day));
-    _goToNextPage();
+    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
   }
 
   void _updateSex(String sex) {
     setState(() => _sex = sex);
-    _goToNextPage();
+    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
   }
 
   void _updateHeight(int height) {
     setState(() => _height = height);
-    _goToNextPage();
+    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
   }
 
   void _updateWeight(double weight) {
     setState(() => _startWeight = weight);
-    _goToNextPage();
+    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
   }
 
   void _updateActivityLevel(String activityLevel) {
     setState(() => _activityLevel = activityLevel);
-    _goToNextPage();
+    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
   }
 
   void _updateDietAndMacro(String dietType, Map<String, int> macroSplit) {
@@ -87,12 +77,7 @@ class _OnboardingState extends State<Onboarding> {
       _dietType = dietType;
       _macroSplit = macroSplit;
     });
-    _goToNextPage();
-  }
-
-  void _updateGoalType(String goalType) {
-    setState(() => _goalType = goalType);
-    _goToNextPage();
+    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
   }
 
   void _updateGoalData(DateTime startDate, DateTime targetDate, double targetWeight, double tempo) {
@@ -102,7 +87,7 @@ class _OnboardingState extends State<Onboarding> {
       _targetWeight = targetWeight;
       _tempo = tempo;
     });
-    _goToNextPage();
+    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
   }
 
   void _saveOnboardingInfo() {
@@ -120,8 +105,8 @@ class _OnboardingState extends State<Onboarding> {
       startDate: DateTime(2025, 10, 10),
       targetDate: DateTime(2025, 11, 10),
       startWeight: _startWeight!,
-      targetWeight: 80,
-      tempo: 0.5,
+      targetWeight: _targetWeight!,
+      tempo: _tempo!,
     );
     AppLogger.debug("saving onbording info. ${userOnboardingModel.toJson()}");
   }
@@ -129,17 +114,42 @@ class _OnboardingState extends State<Onboarding> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> pages = [
-      OnboardingName(setName: (name) => _updateName(name)),
-      OnboardingBirthday(setBirthday: (day, month, year) => _updateBirthday(day, month, year)),
-      OnboardingSex(setName: (sex) => _updateSex(sex)),
-      OnboardingHeight(setHeight: (height) => _updateHeight(height)),
-      OnboardingWeight(setWeight: (weight) => _updateWeight(weight)),
-      OnboardingActivity(setActivityLevel: (activityLevel) => _updateActivityLevel(activityLevel)),
-      OnboardingDiet(setDietAndMacro: (dietType, macroSplit) => _updateDietAndMacro(dietType, macroSplit)),
-      OnboardingGoalType(setGoalType: (type) => _updateGoalType(type)),
+      // 1.
+      OnboardingName(setName: (name) => _updateName(name), initialName: _name),
+      // 2.
+      OnboardingBirthday(
+        setBirthday: (day, month, year) => _updateBirthday(day, month, year),
+        initialDay: _birthday?.day,
+        initialMonth: _birthday?.month,
+        initialYear: _birthday?.year,
+      ),
+      // 3.
+      OnboardingSex(setSex: (sex) => _updateSex(sex), initialSex: _sex),
+      // 4.
+      OnboardingHeight(setHeight: (height) => _updateHeight(height), initialHeight: _height),
+      // 5.
+      OnboardingWeight(setWeight: (weight) => _updateWeight(weight), initialWeight: _startWeight),
+      // 6.
+      OnboardingActivity(
+        setActivityLevel: (activityLevel) => _updateActivityLevel(activityLevel),
+        initialActivityLevel: _activityLevel,
+      ),
+      // 7.
+      OnboardingDiet(
+        setDietAndMacro: (dietType, macroSplit) => _updateDietAndMacro(dietType, macroSplit),
+        initialDietType: _dietType,
+        initialMacroSplit: _macroSplit,
+      ),
+
+      // 9.
       OnbboardingGoalData(
         setGoalData: (startDate, targetDate, targetWeight, tempo) =>
             _updateGoalData(startDate, targetDate, targetWeight, tempo),
+        initialStartDate: _startDate,
+        initialTargetDate: _targetDate,
+        initialTargetWeight: _targetWeight,
+        initialTempo: _tempo,
+        currentWeight: _startWeight,
       ),
       OnboardingSummary(),
     ];
@@ -168,6 +178,7 @@ class _OnboardingState extends State<Onboarding> {
                   onLastPage = (index == pages.length - 1);
                 });
               },
+
               children: pages,
             ),
           ),
@@ -181,7 +192,10 @@ class _OnboardingState extends State<Onboarding> {
                   onPressed: onFirstPage
                       ? null
                       : () {
-                          _goToPreviousPage();
+                          _pageController.previousPage(
+                            duration: Duration(microseconds: 200),
+                            curve: Curves.easeInOut,
+                          );
                         },
                   child: Text("Back"),
                 ),
@@ -193,7 +207,10 @@ class _OnboardingState extends State<Onboarding> {
                           _saveOnboardingInfo();
                         }
                       : () {
-                          _goToNextPage();
+                          _pageController.nextPage(
+                            duration: Duration(microseconds: 200),
+                            curve: Curves.easeInOut,
+                          );
                         },
                   child: onLastPage ? Text("Done") : Text("Next"),
                 ),

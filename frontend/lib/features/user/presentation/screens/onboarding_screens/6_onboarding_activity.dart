@@ -3,8 +3,9 @@ import 'package:frontend/features/user/presentation/widgets/onboarding_button.da
 
 class OnboardingActivity extends StatefulWidget {
   final Function(String name) setActivityLevel;
+  final String? initialActivityLevel;
 
-  const OnboardingActivity({super.key, required this.setActivityLevel});
+  const OnboardingActivity({super.key, required this.setActivityLevel, this.initialActivityLevel});
 
   @override
   State<OnboardingActivity> createState() => _OnboardingActivityState();
@@ -15,6 +16,17 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
   bool _isFirstSelected = false;
   bool _isSecondSelected = false;
   bool _isThirdSelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialActivityLevel != null) {
+      _selectedActivityLevel = widget.initialActivityLevel;
+      _isFirstSelected = _selectedActivityLevel == 'Setendary';
+      _isSecondSelected = _selectedActivityLevel == 'Moderately Active';
+      _isThirdSelected = _selectedActivityLevel == 'Very Active';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

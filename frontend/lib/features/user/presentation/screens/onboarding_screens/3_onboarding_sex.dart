@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/user/presentation/widgets/onboarding_button.dart';
 
 class OnboardingSex extends StatefulWidget {
-  final Function(String name) setName;
+  final Function(String name) setSex;
+  final String? initialSex;
 
-  const OnboardingSex({super.key, required this.setName});
+  const OnboardingSex({super.key, required this.setSex, this.initialSex});
 
   @override
   State<OnboardingSex> createState() => _OnboardingSexState();
@@ -14,6 +15,17 @@ class _OnboardingSexState extends State<OnboardingSex> {
   String? _selectedSex;
   bool _isMaleSelected = false;
   bool _isFemaleSelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedSex = widget.initialSex;
+    if (_selectedSex == 'Male') {
+      _isMaleSelected = true;
+    } else if (_selectedSex == 'Female') {
+      _isFemaleSelected = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +60,7 @@ class _OnboardingSexState extends State<OnboardingSex> {
               onPressed: _selectedSex == null
                   ? () {}
                   : () {
-                      widget.setName(_selectedSex!);
+                      widget.setSex(_selectedSex!);
                     },
             ),
           ],

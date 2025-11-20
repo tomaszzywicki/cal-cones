@@ -3,17 +3,32 @@ import 'package:frontend/features/user/presentation/widgets/onboarding_button.da
 
 class OnboardingWeight extends StatefulWidget {
   final Function(double weight) setWeight;
+  final double? initialWeight;
 
-  const OnboardingWeight({super.key, required this.setWeight});
+  const OnboardingWeight({super.key, required this.setWeight, this.initialWeight});
 
   @override
   State<OnboardingWeight> createState() => _OnboardingWeightState();
 }
 
 class _OnboardingWeightState extends State<OnboardingWeight> {
-  final TextEditingController _nameController = TextEditingController();
+  late TextEditingController _nameController;
 
   double _weight = 70;
+
+  @override
+  void initState() {
+    super.initState();
+    _weight = widget.initialWeight ?? 70;
+    _nameController = TextEditingController();
+    _nameController.text = _weight.toString();
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -4,8 +4,9 @@ import 'package:frontend/features/user/presentation/widgets/onboarding_button.da
 
 class OnboardingHeight extends StatefulWidget {
   final Function(int height) setHeight;
+  final int? initialHeight;
 
-  const OnboardingHeight({super.key, required this.setHeight});
+  const OnboardingHeight({super.key, required this.setHeight, this.initialHeight});
 
   @override
   State<OnboardingHeight> createState() => _OnboardingHeightState();
@@ -21,6 +22,7 @@ class _OnboardingHeightState extends State<OnboardingHeight> {
   @override
   void initState() {
     super.initState();
+    selectedHeight = widget.initialHeight ?? 175;
     _heightController = FixedExtentScrollController(initialItem: selectedHeight - minHeight);
   }
 

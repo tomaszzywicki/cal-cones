@@ -3,8 +3,15 @@ import 'package:frontend/features/user/presentation/widgets/onboarding_button.da
 
 class OnboardingDiet extends StatefulWidget {
   final Function(String name, Map<String, int>) setDietAndMacro;
+  final String? initialDietType;
+  final Map<String, int>? initialMacroSplit;
 
-  const OnboardingDiet({super.key, required this.setDietAndMacro});
+  const OnboardingDiet({
+    super.key,
+    required this.setDietAndMacro,
+    this.initialDietType,
+    this.initialMacroSplit,
+  });
 
   @override
   State<OnboardingDiet> createState() => _OnboardingDietState();
@@ -16,6 +23,18 @@ class _OnboardingDietState extends State<OnboardingDiet> {
   bool _isFirstSelected = false;
   bool _isSecondSelected = false;
   bool _isThirdSelected = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialDietType != null) {
+      _selectedActivityLevel = widget.initialDietType;
+      _macroSplit = widget.initialMacroSplit;
+      _isFirstSelected = _selectedActivityLevel == 'Standard';
+      _isSecondSelected = _selectedActivityLevel == 'Low Carb';
+      _isThirdSelected = _selectedActivityLevel == 'Low Fat';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

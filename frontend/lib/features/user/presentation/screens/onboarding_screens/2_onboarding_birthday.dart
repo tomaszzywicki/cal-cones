@@ -4,8 +4,17 @@ import 'package:frontend/features/user/presentation/widgets/onboarding_button.da
 
 class OnboardingBirthday extends StatefulWidget {
   final Function(int day, int month, int year) setBirthday;
+  final int? initialDay;
+  final int? initialMonth;
+  final int? initialYear;
 
-  const OnboardingBirthday({super.key, required this.setBirthday});
+  const OnboardingBirthday({
+    super.key,
+    required this.setBirthday,
+    this.initialDay,
+    this.initialMonth,
+    this.initialYear,
+  });
 
   @override
   State<OnboardingBirthday> createState() => _OnboardingBirthdayState();
@@ -23,18 +32,22 @@ class _OnboardingBirthdayState extends State<OnboardingBirthday> {
   @override
   void initState() {
     super.initState();
+    selectedDay = widget.initialDay ?? 15;
+    selectedMonth = widget.initialMonth ?? 6;
+    selectedYear = widget.initialYear ?? 2000;
+
     _dayController = FixedExtentScrollController(initialItem: selectedDay - 1);
     _monthController = FixedExtentScrollController(initialItem: selectedMonth - 1);
     _yearController = FixedExtentScrollController(initialItem: selectedYear - 1900);
   }
 
-  // @override
-  // void dispose() {
-  //   _dayController.dispose();
-  //   _monthController.dispose();
-  //   _yearController.dispose();
-  //   super.dispose();
-  // }
+  @override
+  void dispose() {
+    _dayController.dispose();
+    _monthController.dispose();
+    _yearController.dispose();
+    super.dispose();
+  }
 
   final List<String> _monthList = [
     "Jan",
