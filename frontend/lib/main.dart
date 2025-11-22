@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/app_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:frontend/core/logger/app_logger.dart';
+import 'package:frontend/core/network/connectivity_service.dart';
 import 'package:frontend/features/auth/services/auth_api_service.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
@@ -15,6 +16,7 @@ void main() async {
   await Firebase.initializeApp();
   AppLogger.info('[App] Firebase initialized');
 
+  final connectivityService = ConnectivityService()..initConnectivity();
   final firebaseAuthService = FirebaseAuthService();
   final authApiService = AuthApiService(firebaseAuthService);
   final currentUserService = CurrentUserService();
@@ -27,6 +29,7 @@ void main() async {
         Provider<FirebaseAuthService>.value(value: firebaseAuthService),
         Provider<AuthService>.value(value: authService),
         ChangeNotifierProvider<CurrentUserService>.value(value: currentUserService),
+        ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
       ],
       child: MainApp(),
     ),
