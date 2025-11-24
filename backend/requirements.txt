@@ -3,3 +3,11 @@ pydantic>=2.7.0,<3.0.0
 sqlalchemy == 2.0.44
 alembic == 1.17.1
 psycopg[binary,pool]
+pydantic[email,timezone]
+rich
+firebase-admin
+pytest
+pytest-asyncio           
+httpx                    
+pytest-cov              
+faker 

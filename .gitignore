@@ -3,5 +3,5 @@ __pycache__/
 *$py.class
 
 .env
+*api_client.dart
 cal-cones-firebase*
-.vscode

@@ -1,0 +1,56 @@
+from enum import Enum
+from sqlalchemy import String, Date, Integer, DateTime
+from sqlalchemy.dialects.postgresql import ENUM, BOOLEAN, JSON
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from datetime import date, datetime, timezone
+
+from app.core.database import Base
+from app.models.weight_log import WeightLog
+
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from app.models.goal import Goal
+    from app.models.weight_log import WeightLog
+    from app.models.product import Product
+
+
+class DietTypeEnum(str, Enum):
+    BALANCED = "BALANCED"
+    LOW_CARB = "LOW_CARB"
+    LOW_FAT = "LOW_FAT"
+
+
+class ActivityLevelEnum(str, Enum):
+    SEDENTARY = "SEDENTARY"
+    LIGHTLY_ACTIVE = "LIGHTLY_ACTIVE"
+    MODERATELY_ACTIVE = "MODERATELY_ACTIVE"
+    VERY_ACTIVE = "VERY_ACTIVE"
+    SUPER_ACTIVE = "SUPER_ACTIVE"
+
+
+class SexEnum(str, Enum):
+    MALE = "MALE"
+    FEMALE = "FEMALE"
+
+
+class User(Base):
+    __tablename__ = "users"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    uid: Mapped[str] = mapped_column(String(30), unique=True)  # TODO nie pamiętam ile to ma zmienić potem
+    email: Mapped[str] = mapped_column(String(100))
+    username: Mapped[str] = mapped_column(String(30), nullable=True, unique=True)
+    birthday: Mapped[date] = mapped_column(Date, nullable=True)
+    sex: Mapped[SexEnum] = mapped_column(ENUM(SexEnum), nullable=True)
+    height: Mapped[int] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.now(timezone.utc))
+    last_modified_at: Mapped[datetime] = mapped_column(DateTime)
+    diet_type: Mapped[DietTypeEnum] = mapped_column(ENUM(DietTypeEnum), nullable=True)
+    macro_split: Mapped[dict] = mapped_column(JSON, nullable=True)
+    activity_level: Mapped[ActivityLevelEnum] = mapped_column(ENUM(ActivityLevelEnum), nullable=True)
+    setup_completed: Mapped[bool] = mapped_column(BOOLEAN, default=False)
+
+    # Relationship
+    goals: Mapped[List["Goal"]] = relationship("Goal", back_populates="user")
+    weight_logs: Mapped[List["WeightLog"]] = relationship("WeightLog", back_populates="user")
+    products: Mapped[List["Product"]] = relationship("Product", back_populates="user")

@@ -1,12 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/app_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
+import 'package:frontend/core/logger/app_logger.dart';
+import 'package:frontend/core/network/connectivity_service.dart';
+import 'package:frontend/features/auth/services/auth_api_service.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
+import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/auth/services/firebase_auth_service.dart';
+import 'package:frontend/features/user/services/user_api_service.dart';
+import 'package:frontend/features/user/services/user_service.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  WidgetsFlutterBinding.ensureInitialized();
+  AppLogger.info('[App] Starting CalCones app...');
 
-  runApp(const MainApp());
+  await Firebase.initializeApp();
+  AppLogger.info('[App] Firebase initialized');
+
+  final connectivityService = ConnectivityService()..initConnectivity();
+  final firebaseAuthService = FirebaseAuthService();
+  final authApiService = AuthApiService(firebaseAuthService);
+  final currentUserService = CurrentUserService();
+  final authService = AuthService(firebaseAuthService, authApiService, currentUserService);
+  final userApiService = UserApiService(firebaseAuthService);
+  final userService = UserService(userApiService, currentUserService);
+
+  await currentUserService.initialize();
+  runApp(
+    MultiProvider(
+      providers: [
+        Provider<UserService>.value(value: userService),
+        Provider<FirebaseAuthService>.value(value: firebaseAuthService),
+        Provider<AuthService>.value(value: authService),
+        ChangeNotifierProvider<CurrentUserService>.value(value: currentUserService),
+        ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
+      ],
+      child: MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
