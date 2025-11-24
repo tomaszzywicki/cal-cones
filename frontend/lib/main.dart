@@ -7,6 +7,8 @@ import 'package:frontend/features/auth/services/auth_api_service.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/auth/services/firebase_auth_service.dart';
+import 'package:frontend/features/user/services/user_api_service.dart';
+import 'package:frontend/features/user/services/user_service.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -21,11 +23,14 @@ void main() async {
   final authApiService = AuthApiService(firebaseAuthService);
   final currentUserService = CurrentUserService();
   final authService = AuthService(firebaseAuthService, authApiService, currentUserService);
+  final userApiService = UserApiService(firebaseAuthService);
+  final userService = UserService(userApiService, currentUserService);
 
   await currentUserService.initialize();
   runApp(
     MultiProvider(
       providers: [
+        Provider<UserService>.value(value: userService),
         Provider<FirebaseAuthService>.value(value: firebaseAuthService),
         Provider<AuthService>.value(value: authService),
         ChangeNotifierProvider<CurrentUserService>.value(value: currentUserService),

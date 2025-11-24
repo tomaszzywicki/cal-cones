@@ -1,6 +1,6 @@
 """Pydantic models for User"""
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import date, datetime
 from app.models.user import DietTypeEnum, ActivityLevelEnum, SexEnum
 
@@ -37,3 +37,5 @@ class UserOnboardingResponse(BaseModel):
     start_weight: float
     target_weight: float
     tempo: float
+
+    model_config = ConfigDict(from_attributes=True)

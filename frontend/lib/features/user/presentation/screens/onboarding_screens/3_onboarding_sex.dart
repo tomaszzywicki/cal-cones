@@ -20,9 +20,9 @@ class _OnboardingSexState extends State<OnboardingSex> {
   void initState() {
     super.initState();
     _selectedSex = widget.initialSex;
-    if (_selectedSex == 'Male') {
+    if (_selectedSex == 'male') {
       _isMaleSelected = true;
-    } else if (_selectedSex == 'Female') {
+    } else if (_selectedSex == 'female') {
       _isFemaleSelected = true;
     }
   }
@@ -43,7 +43,7 @@ class _OnboardingSexState extends State<OnboardingSex> {
               setState(() {
                 _isMaleSelected = true;
                 _isFemaleSelected = false;
-                _selectedSex = 'Male';
+                _selectedSex = 'male';
               });
             }, _isMaleSelected ? Colors.grey : Color(0xFFFDF8FE)),
             SizedBox(height: 20),
@@ -51,7 +51,7 @@ class _OnboardingSexState extends State<OnboardingSex> {
               setState(() {
                 _isMaleSelected = false;
                 _isFemaleSelected = true;
-                _selectedSex = 'Female';
+                _selectedSex = 'female';
               });
             }, _isFemaleSelected ? Colors.grey : Color(0xFFFDF8FE)),
             Spacer(),
@@ -60,7 +60,7 @@ class _OnboardingSexState extends State<OnboardingSex> {
               onPressed: _selectedSex == null
                   ? () {}
                   : () {
-                      widget.setSex(_selectedSex!);
+                      widget.setSex(_selectedSex!.toUpperCase());
                     },
             ),
           ],

@@ -16,24 +16,22 @@ if TYPE_CHECKING:
 
 
 class DietTypeEnum(str, Enum):
-    BALANCED = "balanced"  # 40/30/30
-    MUSCLE_GAIN = "muscle_gain"  # 40/40/20
-    ENUDRANCE = "endurance"  # 60/20/20
-    KETO = "keto"  # 5/25/70
-    CUSTOM = "custom"  # custom
+    BALANCED = "BALANCED"
+    LOW_CARB = "LOW_CARB"
+    LOW_FAT = "LOW_FAT"
 
 
 class ActivityLevelEnum(str, Enum):
-    SEDENTARY = "sedentary"
-    LIGHTLY_ACTIVE = "lightly_active"
-    MODERATELY_ACTIVE = "moderately_active"
-    VERY_ACTIVE = "very_active"
-    SUPER_ACTIVE = "super_active"
+    SEDENTARY = "SEDENTARY"
+    LIGHTLY_ACTIVE = "LIGHTLY_ACTIVE"
+    MODERATELY_ACTIVE = "MODERATELY_ACTIVE"
+    VERY_ACTIVE = "VERY_ACTIVE"
+    SUPER_ACTIVE = "SUPER_ACTIVE"
 
 
 class SexEnum(str, Enum):
-    MALE = "male"
-    FEMALE = "female"
+    MALE = "MALE"
+    FEMALE = "FEMALE"
 
 
 class User(Base):

@@ -49,4 +49,14 @@ def complete_user_onboarding(
 
     logger.info(f"User onboarding completed for user_id={user.id} with goal_id={goal.uuid}")
 
-    return UserResponse.model_validate(user), GoalResponse.model_validate(goal)
+    # Debug logging
+    logger.debug(f"Goal object: {goal.__dict__}")
+    logger.debug(f"Goal fields: uuid={goal.uuid}, user_id={goal.user_id}")
+
+    try:
+        goal_response = GoalResponse.model_validate(goal)
+        return UserResponse.model_validate(user), goal_response
+    except Exception as e:
+        logger.error(f"GoalResponse validation failed: {e}")
+        logger.error(f"Goal data: {goal.__dict__}")
+        raise

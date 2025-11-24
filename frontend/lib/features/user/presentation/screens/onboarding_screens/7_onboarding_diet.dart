@@ -30,9 +30,9 @@ class _OnboardingDietState extends State<OnboardingDiet> {
     if (widget.initialDietType != null) {
       _selectedActivityLevel = widget.initialDietType;
       _macroSplit = widget.initialMacroSplit;
-      _isFirstSelected = _selectedActivityLevel == 'Standard';
-      _isSecondSelected = _selectedActivityLevel == 'Low Carb';
-      _isThirdSelected = _selectedActivityLevel == 'Low Fat';
+      _isFirstSelected = _selectedActivityLevel == 'balanced';
+      _isSecondSelected = _selectedActivityLevel == 'low_carb';
+      _isThirdSelected = _selectedActivityLevel == 'low_fat';
     }
   }
 
@@ -48,12 +48,12 @@ class _OnboardingDietState extends State<OnboardingDiet> {
             SizedBox(height: 100),
             Text('What is your diet type?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
             SizedBox(height: 50),
-            _dietContainer('Standard', 'Jakiś tam opis 1', () {
+            _dietContainer('Balanced', 'Jakiś tam opis 1', () {
               setState(() {
                 _isFirstSelected = true;
                 _isSecondSelected = false;
                 _isThirdSelected = false;
-                _selectedActivityLevel = 'Standard';
+                _selectedActivityLevel = 'balanced';
                 _macroSplit = {"Carbs": 40, "Protein": 30, "Fat": 30};
               });
             }, _isFirstSelected ? Colors.grey : Color(0xFFFDF8FE)),
@@ -63,7 +63,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
                 _isFirstSelected = false;
                 _isSecondSelected = true;
                 _isThirdSelected = false;
-                _selectedActivityLevel = 'Low Carb';
+                _selectedActivityLevel = 'low_carb';
                 _macroSplit = {"Carbs": 10, "Protein": 30, "Fat": 60};
               });
             }, _isSecondSelected ? Colors.grey : Color(0xFFFDF8FE)),
@@ -73,7 +73,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
                 _isFirstSelected = false;
                 _isSecondSelected = false;
                 _isThirdSelected = true;
-                _selectedActivityLevel = 'Low Fat';
+                _selectedActivityLevel = 'low_fat';
                 _macroSplit = {"Carbs": 60, "Protein": 30, "Fat": 10};
               });
             }, _isThirdSelected ? Colors.grey : Color(0xFFFDF8FE)),
@@ -88,7 +88,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
               onPressed: _selectedActivityLevel == null || _macroSplit == null
                   ? () {}
                   : () {
-                      widget.setDietAndMacro(_selectedActivityLevel!, _macroSplit!);
+                      widget.setDietAndMacro(_selectedActivityLevel!.toUpperCase(), _macroSplit!);
                     },
             ),
           ],

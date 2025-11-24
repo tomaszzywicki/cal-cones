@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/app_widget.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
+import 'package:frontend/features/user/presentation/screens/onboarding.dart';
 import 'package:frontend/main_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:provider/provider.dart';
@@ -22,24 +23,19 @@ class _SignupScreenState extends State<SignupScreen> {
 
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
-      final userModel = await authService.signUp(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
+      await authService.signUp(_emailController.text.trim(), _passwordController.text);
 
       if (mounted) {
         setState(() => _isLoading);
         Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => MainScreen()),
+          MaterialPageRoute(builder: (context) => Onboarding()),
           (route) => false,
         );
       }
     } on AuthException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) {
@@ -61,9 +57,7 @@ class _SignupScreenState extends State<SignupScreen> {
               TextFormField(controller: _passwordController),
               ElevatedButton(
                 onPressed: _isLoading ? null : signUp,
-                child: _isLoading
-                    ? CircularProgressIndicator()
-                    : Text('Sign Up'),
+                child: _isLoading ? CircularProgressIndicator() : Text('Sign Up'),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -71,9 +65,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   Text("Already have an account?"),
                   TextButton(
                     onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) => LoginScreen()),
-                      );
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginScreen()));
                     },
                     child: Text("Sign in"),
                   ),

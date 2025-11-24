@@ -1,4 +1,4 @@
-from pydantic import BaseModel, UUID4
+from pydantic import BaseModel, UUID4, ConfigDict
 from datetime import date, datetime
 
 
@@ -22,3 +22,5 @@ class GoalResponse(BaseModel):
     end_weight: float | None
     tempo: float
     is_current: bool
+
+    model_config = ConfigDict(from_attributes=True)

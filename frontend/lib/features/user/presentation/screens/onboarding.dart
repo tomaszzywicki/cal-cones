@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/network/connectivity_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/home/presentation/screens/home_screen.dart';
+import 'package:frontend/features/user/data/user_model.dart';
 import 'package:frontend/features/user/data/user_onboarding_model.dart';
+import 'package:frontend/features/user/presentation/screens/onboarding_screens/9_onboarding_final.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/1_onboarding_name.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/2_onboarding_birthday.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/3_onboarding_sex.dart';
@@ -8,13 +12,12 @@ import 'package:frontend/features/user/presentation/screens/onboarding_screens/4
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/5_onboarding_weight.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/6_onboarding_activity.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/7_onboarding_diet.dart';
-import 'package:frontend/features/user/presentation/screens/onboarding_screens/9_onboarding_goal_data.dart';
-import 'package:frontend/features/user/presentation/screens/onboarding_screens/goal_setup.dart';
-import 'package:frontend/features/user/presentation/screens/onboarding_screens/onboarding_summary.dart';
+import 'package:frontend/features/user/presentation/screens/onboarding_screens/8_onboarding_goal_data.dart';
+import 'package:frontend/features/user/services/user_service.dart';
 import 'package:frontend/main_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:frontend/core/logger/app_logger.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend/core/logger/app_logger.dart';
 
 class Onboarding extends StatefulWidget {
   const Onboarding({super.key});
@@ -65,6 +68,7 @@ class _Onboarding extends State<Onboarding> {
   void _updateWeight(double weight) {
     setState(() => _startWeight = weight);
     _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    AppLogger.debug("setting weight: $weight");
   }
 
   void _updateActivityLevel(String activityLevel) {
@@ -90,8 +94,12 @@ class _Onboarding extends State<Onboarding> {
     _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
   }
 
-  void _saveOnboardingInfo() {
-    final currentUserService = Provider.of<CurrentUserService>(context, listen: false);
+  Future<void> _saveOnboardingInfo() async {
+    final connectivityService = context.read<ConnectivityService>();
+    final currentUserService = context.read<CurrentUserService>();
+    final userService = context.read<UserService>();
+    bool isConnected = connectivityService.isConnected;
+
     final userOnboardingModel = UserOnboardingModel(
       id: currentUserService.currentUser!.id!,
       uid: currentUserService.currentUser!.uid,
@@ -102,13 +110,32 @@ class _Onboarding extends State<Onboarding> {
       dietType: _dietType!,
       macroSplit: _macroSplit!,
       activityLevel: _activityLevel!,
-      startDate: DateTime(2025, 10, 10),
-      targetDate: DateTime(2025, 11, 10),
+      startDate: _startDate!,
+      targetDate: _targetDate!,
       startWeight: _startWeight!,
       targetWeight: _targetWeight!,
       tempo: _tempo!,
     );
+
     AppLogger.debug("saving onbording info. ${userOnboardingModel.toJson()}");
+    if (!isConnected) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Check internet connection and try again')));
+    } else {
+      try {
+        await userService.saveOnboardingInfo(userOnboardingModel);
+        AppLogger.info("Onboarding info saved successfully.");
+        Navigator.of(
+          context,
+        ).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const MainScreen()), (route) => false);
+      } catch (e) {
+        AppLogger.error("Error saving onboarding info: $e");
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error saving data. Please try again.')));
+      }
+    }
   }
 
   @override
@@ -151,7 +178,18 @@ class _Onboarding extends State<Onboarding> {
         initialTempo: _tempo,
         currentWeight: _startWeight,
       ),
-      OnboardingSummary(),
+      OnboardingFinal(
+        finishOnboarding: () => _saveOnboardingInfo(),
+        name: _name,
+        birthday: _birthday,
+        sex: _sex,
+        height: _height,
+        startWeight: _startWeight,
+        targetWeight: _targetWeight,
+        activityLevel: _activityLevel,
+        dietType: _dietType,
+        targetDate: _targetDate,
+      ),
     ];
     return Scaffold(
       body: Column(

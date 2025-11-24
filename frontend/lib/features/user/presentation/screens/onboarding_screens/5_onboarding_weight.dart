@@ -12,7 +12,7 @@ class OnboardingWeight extends StatefulWidget {
 }
 
 class _OnboardingWeightState extends State<OnboardingWeight> {
-  late TextEditingController _nameController;
+  late TextEditingController _weightController;
 
   double _weight = 70;
 
@@ -20,13 +20,13 @@ class _OnboardingWeightState extends State<OnboardingWeight> {
   void initState() {
     super.initState();
     _weight = widget.initialWeight ?? 70;
-    _nameController = TextEditingController();
-    _nameController.text = _weight.toString();
+    _weightController = TextEditingController();
+    _weightController.text = _weight.toString();
   }
 
   @override
   void dispose() {
-    _nameController.dispose();
+    _weightController.dispose();
     super.dispose();
   }
 
@@ -44,7 +44,7 @@ class _OnboardingWeightState extends State<OnboardingWeight> {
             Text('Tu ogólnie też tak jak birthday ma być'),
             SizedBox(height: 100),
             TextField(
-              controller: _nameController,
+              controller: _weightController,
               decoration: InputDecoration(hintText: 'Weight'),
               keyboardType: TextInputType.numberWithOptions(),
             ),
@@ -52,7 +52,7 @@ class _OnboardingWeightState extends State<OnboardingWeight> {
             OnboardingButton(
               text: 'Next',
               onPressed: () {
-                widget.setWeight(_weight);
+                widget.setWeight(double.parse(_weightController.text));
               },
             ),
           ],

@@ -30,7 +30,7 @@ class UserModel extends UserEntity {
       createdAt: DateTime.parse(json['created_at'] as String),
       lastModifiedAt: DateTime.parse(json['last_modified_at'] as String),
       dietType: json['diet_type'] as String?,
-      macroSplit: json['macro_split'] as Map<String, int>?,
+      macroSplit: json['macro_split'] as Map<String, dynamic>?,
       activityLevel: json['activity_level'] as String?,
       setupCompleted: json['setup_completed'] as bool,
     );

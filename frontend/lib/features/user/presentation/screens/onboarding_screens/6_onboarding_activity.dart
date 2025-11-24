@@ -22,9 +22,9 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
     super.initState();
     if (widget.initialActivityLevel != null) {
       _selectedActivityLevel = widget.initialActivityLevel;
-      _isFirstSelected = _selectedActivityLevel == 'Setendary';
-      _isSecondSelected = _selectedActivityLevel == 'Moderately Active';
-      _isThirdSelected = _selectedActivityLevel == 'Very Active';
+      _isFirstSelected = _selectedActivityLevel == 'sedentary';
+      _isSecondSelected = _selectedActivityLevel == 'moderately_active';
+      _isThirdSelected = _selectedActivityLevel == 'very_active';
     }
   }
 
@@ -40,12 +40,12 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
             SizedBox(height: 100),
             Text('What is your activity level?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
             SizedBox(height: 50),
-            _activityContainer('Mostly Setendary', 'Jakiś tam opis 1', () {
+            _activityContainer('Mostly Sedentary', 'Jakiś tam opis 1', () {
               setState(() {
                 _isFirstSelected = true;
                 _isSecondSelected = false;
                 _isThirdSelected = false;
-                _selectedActivityLevel = 'Setendary';
+                _selectedActivityLevel = 'sedentary';
               });
             }, _isFirstSelected ? Colors.grey : Color(0xFFFDF8FE)),
             SizedBox(height: 10),
@@ -54,7 +54,7 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
                 _isFirstSelected = false;
                 _isSecondSelected = true;
                 _isThirdSelected = false;
-                _selectedActivityLevel = 'Setendary';
+                _selectedActivityLevel = 'moderately_active';
               });
             }, _isSecondSelected ? Colors.grey : Color(0xFFFDF8FE)),
             SizedBox(height: 10),
@@ -63,7 +63,7 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
                 _isFirstSelected = false;
                 _isSecondSelected = false;
                 _isThirdSelected = true;
-                _selectedActivityLevel = 'Setendary';
+                _selectedActivityLevel = 'very_active';
               });
             }, _isThirdSelected ? Colors.grey : Color(0xFFFDF8FE)),
 
@@ -73,7 +73,7 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
               onPressed: _selectedActivityLevel == null
                   ? () {}
                   : () {
-                      widget.setActivityLevel(_selectedActivityLevel!);
+                      widget.setActivityLevel(_selectedActivityLevel!.toUpperCase());
                     },
             ),
           ],

@@ -5,7 +5,7 @@ class OnboardingName extends StatefulWidget {
   final Function(String name) setName;
   final String? initialName;
 
-  const OnboardingName({super.key, required this.setName, required this.initialName});
+  const OnboardingName({super.key, required this.setName, this.initialName});
 
   @override
   State<OnboardingName> createState() => _OnboardingNameState();
@@ -13,6 +13,7 @@ class OnboardingName extends StatefulWidget {
 
 class _OnboardingNameState extends State<OnboardingName> {
   late TextEditingController _nameController;
+  bool _isValid = false;
 
   @override
   void initState() {
@@ -20,33 +21,81 @@ class _OnboardingNameState extends State<OnboardingName> {
     _nameController = TextEditingController(text: widget.initialName ?? '');
   }
 
+  void validateName() {
+    setState(() {
+      _isValid = _nameController.text.trim().isNotEmpty;
+    });
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(height: 150),
-            Text('What is your name?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-            SizedBox(height: 100),
-            TextField(
-              controller: _nameController,
-              decoration: InputDecoration(hintText: 'Your name'),
-            ),
-            Spacer(),
-            OnboardingButton(
-              text: 'Next',
-              onPressed: () {
-                if (_nameController.text.isNotEmpty) {
-                  widget.setName(_nameController.text);
-                }
-              },
-            ),
-          ],
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(), // to żeby ukryć klawiaturę po kliknięciu na ekran
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 150),
+                      const Text(
+                        'What is your name?',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
+                      ),
+                      const SizedBox(height: 100),
+                      TextField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          hintText: 'Your name',
+                          border: OutlineInputBorder(),
+                        ),
+                        textInputAction: TextInputAction.done,
+                        onSubmitted: (_) => _handleNext(),
+                      ),
+                      SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
+                    ],
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                child: OnboardingButton(text: 'Next', onPressed: _handleNext),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  void _handleNext() async {
+    validateName();
+
+    if (!_isValid) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter your name'), duration: Duration(seconds: 2)));
+      return;
+    }
+
+    // Ukrycie klawiaturę
+    FocusScope.of(context).unfocus();
+
+    await Future.delayed(const Duration(milliseconds: 200));
+
+    if (mounted) {
+      widget.setName(_nameController.text.trim());
+    }
   }
 }

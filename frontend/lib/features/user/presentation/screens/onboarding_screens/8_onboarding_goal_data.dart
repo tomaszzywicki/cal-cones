@@ -52,6 +52,7 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
     if (widget.currentWeight != null) {
       _calculateTargetDate();
     }
+    AppLogger.debug('Initial weight: ${widget.currentWeight}');
   }
 
   void _calculateTargetDate() {
@@ -75,9 +76,6 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
     setState(() {
       _targetDate = _startDate.add(Duration(days: weeksNeeded * 7));
     });
-    AppLogger.debug(
-      "Weight difference: $weightDifference kg, Weeks needed: $weeksNeeded, Target date: $_targetDate",
-    );
   }
 
   Future<void> _pickTargetDate() async {
@@ -368,8 +366,11 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
               child: OnboardingButton(
                 text: 'Next',
                 onPressed: _targetDate == null
-                    ? () {}
+                    ? () {
+                        AppLogger.debug('Target date is null');
+                      }
                     : () {
+                        AppLogger.debug('Test');
                         widget.setGoalData(_startDate, _targetDate!, _targetWeight, _tempo);
                       },
               ),

@@ -17,28 +17,14 @@ class _LandingPageState extends State<LandingPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Welcome to CalCones App"),
-            Placeholder(color: Color(0xFF455A64), fallbackWidth: 300.0, fallbackHeight: 300.0),
+            Text("Welcome to CalCones App", style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
+            SizedBox(height: 50),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignupScreen()));
               },
               child: Text("Get started"),
             ),
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.center,
-            //   children: [
-            //     Text("Already have an account?"),
-            //     TextButton(
-            //       onPressed: () {
-            //         Navigator.of(context).push(
-            //           MaterialPageRoute(builder: (context) => LoginScreen()),
-            //         );
-            //       },
-            //       child: Text("Sign in"),
-            //     ),
-            //   ],
-            // ),
           ],
         ),
       ),
