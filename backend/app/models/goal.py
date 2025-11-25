@@ -1,7 +1,6 @@
 from datetime import datetime
 from pydantic import UUID4
-from uuid import uuid4
-from sqlalchemy import Boolean, String, Date, Integer, DateTime, ForeignKey, Float
+from sqlalchemy import DateTime, ForeignKey, Float
 from sqlalchemy.dialects.postgresql import UUID, BOOLEAN
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 

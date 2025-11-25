@@ -3,7 +3,7 @@ import 'package:frontend/features/auth/services/firebase_auth_service.dart';
 import 'package:http/http.dart' as http;
 
 class ApiClient {
-  static const String baseUrl = 'https://proceeding-billing-waiver-built.trycloudflare.com';
+  static const String baseUrl = 'http://35.184.215.20:8000';
   final FirebaseAuthService _firebaseAuthService;
 
   ApiClient(this._firebaseAuthService);

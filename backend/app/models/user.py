@@ -1,8 +1,9 @@
-from enum import Enum
+# from enum import Enum
 from sqlalchemy import String, Date, Integer, DateTime
 from sqlalchemy.dialects.postgresql import ENUM, BOOLEAN, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date, datetime, timezone
+from enum import Enum
 
 from app.core.database import Base
 from app.models.weight_log import WeightLog
