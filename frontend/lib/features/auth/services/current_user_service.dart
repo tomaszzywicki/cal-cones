@@ -24,9 +24,7 @@ class CurrentUserService extends ChangeNotifier {
     AppLogger.debug('[$_tag] Initializing CurrentUserService...');
     await _loadUserFromStorage();
     _isInitialized = true;
-    AppLogger.info(
-      '[$_tag] CurrentUserService initialized. User logged in: $isLoggedIn',
-    );
+    AppLogger.info('[$_tag] CurrentUserService initialized. User logged in: $isLoggedIn');
   }
 
   Future<void> setUser(UserModel user) async {
@@ -60,9 +58,7 @@ class CurrentUserService extends ChangeNotifier {
       if (userJson != null) {
         final userData = jsonDecode(userJson);
         _currentUser = UserModel.fromMap(userData);
-        AppLogger.debug(
-          '[$_tag] User loaded from storage: ${_currentUser!.email}',
-        );
+        AppLogger.debug('[$_tag] User loaded from storage: ${_currentUser!.email}');
       } else {
         AppLogger.debug('[$_tag] No user found in storage');
       }
