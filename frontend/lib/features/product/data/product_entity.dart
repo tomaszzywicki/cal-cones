@@ -1,0 +1,31 @@
+class ProductEntity {
+  int? id;
+  String? uuid;
+  int userId;
+  String name;
+  String? manufacturer;
+  int kcal;
+  double carbs;
+  double protein;
+  double fat;
+  DateTime createdAt;
+  DateTime lastModifiedAt;
+  bool fromModel;
+  bool isSynced;
+
+  ProductEntity({
+    this.id,
+    this.uuid,
+    required this.userId,
+    required this.name,
+    this.manufacturer,
+    required this.kcal,
+    required this.carbs,
+    required this.protein,
+    required this.fat,
+    required this.createdAt,
+    required this.lastModifiedAt,
+    this.fromModel = false,
+    this.isSynced = false,
+  });
+}

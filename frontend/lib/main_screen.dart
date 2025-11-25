@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:frontend/features/home/presentation/screens/home_screen.dart';
-import 'package:frontend/features/meal_log/presentation/meal_log_screen.dart';
+import 'package:frontend/features/meal_log/presentation/screens/meal_log_screen.dart';
 import 'package:frontend/features/other/presentation/screens/other_screen.dart';
 import 'package:frontend/features/temp/presentation/screens/user_info.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding.dart';
@@ -16,7 +16,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  int _currentIndex = 1;
 
   final List<Widget> _screens = [HomeScreen(), MealLogScreen(), DashboardScreen(), OtherScreen()];
   @override
