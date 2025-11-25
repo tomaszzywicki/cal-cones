@@ -5,6 +5,14 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.core.database import Base
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.meal import Meal
+    from app.models.product import Product
+    from app.models.unit import Unit
+
 
 class MealProduct(Base):
     __tablename__ = "meal_products"

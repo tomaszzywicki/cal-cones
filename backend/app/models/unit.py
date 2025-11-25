@@ -3,6 +3,10 @@ from sqlalchemy import Boolean, Float, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import ENUM
 from app.core.database import Base
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from app.models.meal_product import MealProduct
 
 
 class UnitTypeEnum(str, Enum):
@@ -22,4 +26,4 @@ class Unit(Base):
     base_unit: Mapped[bool] = mapped_column(Boolean, default=False)
 
     # Relationships
-    meal_products = relationship("MealProduct", back_populates="unit")
+    meal_products: Mapped[List["MealProduct"]] = relationship("MealProduct", back_populates="unit")

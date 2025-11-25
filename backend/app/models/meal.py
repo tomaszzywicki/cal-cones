@@ -5,6 +5,12 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID
 from app.core.database import Base
 
+from typing import TYPE_CHECKING, List
+
+if TYPE_CHECKING:
+    from app.models.user import User
+    from app.models.meal_product import MealProduct
+
 
 class Meal(Base):
     __tablename__ = "meals"
@@ -23,5 +29,5 @@ class Meal(Base):
     last_modified_at: Mapped[datetime] = mapped_column(DateTime)
 
     # Relationships
-    user = relationship("User", back_populates="meals")
-    meal_products = relationship("MealProduct", back_populates="meal")
+    user: Mapped["User"] = relationship("User", back_populates="meals")
+    meal_products: Mapped[List["MealProduct"]] = relationship("MealProduct", back_populates="meal")
