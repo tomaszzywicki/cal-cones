@@ -39,3 +39,15 @@ class UserOnboardingResponse(BaseModel):
     tempo: float
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UserProfileUpdate(BaseModel):
+    id: int
+    username: str | None = None
+    birthday: date | None = None
+    height: int | None = None
+    diet_type: DietTypeEnum | None = None
+    macro_split: dict | None = None
+    activity_level: ActivityLevelEnum | None = None
+
+    model_config = ConfigDict(from_attributes=True)
