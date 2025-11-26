@@ -6,3 +6,4 @@ __pycache__/
 model/data/
 model/model_env
 model/__pycache__/
+model/classification_models/
