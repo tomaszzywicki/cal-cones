@@ -6,6 +6,13 @@ class DateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(child: Row(children: [Icon(Icons.calendar_month), Text(text)]));
+    return Container(
+      width: 150,
+      height: 50,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [Icon(Icons.calendar_month), SizedBox(width: 5), Text(text)],
+      ),
+    );
   }
 }
