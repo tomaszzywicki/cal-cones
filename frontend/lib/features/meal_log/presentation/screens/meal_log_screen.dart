@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/meal/data/meal_entity.dart';
+import 'package:frontend/features/meal/data/meal_model.dart';
+import 'package:frontend/features/meal/presentation/screens/meal_page.dart';
 import 'package:frontend/features/meal_log/presentation/widgets/date_widget.dart';
 import 'package:frontend/features/meal_log/presentation/widgets/macro_line.dart';
 import 'package:frontend/features/meal_log/presentation/widgets/meal_card.dart';
@@ -16,9 +17,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
   String _dateString = "Today";
   bool _isLoading = false;
 
-  List<MealEntity> meals = [
-    MealEntity(userId: 1, name: 'Breakfast', totalKcal: 300),
-    MealEntity(userId: 1, name: 'Lunch', totalKcal: 600),
+  List<MealModel> meals = [
+    MealModel(userId: 1, name: 'Breakfast', totalKcal: 300),
+    MealModel(userId: 1, name: 'Lunch', totalKcal: 600),
   ]; // for now mocked
 
   void _goToPreviousDay() {
@@ -84,7 +85,12 @@ class _MealLogScreenState extends State<MealLogScreen> {
             Expanded(
               child: ListView.builder(
                 itemCount: meals.length,
-                itemBuilder: (context, index) => MealCard(meal: meals[index], onTap: () {}),
+                itemBuilder: (context, index) => MealCard(
+                  meal: meals[index],
+                  onTap: () => Navigator.of(
+                    context,
+                  ).push(MaterialPageRoute(builder: (_) => MealPage(meal: meals[index]))),
+                ),
               ),
             ),
           ],
