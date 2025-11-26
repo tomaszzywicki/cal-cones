@@ -23,8 +23,8 @@ class Meal(Base):
     total_carbs: Mapped[float] = mapped_column(Float)
     total_protein: Mapped[float] = mapped_column(Float)
     total_fat: Mapped[float] = mapped_column(Float)
-    notes: Mapped[str] = mapped_column(String)
-    consumed_at: Mapped[datetime] = mapped_column(DateTime)
+    notes: Mapped[str] = mapped_column(String, nullable=True)
+    consumed_at: Mapped[datetime] = mapped_column(DateTime)  # na razie załóżmy że to to samo xd
     created_at: Mapped[datetime] = mapped_column(DateTime)
     last_modified_at: Mapped[datetime] = mapped_column(DateTime)
 
