@@ -6,6 +6,10 @@ from fastapi.responses import JSONResponse
 from app.core.logger_setup import get_logger
 from app.features.auth.router import router as auth_router
 from app.features.user.router import router as user_router
+from app.features.goal.router import router as goal_router
+from app.features.meal.router import router as meal_router
+from app.features.product.router import router as product_router
+
 from app.core.firebase import initialize_firebase
 from app.core.dependencies import verify_firebase_token, get_current_user_uid
 
@@ -15,6 +19,9 @@ app = FastAPI(title="CalCones API", description="API for CalCones app", version=
 
 app.include_router(auth_router)
 app.include_router(user_router)
+app.include_router(goal_router)
+app.include_router(meal_router)
+app.include_router(product_router)
 
 initialize_firebase()
 
