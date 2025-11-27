@@ -48,30 +48,51 @@ class _SignupScreenState extends State<SignupScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: Form(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text("Create an account"),
-              TextFormField(controller: _emailController),
-              TextFormField(controller: _passwordController),
-              ElevatedButton(
-                onPressed: _isLoading ? null : signUp,
-                child: _isLoading ? CircularProgressIndicator() : Text('Sign Up'),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Already have an account?"),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginScreen()));
-                    },
-                    child: Text("Sign in"),
+        child: SafeArea(
+          child: Form(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Create an account", style: Theme.of(context).textTheme.headlineLarge),
+                SizedBox(height: 50),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4.0),
+                  child: TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(hintText: "Email"),
                   ),
-                ],
-              ),
-            ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 4.0),
+                  child: TextFormField(
+                    controller: _passwordController,
+                    obscureText: true,
+                    decoration: InputDecoration(hintText: "Password"),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16.0),
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : signUp,
+                    child: _isLoading ? CircularProgressIndicator() : Text('Sign Up'),
+                  ),
+                ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text("Already have an account?"),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginScreen()));
+                      },
+                      child: Text("Sign in"),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -32,38 +32,40 @@ class _OnboardingSexState extends State<OnboardingSex> {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
 
-          children: [
-            SizedBox(height: 100),
-            Text('What is your sex?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-            SizedBox(height: 100),
-            _sexContainer('Male', () {
-              setState(() {
-                _isMaleSelected = true;
-                _isFemaleSelected = false;
-                _selectedSex = 'male';
-              });
-            }, _isMaleSelected ? Colors.grey : Color(0xFFFDF8FE)),
-            SizedBox(height: 20),
-            _sexContainer('Female', () {
-              setState(() {
-                _isMaleSelected = false;
-                _isFemaleSelected = true;
-                _selectedSex = 'female';
-              });
-            }, _isFemaleSelected ? Colors.grey : Color(0xFFFDF8FE)),
-            Spacer(),
-            OnboardingButton(
-              text: 'Next',
-              onPressed: _selectedSex == null
-                  ? () {}
-                  : () {
-                      widget.setSex(_selectedSex!.toUpperCase());
-                    },
-            ),
-          ],
+            children: [
+              SizedBox(height: 100),
+              Text('What is your sex?', style: TextTheme.of(context).headlineLarge),
+              SizedBox(height: 100),
+              _sexContainer('Male', () {
+                setState(() {
+                  _isMaleSelected = true;
+                  _isFemaleSelected = false;
+                  _selectedSex = 'male';
+                });
+              }, _isMaleSelected ? Color(0xFF7C98A5) : Color(0xFFFDF8FE)),
+              SizedBox(height: 20),
+              _sexContainer('Female', () {
+                setState(() {
+                  _isMaleSelected = false;
+                  _isFemaleSelected = true;
+                  _selectedSex = 'female';
+                });
+              }, _isFemaleSelected ? Color(0xFF7C98A5) : Color(0xFFFDF8FE)),
+              Spacer(),
+              OnboardingButton(
+                text: 'Next',
+                onPressed: _selectedSex == null
+                    ? () {}
+                    : () {
+                        widget.setSex(_selectedSex!.toUpperCase());
+                      },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -77,9 +79,10 @@ Widget _sexContainer(text, onTap, color) {
       width: double.infinity,
       height: 100,
       decoration: BoxDecoration(
-        border: BoxBorder.all(color: Colors.black),
+        border: BoxBorder.all(color: Color(0xFF0E3141), width: 2),
         borderRadius: BorderRadius.circular(10),
         color: color,
+        // color: Color(0xFF0F465D),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
