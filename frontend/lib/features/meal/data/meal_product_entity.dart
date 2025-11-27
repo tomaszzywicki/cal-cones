@@ -1,9 +1,9 @@
 class MealProductEntity {
   int? id;
   String? uuid;
-  int mealId;
+  int? mealId;
   String? mealUuid;
-  int userId;
+  int? userId;
   int productId;
   String? productUuid;
   String name;

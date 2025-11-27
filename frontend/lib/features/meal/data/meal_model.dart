@@ -4,7 +4,7 @@ class MealModel extends MealEntity {
   MealModel({
     super.id,
     super.uuid,
-    required super.userId,
+    super.userId,
     super.name,
     super.totalKcal,
     super.totalCarbs,

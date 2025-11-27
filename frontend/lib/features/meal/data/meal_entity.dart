@@ -1,7 +1,7 @@
 class MealEntity {
   int? id;
   String? uuid;
-  int userId;
+  int? userId;
   String? name;
   int? totalKcal;
   double? totalCarbs;

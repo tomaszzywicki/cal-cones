@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/enums/app_enums.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:frontend/features/home/presentation/screens/home_screen.dart';
+import 'package:frontend/features/meal/data/meal_model.dart';
+import 'package:frontend/features/meal/presentation/screens/meal_page.dart';
 import 'package:frontend/features/meal_log/presentation/screens/meal_log_screen.dart';
 import 'package:frontend/features/other/presentation/screens/other_screen.dart';
+import 'package:frontend/features/product/data/product_model.dart';
+import 'package:frontend/features/product/presentation/screens/product_details_page.dart';
+import 'package:frontend/features/product/presentation/screens/product_search_page.dart';
 import 'package:frontend/features/temp/presentation/screens/user_info.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding.dart';
+import 'package:frontend/show_menu_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
@@ -24,16 +31,26 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        currentIndex: _currentIndex >= 2 ? _currentIndex + 1 : _currentIndex,
+        onTap: (index) => _onBottomNavTap(index),
         type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Meal Log'),
+          BottomNavigationBarItem(icon: Icon(Icons.add_circle_sharp, size: 40), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
           BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Other'),
         ],
       ),
     );
+  }
+
+  void _onBottomNavTap(int index) {
+    if (index == 2) {
+      ShowMenuBottomSheet.show(context);
+      return;
+    }
+    int pageIndex = index >= 2 ? index - 1 : index;
+    setState(() => _currentIndex = pageIndex);
   }
 }

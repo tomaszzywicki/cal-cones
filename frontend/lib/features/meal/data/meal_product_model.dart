@@ -4,9 +4,9 @@ class MealProductModel extends MealProductEntity {
   MealProductModel({
     super.id,
     super.uuid,
-    required super.mealId,
+    super.mealId,
     super.mealUuid,
-    required super.userId,
+    super.userId,
     required super.productId,
     super.productUuid,
     required super.name,

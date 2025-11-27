@@ -71,6 +71,7 @@ class CurrentUserService extends ChangeNotifier {
   Future<void> _saveUserToStorage(UserModel user) async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      user.id ??= 1;
       final userMap = jsonEncode(user.toMap());
       await prefs.setString(_userKey, userMap);
       AppLogger.debug('[$_tag] User saved to storage');
