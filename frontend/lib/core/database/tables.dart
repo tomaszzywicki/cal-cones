@@ -51,30 +51,30 @@ Future<void> initTables(Database db, int version) async {
     )
 ''');
 
-  await db.execute('''
-    CREATE TABLE meals (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      uuid TEXT,
-      user_id INTEGER NOT NULL,
-      name TEXT,
-      total_kcal INTEGER,
-      total_carbs REAL,
-      total_protein REAL,
-      total_fat REAL,
-      notes TEXT,
-      consumed_at TEXT,
-      created_at TEXT,
-      last_modified_at TEXT,
-      is_synced INTEGER NOT NULL DEFAULT 0
-    )
-''');
+  //   await db.execute('''
+  //     CREATE TABLE meals (
+  //       id INTEGER PRIMARY KEY AUTOINCREMENT,
+  //       uuid TEXT,
+  //       user_id INTEGER NOT NULL,
+  //       name TEXT,
+  //       total_kcal INTEGER,
+  //       total_carbs REAL,
+  //       total_protein REAL,
+  //       total_fat REAL,
+  //       notes TEXT,
+  //       consumed_at TEXT,
+  //       created_at TEXT,
+  //       last_modified_at TEXT,
+  //       is_synced INTEGER NOT NULL DEFAULT 0
+  //     )
+  // ''');
 
   await db.execute(''' 
   CREATE TABLE meal_products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     uuid TEXT,
-    meal_id INTEGER NOT NULL,
-    meal_uuid TEXT,
+    -- meal_id INTEGER NOT NULL,
+    -- meal_uuid TEXT,
     user_id INTEGER NOT NULL,
     product_id INTEGER NOT NULL,
     product_uuid TEXT,
@@ -93,8 +93,8 @@ Future<void> initTables(Database db, int version) async {
     last_modified_at TEXT NOT NULL,
     is_synced INTEGER NOT NULL DEFAULT 0,
 
-    FOREIGN KEY (meal_id) REFERENCES meals(id) ON DELETE CASCADE,
-    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+    -- FOREIGN KEY (meal_id) REFERENCES meals(id) ON DELETE CASCADE,
+    -- FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
   )
   ''');
 

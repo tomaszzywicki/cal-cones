@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/enums/app_enums.dart';
 import 'package:frontend/features/meal/data/meal_model.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
-import 'package:frontend/features/meal/presentation/screens/meal_page.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
 import 'package:frontend/features/product/data/product_model.dart';
 import 'package:frontend/features/product/presentation/screens/product_details_page.dart';
@@ -65,55 +64,18 @@ class ShowMenuBottomSheet extends StatelessWidget {
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    navigator.pop(); // Zamknij bottom sheet
+    navigator.pop(); // na końcu zamykamy bottom sheet
 
-    // Krok 1: Wybierz produkt
+    // przekazujemy wybrany produkt z ProductSearchPage
     final product = await navigator.push<ProductModel?>(
       MaterialPageRoute(builder: (context) => const ProductSearchPage()),
     );
 
     if (product == null) return;
 
-    // Krok 2: Product details z wyborem ilości
     final result = await navigator.push<Map<String, dynamic>?>(
       MaterialPageRoute(
         builder: (context) => ProductDetailsPage(product: product, mode: ProductPageMode.addToMeal),
-      ),
-    );
-
-    if (result == null) return;
-
-    final selectedProduct = result['product'] as ProductModel;
-    final amount = result['amount'] as double;
-    final unit = result['unit'] as String;
-
-    // ✅ Krok 3: Stwórz PENDING meal (bez zapisywania do DB)
-    final pendingMeal = MealModel(name: 'New Meal', consumedAt: DateTime.now());
-
-    // ✅ Stwórz PENDING meal product (też bez zapisywania)
-    final pendingMealProduct = MealProductModel(
-      productId: selectedProduct.id!,
-      name: selectedProduct.name,
-      manufacturer: selectedProduct.manufacturer,
-      kcal: selectedProduct.kcal,
-      carbs: selectedProduct.carbs,
-      protein: selectedProduct.protein,
-      fat: selectedProduct.fat,
-      unitId: 1,
-      unitShort: unit,
-      conversionFactor: 1.0,
-      amount: amount,
-      createdAt: DateTime.now(),
-      lastModifiedAt: DateTime.now(),
-    );
-
-    // ✅ Krok 4: Otwórz MealPage z pending data
-    await navigator.push(
-      MaterialPageRoute(
-        builder: (context) => MealPage(
-          meal: pendingMeal,
-          initialProducts: [pendingMealProduct], // ✅ Przekaż pending products
-        ),
       ),
     );
   }
@@ -127,11 +89,11 @@ class ShowMenuBottomSheet extends StatelessWidget {
   }
 
   static Future<void> _handleAddMeal(BuildContext context) async {
-    final navigator = Navigator.of(context);
-    navigator.pop();
+    // final navigator = Navigator.of(context);
+    // navigator.pop();
 
-    final newMeal = MealModel(name: 'New Meal', consumedAt: DateTime.now());
-    await navigator.push(MaterialPageRoute(builder: (context) => MealPage(meal: newMeal)));
+    // final newMeal = MealModel(name: 'New Meal', consumedAt: DateTime.now());
+    // await navigator.push(MaterialPageRoute(builder: (context) => MealPage(meal: newMeal)));
   }
 }
 

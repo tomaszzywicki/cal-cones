@@ -8,6 +8,7 @@ import 'package:frontend/features/auth/services/auth_api_service.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/auth/services/firebase_auth_service.dart';
+import 'package:frontend/features/meal/services/day_macro_provider.dart';
 import 'package:frontend/features/meal/services/meal_api_service.dart';
 import 'package:frontend/features/meal/services/meal_repository.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
@@ -36,12 +37,13 @@ void main() async {
   final userService = UserService(userApiService, currentUserService);
   // product
   final productRepository = ProductRepository(localDatabaseService);
-  final productService = ProductService(productRepository);
+  final productService = ProductService(productRepository, currentUserService);
 
   // meal
   final mealApiService = MealApiService(firebaseAuthService);
   final mealRepository = MealRepository(localDatabaseService);
-  final mealService = MealService(mealApiService, mealRepository, currentUserService);
+  final mealService = MealService(mealApiService, currentUserService, mealRepository);
+  final dayMacroProvider = DayMacroProvider();
 
   await currentUserService.initialize();
   runApp(
@@ -54,6 +56,7 @@ void main() async {
         Provider<MealService>.value(value: mealService),
         ChangeNotifierProvider<CurrentUserService>.value(value: currentUserService),
         ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
+        ChangeNotifierProvider<DayMacroProvider>.value(value: dayMacroProvider),
       ],
       child: MainApp(),
     ),

@@ -1,19 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/enums/app_enums.dart';
-import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/dashboard/presentation/screens/dashboard_screen.dart';
 import 'package:frontend/features/home/presentation/screens/home_screen.dart';
-import 'package:frontend/features/meal/data/meal_model.dart';
-import 'package:frontend/features/meal/presentation/screens/meal_page.dart';
 import 'package:frontend/features/meal_log/presentation/screens/meal_log_screen.dart';
 import 'package:frontend/features/other/presentation/screens/other_screen.dart';
-import 'package:frontend/features/product/data/product_model.dart';
-import 'package:frontend/features/product/presentation/screens/product_details_page.dart';
-import 'package:frontend/features/product/presentation/screens/product_search_page.dart';
-import 'package:frontend/features/temp/presentation/screens/user_info.dart';
-import 'package:frontend/features/user/presentation/screens/onboarding.dart';
 import 'package:frontend/show_menu_bottom_sheet.dart';
-import 'package:provider/provider.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

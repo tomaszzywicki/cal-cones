@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.user import User
-    from app.models.meal import Meal
+
+    # from app.models.meal import Meal
     from app.models.product import Product
     from app.models.unit import Unit
 
@@ -17,10 +18,10 @@ if TYPE_CHECKING:
 class MealProduct(Base):
     __tablename__ = "meal_products"
     uuid: Mapped[UUID4] = mapped_column(UUID, primary_key=True)
-    meal_uuid: Mapped[UUID4] = mapped_column(
-        UUID,
-        ForeignKey("meals.uuid", ondelete="CASCADE"),
-    )
+    # meal_uuid: Mapped[UUID4] = mapped_column(
+    #     UUID,
+    #     ForeignKey("meals.uuid", ondelete="CASCADE"),
+    # )
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     product_uuid: Mapped[UUID4] = mapped_column(
         UUID, ForeignKey("products.uuid", ondelete="SET NULL"), nullable=True
@@ -40,7 +41,7 @@ class MealProduct(Base):
     last_modified_at: Mapped[datetime] = mapped_column(DateTime)
 
     # Relationships
-    meal = relationship("Meal", back_populates="meal_products")
+    # meal = relationship("Meal", back_populates="meal_products")
     user = relationship("User", back_populates="meal_products")
     product = relationship("Product", back_populates="meal_products")
     unit = relationship("Unit", back_populates="meal_products")

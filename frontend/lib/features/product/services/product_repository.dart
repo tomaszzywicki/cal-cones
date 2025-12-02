@@ -16,6 +16,21 @@ class ProductRepository {
     }
   }
 
+  Future<List<ProductModel>> getCustomProducts(int userId) async {
+    try {
+      final db = await _databaseService.database;
+      List<Map<String, dynamic>> result = await db.query(
+        'products',
+        where: 'user_id = ?',
+        whereArgs: [userId],
+      );
+
+      return result.map((productMap) => ProductModel.fromMap(productMap)).toList();
+    } catch (e) {
+      throw Exception('Failed to load custom products: $e');
+    }
+  }
+
   Future<List<ProductModel>> searchProducts(String query) async {
     query = query.toLowerCase();
     try {

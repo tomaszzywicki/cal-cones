@@ -34,7 +34,7 @@ Future<void> addData(Database db, int version) async {
 
   await db.insert('products', {
     'id': 1,
-    'user_id': 1,
+    'user_id': -1,
     'name': 'Chicken Breast',
     'manufacturer': 'Generic',
     'kcal': 165,
@@ -49,7 +49,7 @@ Future<void> addData(Database db, int version) async {
 
   await db.insert('products', {
     'id': 2,
-    'user_id': 1,
+    'user_id': -1,
     'name': 'Brown Rice',
     'manufacturer': 'Generic',
     'kcal': 370,
@@ -64,7 +64,7 @@ Future<void> addData(Database db, int version) async {
 
   await db.insert('products', {
     'id': 3,
-    'user_id': 1,
+    'user_id': -1,
     'name': 'Banana',
     'manufacturer': null,
     'kcal': 89,
@@ -79,7 +79,7 @@ Future<void> addData(Database db, int version) async {
 
   await db.insert('products', {
     'id': 4,
-    'user_id': 1,
+    'user_id': -1,
     'name': 'Eggs',
     'manufacturer': 'Generic',
     'kcal': 155,
@@ -94,7 +94,7 @@ Future<void> addData(Database db, int version) async {
 
   await db.insert('products', {
     'id': 5,
-    'user_id': 1,
+    'user_id': -1,
     'name': 'Oatmeal',
     'manufacturer': 'Quaker',
     'kcal': 389,

@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/enums/app_enums.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/meal/data/meal_model.dart';
-import 'package:frontend/features/meal/presentation/screens/meal_page.dart';
+import 'package:frontend/features/meal/data/meal_product_model.dart';
+import 'package:frontend/features/meal/presentation/screens/meal_product_page.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
 import 'package:frontend/features/meal_log/presentation/widgets/date_widget.dart';
 import 'package:frontend/features/meal_log/presentation/widgets/macro_line.dart';
 import 'package:frontend/features/meal_log/presentation/widgets/meal_card.dart';
+import 'package:frontend/features/product/presentation/screens/product_details_page.dart';
+import 'package:frontend/features/product/presentation/screens/product_search_page.dart';
 import 'package:provider/provider.dart';
 
 class MealLogScreen extends StatefulWidget {
@@ -21,29 +25,77 @@ class _MealLogScreenState extends State<MealLogScreen> {
   DateTime selectedDate = DateTime.now().toUtc();
   String _dateString = "Today";
   bool _isLoading = false;
-  List<MealModel> _meals = [];
+  List<MealProductModel> _mealProducts = [
+    MealProductModel(
+      productId: 1,
+      name: 'Jabłuszko',
+      kcal: 80,
+      carbs: 20,
+      protein: 0.5,
+      fat: 0.3,
+      unitId: 1,
+      unitShort: 'g',
+      conversionFactor: 1,
+      amount: 100,
+      createdAt: DateTime.now().toUtc(),
+      lastModifiedAt: DateTime.now().toUtc(),
+    ),
+    MealProductModel(
+      productId: 2,
+      name: 'Kanapka z dżemem',
+      kcal: 250,
+      carbs: 30,
+      protein: 15,
+      fat: 8,
+      unitId: 1,
+      unitShort: 'g',
+      conversionFactor: 1,
+      amount: 1,
+      createdAt: DateTime.now().toUtc(),
+      lastModifiedAt: DateTime.now().toUtc(),
+    ),
+  ];
+
+  double _totalKcal = 0;
+  double _totalCarbs = 0;
+  double _totalProtein = 0;
+  double _totalFat = 0;
 
   @override
   void initState() {
     super.initState();
     _mealService = Provider.of<MealService>(context, listen: false);
-    _loadMeals();
+    _loadMealProducts();
   }
 
-  Future<void> _loadMeals() async {
+  Future<void> _loadMealProducts() async {
     setState(() => _isLoading = true);
 
     try {
-      final meals = await _mealService.loadMealsByDate(selectedDate);
+      final mealProducts = await _mealService.getMealProductsForDate(selectedDate);
       setState(() {
-        _meals = meals;
+        _mealProducts = mealProducts;
         _isLoading = false;
       });
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading meals: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading products: $e')));
       }
+    }
+  }
+
+  void _calculateTotals() {
+    _totalKcal = 0;
+    _totalCarbs = 0;
+    _totalProtein = 0;
+    _totalFat = 0;
+
+    for (var mealProduct in _mealProducts) {
+      _totalKcal += mealProduct.kcal;
+      _totalCarbs += mealProduct.carbs;
+      _totalProtein += mealProduct.protein;
+      _totalFat += mealProduct.fat;
     }
   }
 
@@ -52,7 +104,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
       selectedDate = selectedDate.subtract(const Duration(days: 1));
       _updateDateString();
     });
-    _loadMeals();
+    _loadMealProducts();
   }
 
   void _goToNextDay() {
@@ -60,7 +112,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
       selectedDate = selectedDate.add(const Duration(days: 1));
       _updateDateString();
     });
-    _loadMeals();
+    _loadMealProducts();
   }
 
   void _updateDateString() {
@@ -71,22 +123,6 @@ class _MealLogScreenState extends State<MealLogScreen> {
       _dateString =
           "${selectedDate.day.toString().padLeft(2, '0')}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.year}";
     }
-  }
-
-  int _getTotalKcal() {
-    return _meals.fold(0, (sum, meal) => sum + (meal.totalKcal ?? 0));
-  }
-
-  double _getTotalCarbs() {
-    return _meals.fold(0.0, (sum, meal) => sum + (meal.totalCarbs ?? 0.0));
-  }
-
-  double _getTotalProtein() {
-    return _meals.fold(0.0, (sum, meal) => sum + (meal.totalProtein ?? 0.0));
-  }
-
-  double _getTotalFat() {
-    return _meals.fold(0.0, (sum, meal) => sum + (meal.totalFat ?? 0.0));
   }
 
   @override
@@ -115,54 +151,49 @@ class _MealLogScreenState extends State<MealLogScreen> {
                   child: MacroLine(
                     name: 'Kcal',
                     color: Colors.blue,
-                    value: _getTotalKcal().toDouble(),
+                    value: _totalKcal,
                     endValue: 2000, // TODO: Get from user goals
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: MacroLine(
-                    name: 'Carbs',
-                    color: Colors.green,
-                    value: _getTotalCarbs(),
-                    endValue: 150,
-                  ),
+                  child: MacroLine(name: 'Carbs', color: Colors.green, value: _totalCarbs, endValue: 150),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: MacroLine(
-                    name: 'Protein',
-                    color: Colors.red,
-                    value: _getTotalProtein(),
-                    endValue: 120,
-                  ),
+                  child: MacroLine(name: 'Protein', color: Colors.red, value: _totalProtein, endValue: 120),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: MacroLine(name: 'Fat', color: Colors.yellow, value: _getTotalFat(), endValue: 80),
+                  child: MacroLine(name: 'Fat', color: Colors.yellow, value: _totalFat, endValue: 80),
                 ),
               ],
             ),
 
-            // Meals list
+            // Products list
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : _meals.isEmpty
+                  : _mealProducts.isEmpty
                   ? const Center(
-                      child: Text('No meals for this day', style: TextStyle(color: Colors.grey)),
+                      child: Text('No products for this day', style: TextStyle(color: Colors.grey)),
                     )
                   : RefreshIndicator(
-                      onRefresh: _loadMeals,
+                      onRefresh: _loadMealProducts,
                       child: ListView.builder(
-                        itemCount: _meals.length,
+                        itemCount: _mealProducts.length,
                         itemBuilder: (context, index) => MealCard(
-                          meal: _meals[index],
+                          mealProduct: _mealProducts[index],
                           onTap: () async {
-                            await Navigator.of(
-                              context,
-                            ).push(MaterialPageRoute(builder: (_) => MealPage(meal: _meals[index])));
-                            _loadMeals();
+                            await Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => MealProductPage(
+                                  mealProduct: _mealProducts[index],
+                                  mode: MealProductPageMode.edit,
+                                ),
+                              ),
+                            );
+                            _loadMealProducts();
                           },
                         ),
                       ),
@@ -171,6 +202,16 @@ class _MealLogScreenState extends State<MealLogScreen> {
           ],
         ),
       ),
+      // TODO adjust style of button
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          await Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductSearchPage()));
+          _loadMealProducts();
+        },
+        label: const Text('Add Product for today', style: TextStyle(fontSize: 13)),
+        icon: const Icon(Icons.add, size: 20),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 }

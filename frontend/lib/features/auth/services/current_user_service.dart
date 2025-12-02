@@ -89,4 +89,15 @@ class CurrentUserService extends ChangeNotifier {
       AppLogger.error('[$_tag] Failed to remove user from storage', e);
     }
   }
+
+  int getUserId() {
+    final user = _currentUser;
+    if (user == null) {
+      throw Exception('No current user found');
+    }
+    if (user.id == null) {
+      throw Exception('Current user has no ID');
+    }
+    return user.id!;
+  }
 }

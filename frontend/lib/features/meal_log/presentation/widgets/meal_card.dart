@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/meal/data/meal_entity.dart';
+import 'package:frontend/features/meal/data/meal_product_model.dart';
 
 class MealCard extends StatelessWidget {
-  final MealEntity meal;
+  final MealProductModel mealProduct;
   final VoidCallback onTap;
-  const MealCard({super.key, required this.meal, required this.onTap});
+  const MealCard({super.key, required this.mealProduct, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -16,9 +17,9 @@ class MealCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
           child: Row(
             children: [
-              Text(meal.name ?? 'No name'),
+              Text(mealProduct.name),
               SizedBox(width: 10),
-              Text('Kcal: ${meal.totalKcal ?? 'null'}'),
+              // Text('Kcal: ${mealProduct.totalKcal ?? 'null'}'),
             ],
           ),
         ),
