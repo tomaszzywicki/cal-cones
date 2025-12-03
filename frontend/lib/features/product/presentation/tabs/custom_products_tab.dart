@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/product/data/product_model.dart';
-import 'package:frontend/features/product/services/product_service.dart';
+import 'package:frontend/features/product/presentation/screens/add_custom_product_page.dart';
 import 'package:frontend/features/product/presentation/widgets/product_list_tile.dart';
+import 'package:frontend/features/product/services/product_service.dart';
 import 'package:provider/provider.dart';
 
 class CustomProductsTab extends StatefulWidget {
@@ -30,67 +31,67 @@ class _CustomProductsTabState extends State<CustomProductsTab> {
       final productService = Provider.of<ProductService>(context, listen: false);
       final products = await productService.loadCustomProducts();
 
-      if (mounted) {
-        setState(() {
-          _customProducts = products;
-          _isLoading = false;
-        });
-      }
+      setState(() {
+        _customProducts = products;
+        _isLoading = false;
+      });
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading custom products: $e')));
-      }
+      setState(() => _isLoading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_customProducts.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.inventory_2_outlined, size: 64, color: Colors.grey[400]),
-            const SizedBox(height: 16),
-            Text('No custom products yet', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
-            const SizedBox(height: 8),
-            ElevatedButton.icon(
-              onPressed: () {
-                // TODO: Navigate to create custom product
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Create Product'),
+    return Scaffold(
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _customProducts.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_circle_outline, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text('No custom products yet', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tap + to add your first product',
+                    style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+                  ),
+                ],
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: _loadCustomProducts,
+              child: ListView.builder(
+                itemCount: _customProducts.length,
+                itemBuilder: (context, index) {
+                  final product = _customProducts[index];
+                  return ProductListTile(
+                    product: product,
+                    onTap: () {
+                      widget.onProductSelected(_customProducts[index]);
+                    },
+                  );
+                },
+              ),
             ),
-          ],
-        ),
-      );
-    }
 
-    return RefreshIndicator(
-      onRefresh: _loadCustomProducts,
-      child: ListView.builder(
-        itemCount: _customProducts.length,
-        itemBuilder: (context, index) {
-          final product = _customProducts[index];
-          return ProductListTile(
-            product: product,
-            onTap: () => widget.onProductSelected(product),
-            trailing: IconButton(
-              icon: const Icon(Icons.edit, size: 20),
-              onPressed: () {
-                // TODO: Navigate to edit product
-              },
-            ),
-          );
-        },
+      floatingActionButton: FloatingActionButton(
+        onPressed: _handleAddCustomProduct,
+        child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<void> _handleAddCustomProduct() async {
+    final result = await Navigator.push<ProductModel>(
+      context,
+      MaterialPageRoute(builder: (context) => const AddCustomProductPage()),
+    );
+
+    if (result != null) {
+      _loadCustomProducts();
+    }
   }
 }

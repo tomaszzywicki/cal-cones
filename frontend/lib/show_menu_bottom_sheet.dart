@@ -41,12 +41,6 @@ class ShowMenuBottomSheet extends StatelessWidget {
                   color: Colors.green,
                   onTap: () => _handleAIDetect(context),
                 ),
-                _OptionCard(
-                  icon: Icons.add,
-                  title: 'Add Meal',
-                  color: Colors.orange,
-                  onTap: () => _handleAddMeal(context),
-                ),
               ],
             ),
           ),
@@ -82,9 +76,6 @@ class ShowMenuBottomSheet extends StatelessWidget {
     navigator.pop();
     scaffoldMessenger.showSnackBar(const SnackBar(content: Text('AI Detection coming soon!')));
   }
-
-  // na koniec
-  static Future<void> _handleAddMeal(BuildContext context) async {}
 }
 
 // ============================== Option Card Widget ==============================

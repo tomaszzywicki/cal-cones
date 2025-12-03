@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/enums/app_enums.dart';
-import 'package:frontend/core/logger/app_logger.dart';
-import 'package:frontend/features/auth/services/current_user_service.dart';
-import 'package:frontend/features/meal/data/meal_model.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/presentation/screens/meal_product_page.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
 import 'package:frontend/features/meal_log/presentation/widgets/date_widget.dart';
 import 'package:frontend/features/meal_log/presentation/widgets/macro_line.dart';
 import 'package:frontend/features/meal_log/presentation/widgets/meal_card.dart';
-import 'package:frontend/features/product/presentation/screens/product_details_page.dart';
 import 'package:frontend/features/product/presentation/screens/product_search_page.dart';
 import 'package:provider/provider.dart';
 

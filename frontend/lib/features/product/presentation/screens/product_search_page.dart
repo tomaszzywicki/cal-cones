@@ -38,7 +38,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> with SingleTicker
           controller: _tabController,
           tabs: const [
             Tab(text: 'Search'),
-            Tab(text: 'Custom Products'),
+            Tab(text: 'My Custom Products'),
           ],
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:frontend/core/database/local_database_service.dart';
+import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/product/data/product_model.dart';
 
 class ProductRepository {
@@ -44,6 +45,18 @@ class ProductRepository {
       return result.map((productMap) => ProductModel.fromMap(productMap)).toList();
     } catch (e) {
       throw Exception('Failed to search products: $e');
+    }
+  }
+
+  Future<ProductModel> createCustomProduct(ProductModel product, int userId) async {
+    product.userId = userId;
+    try {
+      final db = await _databaseService.database;
+      final id = await db.insert('products', product.toMap());
+      return product.copyWith(id: id);
+    } catch (e) {
+      AppLogger.error('Failed to add custom product: $e');
+      throw Exception('Failed to add custom product');
     }
   }
 }

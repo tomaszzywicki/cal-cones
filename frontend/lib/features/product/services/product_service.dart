@@ -23,4 +23,9 @@ class ProductService {
     }
     return _productRepository.searchProducts(query);
   }
+
+  Future<ProductModel> addCustomProduct(ProductModel customProduct) async {
+    final userId = _currentUserService.getUserId();
+    return await _productRepository.createCustomProduct(customProduct, userId);
+  }
 }

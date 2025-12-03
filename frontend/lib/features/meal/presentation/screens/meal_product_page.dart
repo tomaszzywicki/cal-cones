@@ -38,7 +38,7 @@ class _MealProductPageState extends State<MealProductPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Product info
-                  Text('Manufacturer: ${widget.mealProduct.manufacturer ?? 'N/A'}'),
+                  Text('Manufacturer: ${widget.mealProduct.manufacturer ?? 'Generic'}'),
                   SizedBox(height: 16),
 
                   // Macros
