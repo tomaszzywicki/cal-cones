@@ -1,5 +1,5 @@
 enum ProductPageMode {
-  addToMeal, // Dodawanie do meala
+  add, // Dodawanie do meala
   view, // Podgląd
   edit, // Edycja
 }

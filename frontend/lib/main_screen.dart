@@ -5,6 +5,9 @@ import 'package:frontend/features/meal_log/presentation/screens/meal_log_screen.
 import 'package:frontend/features/other/presentation/screens/other_screen.dart';
 import 'package:frontend/show_menu_bottom_sheet.dart';
 
+// ✅ DODAJ GLOBAL KEY
+final GlobalKey<_MainScreenState> mainScreenKey = GlobalKey<_MainScreenState>();
+
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -16,6 +19,7 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 1;
 
   final List<Widget> _screens = [HomeScreen(), MealLogScreen(), DashboardScreen(), OtherScreen()];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,5 +46,11 @@ class _MainScreenState extends State<MainScreen> {
     }
     int pageIndex = index >= 2 ? index - 1 : index;
     setState(() => _currentIndex = pageIndex);
+  }
+
+  void navigateToMealLog() {
+    setState(() {
+      _currentIndex = 1;
+    });
   }
 }

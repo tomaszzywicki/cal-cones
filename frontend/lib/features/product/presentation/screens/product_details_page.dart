@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/enums/app_enums.dart';
+import 'package:frontend/features/meal/data/meal_product_model.dart';
+import 'package:frontend/features/meal/services/meal_service.dart';
 import 'package:frontend/features/product/data/product_model.dart';
+import 'package:frontend/features/product/services/product_service.dart';
+import 'package:provider/provider.dart';
 
 class ProductDetailsPage extends StatefulWidget {
   final ProductModel product;
+  final DateTime consumedAt;
   final ProductPageMode mode;
 
-  const ProductDetailsPage({super.key, required this.product, required this.mode});
+  const ProductDetailsPage({super.key, required this.product, required this.consumedAt, required this.mode});
 
   @override
   State<ProductDetailsPage> createState() => _ProductDetailsPageState();
@@ -39,7 +44,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                   _buildMacroRow('Fat', widget.product.fat),
 
                   // Amount selector (only in addToMeal mode)
-                  if (widget.mode == ProductPageMode.addToMeal) ...[
+                  if (widget.mode == ProductPageMode.add) ...[
                     SizedBox(height: 24),
                     Text('Amount:', style: TextStyle(fontWeight: FontWeight.bold)),
                     Row(
@@ -76,7 +81,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           ),
 
           // Bottom button (only in addToMeal mode)
-          if (widget.mode == ProductPageMode.addToMeal)
+          if (widget.mode == ProductPageMode.add)
             SafeArea(
               child: Padding(
                 padding: EdgeInsets.all(16),
@@ -98,7 +103,43 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     );
   }
 
-  void _handleConfirm() {
-    Navigator.pop(context, {'product': widget.product, 'amount': _amount, 'unit': _selectedUnit});
+  void _handleConfirm() async {
+    final mealProductService = Provider.of<MealService>(context, listen: false);
+    final product = widget.product;
+
+    MealProductModel mealProduct = MealProductModel(
+      productId: product.id ?? -99,
+      name: product.name,
+      kcal: product.kcal,
+      carbs: product.carbs,
+      protein: product.protein,
+      fat: product.fat,
+      unitId: 1, // 'g' unit id
+      unitShort: 'g',
+      conversionFactor: 1.0,
+      amount: _amount,
+      createdAt: widget.consumedAt,
+      lastModifiedAt: DateTime.now().toUtc(),
+    );
+
+    try {
+      await mealProductService.addMealProduct(mealProduct);
+
+      if (!mounted) return;
+
+      Navigator.pop(context, {
+        'success': true,
+        'product': product,
+        'amount': _amount,
+        'unit': _selectedUnit,
+        'consumedAt': widget.consumedAt,
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error adding product: $e'), backgroundColor: Colors.red));
+      return;
+    }
   }
 }

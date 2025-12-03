@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/enums/app_enums.dart';
+import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/meal/data/meal_model.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
@@ -25,36 +26,8 @@ class _MealLogScreenState extends State<MealLogScreen> {
   DateTime selectedDate = DateTime.now().toUtc();
   String _dateString = "Today";
   bool _isLoading = false;
-  List<MealProductModel> _mealProducts = [
-    MealProductModel(
-      productId: 1,
-      name: 'Jabłuszko',
-      kcal: 80,
-      carbs: 20,
-      protein: 0.5,
-      fat: 0.3,
-      unitId: 1,
-      unitShort: 'g',
-      conversionFactor: 1,
-      amount: 100,
-      createdAt: DateTime.now().toUtc(),
-      lastModifiedAt: DateTime.now().toUtc(),
-    ),
-    MealProductModel(
-      productId: 2,
-      name: 'Kanapka z dżemem',
-      kcal: 250,
-      carbs: 30,
-      protein: 15,
-      fat: 8,
-      unitId: 1,
-      unitShort: 'g',
-      conversionFactor: 1,
-      amount: 1,
-      createdAt: DateTime.now().toUtc(),
-      lastModifiedAt: DateTime.now().toUtc(),
-    ),
-  ];
+
+  List<MealProductModel> _mealProducts = [];
 
   double _totalKcal = 0;
   double _totalCarbs = 0;
@@ -76,6 +49,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
       setState(() {
         _mealProducts = mealProducts;
         _isLoading = false;
+        _calculateTotals();
       });
     } catch (e) {
       setState(() => _isLoading = false);
@@ -182,18 +156,14 @@ class _MealLogScreenState extends State<MealLogScreen> {
                       onRefresh: _loadMealProducts,
                       child: ListView.builder(
                         itemCount: _mealProducts.length,
-                        itemBuilder: (context, index) => MealCard(
+                        // Product Cards
+                        itemBuilder: (context, index) => ProductCard(
                           mealProduct: _mealProducts[index],
                           onTap: () async {
-                            await Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => MealProductPage(
-                                  mealProduct: _mealProducts[index],
-                                  mode: MealProductPageMode.edit,
-                                ),
-                              ),
-                            );
-                            _loadMealProducts();
+                            _handleEditProduct(_mealProducts[index]);
+                          },
+                          onLongPress: () async {
+                            _showDeleteDialog(_mealProducts[index]);
                           },
                         ),
                       ),
@@ -202,16 +172,71 @@ class _MealLogScreenState extends State<MealLogScreen> {
           ],
         ),
       ),
+
       // TODO adjust style of button
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
-          await Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProductSearchPage()));
-          _loadMealProducts();
+          await _handleAddProduct();
         },
         label: const Text('Add Product for today', style: TextStyle(fontSize: 13)),
         icon: const Icon(Icons.add, size: 20),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+    );
+  }
+
+  Future<void> _handleAddProduct() async {
+    final result = await Navigator.of(context).push<Map<String, dynamic>?>(
+      MaterialPageRoute(builder: (context) => ProductSearchPage(consumedAt: selectedDate)),
+    );
+
+    if (result != null && result['success'] == true) {
+      _loadMealProducts();
+    }
+  }
+
+  Future<void> _handleEditProduct(MealProductModel mealProduct) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => MealProductPage(mealProduct: mealProduct, mode: MealProductPageMode.edit),
+      ),
+    );
+    _loadMealProducts();
+  }
+
+  Future<void> _handleDeleteProduct(MealProductModel mealProduct) async {
+    final mealService = Provider.of<MealService>(context, listen: false);
+    await mealService.deleteMealProduct(mealProduct);
+    _loadMealProducts();
+  }
+
+  Future<void> _showDeleteDialog(MealProductModel mealProduct) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Delete Product'),
+          content: const SingleChildScrollView(
+            child: ListBody(children: [Text('Do you want to delete this product from log?')]),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                _handleDeleteProduct(mealProduct);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

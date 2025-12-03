@@ -1,12 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/enums/app_enums.dart';
-import 'package:frontend/features/meal/data/meal_model.dart';
-import 'package:frontend/features/meal/data/meal_product_model.dart';
-import 'package:frontend/features/meal/services/meal_service.dart';
-import 'package:frontend/features/product/data/product_model.dart';
-import 'package:frontend/features/product/presentation/screens/product_details_page.dart';
+import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/product/presentation/screens/product_search_page.dart';
-import 'package:provider/provider.dart';
+import 'package:frontend/main_screen.dart';
 
 class ShowMenuBottomSheet extends StatelessWidget {
   const ShowMenuBottomSheet({super.key});
@@ -60,26 +55,26 @@ class ShowMenuBottomSheet extends StatelessWidget {
     );
   }
 
+  // ============================== Handlowanie opcji w bottom sheecie ==============================
+
+  // Handlowanie dodawania produktu
   static Future<void> _handleSearchProduct(BuildContext context) async {
     final navigator = Navigator.of(context);
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    navigator.pop(); // na końcu zamykamy bottom sheet
+    // 1. Zamykamy bottom sheet
+    navigator.pop();
 
-    // przekazujemy wybrany produkt z ProductSearchPage
-    final product = await navigator.push<ProductModel?>(
-      MaterialPageRoute(builder: (context) => const ProductSearchPage()),
-    );
-
-    if (product == null) return;
-
+    // 2. Otwieramy ProductSearchPage z DateTime.now()
+    AppLogger.info('Opening ProductSearchPage from bottom sheet. Date: ${DateTime.now().toUtc()}');
     final result = await navigator.push<Map<String, dynamic>?>(
-      MaterialPageRoute(
-        builder: (context) => ProductDetailsPage(product: product, mode: ProductPageMode.addToMeal),
-      ),
+      MaterialPageRoute(builder: (context) => ProductSearchPage(consumedAt: DateTime.now().toUtc())),
     );
+
+    // 3. Jeśli produkt został dodany, idziemy do MealLogScreen
+    if (result != null && result['success'] == true) {}
   }
 
+  // Handlowanie AI Detect
   static Future<void> _handleAIDetect(BuildContext context) async {
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -88,14 +83,11 @@ class ShowMenuBottomSheet extends StatelessWidget {
     scaffoldMessenger.showSnackBar(const SnackBar(content: Text('AI Detection coming soon!')));
   }
 
-  static Future<void> _handleAddMeal(BuildContext context) async {
-    // final navigator = Navigator.of(context);
-    // navigator.pop();
-
-    // final newMeal = MealModel(name: 'New Meal', consumedAt: DateTime.now());
-    // await navigator.push(MaterialPageRoute(builder: (context) => MealPage(meal: newMeal)));
-  }
+  // na koniec
+  static Future<void> _handleAddMeal(BuildContext context) async {}
 }
+
+// ============================== Option Card Widget ==============================
 
 class _OptionCard extends StatelessWidget {
   final IconData icon;

@@ -91,7 +91,7 @@ Future<void> initTables(Database db, int version) async {
     notes TEXT,
     created_at TEXT NOT NULL,
     last_modified_at TEXT NOT NULL,
-    is_synced INTEGER NOT NULL DEFAULT 0,
+    is_synced INTEGER NOT NULL DEFAULT 0
 
     -- FOREIGN KEY (meal_id) REFERENCES meals(id) ON DELETE CASCADE,
     -- FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE

@@ -48,7 +48,7 @@ class AppWidget extends StatelessWidget {
                 return Onboarding();
               } else {
                 // Setup completed → Main Screen
-                return const MainScreen();
+                return MainScreen(key: mainScreenKey);
               }
             },
           );

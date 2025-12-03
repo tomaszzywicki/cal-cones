@@ -49,6 +49,7 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        Provider<LocalDatabaseService>.value(value: localDatabaseService),
         Provider<UserService>.value(value: userService),
         Provider<FirebaseAuthService>.value(value: firebaseAuthService),
         Provider<AuthService>.value(value: authService),
