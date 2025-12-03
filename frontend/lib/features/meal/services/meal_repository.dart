@@ -1,7 +1,5 @@
-// handles Meal and MealProduct data operations
 import 'package:frontend/core/database/local_database_service.dart';
 import 'package:frontend/core/logger/app_logger.dart';
-import 'package:frontend/features/meal/data/meal_model.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 
 class MealRepository {

@@ -73,20 +73,20 @@ class _MealLogScreenState extends State<MealLogScreen> {
     }
   }
 
-  void _goToPreviousDay() {
+  void _goToPreviousDay() async {
     setState(() {
       selectedDate = selectedDate.subtract(const Duration(days: 1));
       _updateDateString();
     });
-    _loadMealProducts();
+    await _loadMealProducts();
   }
 
-  void _goToNextDay() {
+  void _goToNextDay() async {
     setState(() {
       selectedDate = selectedDate.add(const Duration(days: 1));
       _updateDateString();
     });
-    _loadMealProducts();
+    await _loadMealProducts();
   }
 
   void _updateDateString() {
@@ -165,6 +165,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
                           onLongPress: () async {
                             _showDeleteDialog(_mealProducts[index]);
                           },
+                          onEditAmount: () {
+                            _showEditDialog(_mealProducts[index]);
+                          },
                         ),
                       ),
                     ),
@@ -191,7 +194,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
     );
 
     if (result != null && result['success'] == true) {
-      _loadMealProducts();
+      await _loadMealProducts();
     }
   }
 
@@ -201,13 +204,30 @@ class _MealLogScreenState extends State<MealLogScreen> {
         builder: (context) => MealProductPage(mealProduct: mealProduct, mode: MealProductPageMode.edit),
       ),
     );
-    _loadMealProducts();
+    await _loadMealProducts();
   }
 
   Future<void> _handleDeleteProduct(MealProductModel mealProduct) async {
     final mealService = Provider.of<MealService>(context, listen: false);
     await mealService.deleteMealProduct(mealProduct);
-    _loadMealProducts();
+    await _loadMealProducts();
+  }
+
+  Future<void> _handleEditAmount(MealProductModel mealProduct, double amount) async {
+    try {
+      final mealService = Provider.of<MealService>(context, listen: false);
+
+      final updatedProduct = mealProduct.updateAmount(amount);
+
+      await mealService.updateMealProduct(updatedProduct);
+      await _loadMealProducts();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error updating amount: $e'), backgroundColor: Colors.red));
+      }
+    }
   }
 
   Future<void> _showDeleteDialog(MealProductModel mealProduct) async {
@@ -233,6 +253,74 @@ class _MealLogScreenState extends State<MealLogScreen> {
                 _handleDeleteProduct(mealProduct);
                 Navigator.of(context).pop();
               },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showEditDialog(MealProductModel mealProduct) async {
+    final TextEditingController amountController = TextEditingController(
+      text: mealProduct.amount.toStringAsFixed(0),
+    );
+
+    return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Edit Amount'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(mealProduct.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 16),
+              TextField(
+                controller: amountController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'Amount',
+                  border: const OutlineInputBorder(),
+                  suffixText: mealProduct.unitShort,
+                  hintText: 'Enter amount',
+                ),
+                onSubmitted: (value) async {
+                  final newAmount = double.tryParse(value);
+                  if (newAmount != null && newAmount > 0) {
+                    Navigator.of(context).pop();
+                    await _handleEditAmount(mealProduct, newAmount);
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Current: ${mealProduct.amount.toStringAsFixed(0)} ${mealProduct.unitShort}',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Cancel')),
+            ElevatedButton(
+              onPressed: () async {
+                final newAmount = double.tryParse(amountController.text);
+                if (newAmount != null && newAmount > 0) {
+                  Navigator.of(context).pop();
+                  await _handleEditAmount(mealProduct, newAmount);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a valid amount'),
+                      backgroundColor: Colors.red,
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save'),
             ),
           ],
         );

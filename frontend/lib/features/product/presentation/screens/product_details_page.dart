@@ -107,19 +107,18 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     final mealProductService = Provider.of<MealService>(context, listen: false);
     final product = widget.product;
 
-    MealProductModel mealProduct = MealProductModel(
+    final mealProduct = MealProductModel.fromProductWithAmount(
       productId: product.id ?? -99,
       name: product.name,
-      kcal: product.kcal,
-      carbs: product.carbs,
-      protein: product.protein,
-      fat: product.fat,
+      baseKcal: product.kcal,
+      baseCarbs: product.carbs,
+      baseProtein: product.protein,
+      baseFat: product.fat,
       unitId: 1, // 'g' unit id
       unitShort: 'g',
       conversionFactor: 1.0,
       amount: _amount,
-      createdAt: widget.consumedAt,
-      lastModifiedAt: DateTime.now().toUtc(),
+      consumedAt: widget.consumedAt,
     );
 
     try {

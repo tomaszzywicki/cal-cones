@@ -25,6 +25,65 @@ class MealProductModel extends MealProductEntity {
     super.isSynced = false,
   });
 
+  static MealProductModel fromProductWithAmount({
+    required int productId,
+    required String name,
+    String? manufacturer,
+    required num baseKcal, // to na 100g
+    required num baseCarbs,
+    required num baseProtein,
+    required num baseFat,
+    required double amount, // ilość faktyczna
+    required int unitId,
+    required String unitShort,
+    required double conversionFactor, // conversion
+    required DateTime consumedAt,
+    int? userId,
+  }) {
+    final factor = amount * conversionFactor / 100;
+
+    return MealProductModel(
+      userId: userId,
+      productId: productId,
+      name: name,
+      manufacturer: manufacturer,
+      kcal: (baseKcal * factor).round(),
+      carbs: (baseCarbs * factor),
+      protein: (baseProtein * factor),
+      fat: (baseFat * factor),
+      unitId: unitId,
+      unitShort: unitShort,
+      conversionFactor: conversionFactor,
+      amount: amount,
+      createdAt: consumedAt,
+      lastModifiedAt: DateTime.now().toUtc(),
+      isSynced: false,
+    );
+  }
+
+  MealProductModel updateAmount(double newAmount) {
+    if (amount <= 0 || conversionFactor <= 0) {
+      throw ArgumentError('Invalid amount or conversion factor');
+    }
+    final currentFactor = amount * conversionFactor / 100.0;
+    final baseKcal = kcal / currentFactor;
+    final baseCarbs = carbs / currentFactor;
+    final baseProtein = protein / currentFactor;
+    final baseFat = fat / currentFactor;
+
+    final newFactor = newAmount * conversionFactor / 100.0;
+
+    return copyWith(
+      amount: newAmount,
+      kcal: (baseKcal * newFactor).round(),
+      carbs: baseCarbs * newFactor,
+      protein: baseProtein * newFactor,
+      fat: baseFat * newFactor,
+      lastModifiedAt: DateTime.now().toUtc(),
+      isSynced: false,
+    );
+  }
+
   // Backend API response parsing
   factory MealProductModel.fromJson(Map<String, dynamic> json) {
     return MealProductModel(
@@ -179,5 +238,14 @@ class MealProductModel extends MealProductEntity {
       lastModifiedAt: lastModifiedAt ?? this.lastModifiedAt,
       isSynced: isSynced ?? this.isSynced,
     );
+  }
+
+  double get totalGrams => amount * conversionFactor;
+
+  String get displayAmount {
+    if (unitShort == 'g') {
+      return '${amount.toStringAsFixed(0)}g';
+    }
+    return '${amount.toStringAsFixed(1)} $unitShort (${totalGrams.toStringAsFixed(0)}g)';
   }
 }
