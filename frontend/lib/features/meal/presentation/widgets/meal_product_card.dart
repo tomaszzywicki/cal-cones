@@ -13,7 +13,7 @@ class MealProductCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 6.0),
-        decoration: BoxDecoration(color: Color(0xFFF6F6F6), borderRadius: BorderRadius.circular(8.0)),
+        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8.0)),
         child: ListTile(
           title: Text(mealProduct.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
           subtitle: Text(

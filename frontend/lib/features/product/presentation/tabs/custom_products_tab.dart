@@ -44,6 +44,7 @@ class _CustomProductsTabState extends State<CustomProductsTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _customProducts.isEmpty

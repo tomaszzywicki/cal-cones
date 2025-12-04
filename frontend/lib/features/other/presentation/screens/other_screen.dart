@@ -1,12 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/database/local_database_service.dart';
+import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/other/presentation/screens/password_reset_page.dart';
 import 'package:frontend/features/other/presentation/widgets/profile_card.dart';
 import 'package:frontend/features/other/presentation/screens/user_info_page.dart';
 import 'package:provider/provider.dart';
 
-class OtherScreen extends StatelessWidget {
+class OtherScreen extends StatefulWidget {
   const OtherScreen({super.key});
+
+  @override
+  State<OtherScreen> createState() => _OtherScreenState();
+}
+
+class _OtherScreenState extends State<OtherScreen> {
+  late String name;
+  late DateTime createdAt;
+  @override
+  void initState() {
+    super.initState();
+    final currentUserService = Provider.of<CurrentUserService>(context, listen: false);
+    final user = currentUserService.currentUser;
+    if (user == null) {
+      return;
+    }
+    setState(() {
+      name = user.username ?? '?';
+      createdAt = user.createdAt;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +41,13 @@ class OtherScreen extends StatelessWidget {
           style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold),
         ),
       ),
+      backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ProfileCard(name: 'TestName', createdAt: DateTime.now().toUtc()),
+            ProfileCard(name: name, createdAt: createdAt),
             const SizedBox(height: 24),
 
             // General Section
@@ -113,7 +136,6 @@ class OtherScreen extends StatelessWidget {
   }
 
   // Widgety pomocnicze
-
   Widget _buildSectionTitle(String title, {Color? color}) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
@@ -132,7 +154,7 @@ class OtherScreen extends StatelessWidget {
   Widget _buildSection({required List<Widget> children}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white24,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2)),
@@ -178,7 +200,6 @@ class OtherScreen extends StatelessWidget {
   }
 
   // Db reset
-
   Future<void> _resetDatabase(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,

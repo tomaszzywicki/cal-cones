@@ -43,6 +43,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
           style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
+      backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -54,7 +55,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey[200]!),
                 ),
@@ -80,7 +81,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
 
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.white54,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(

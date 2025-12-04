@@ -33,6 +33,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> with SingleTicker
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.grey[50],
         title: const Text('Add Product'),
         bottom: TabBar(
           controller: _tabController,
@@ -42,6 +43,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> with SingleTicker
           ],
         ),
       ),
+      backgroundColor: Colors.grey[50],
       body: TabBarView(
         controller: _tabController,
         children: [

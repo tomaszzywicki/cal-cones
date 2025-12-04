@@ -26,6 +26,7 @@ class UserInfo extends StatelessWidget {
           style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
+      backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -136,7 +137,7 @@ class UserInfo extends StatelessWidget {
   Widget _buildSection({required List<Widget> children}) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white24,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 2)),

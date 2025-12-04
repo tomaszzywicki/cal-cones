@@ -18,6 +18,7 @@ class ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -60,7 +61,7 @@ class ProductCard extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.grey[200],
+                        color: Colors.grey[100],
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
