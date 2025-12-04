@@ -7,8 +7,9 @@ import 'package:provider/provider.dart';
 
 class CustomProductsTab extends StatefulWidget {
   final Function(ProductModel) onProductSelected;
+  final Function(ProductModel) onProductPressed;
 
-  const CustomProductsTab({super.key, required this.onProductSelected});
+  const CustomProductsTab({super.key, required this.onProductSelected, required this.onProductPressed});
 
   @override
   State<CustomProductsTab> createState() => _CustomProductsTabState();
@@ -71,6 +72,10 @@ class _CustomProductsTabState extends State<CustomProductsTab> {
                     product: product,
                     onTap: () {
                       widget.onProductSelected(_customProducts[index]);
+                    },
+                    onPressed: () async {
+                      await widget.onProductPressed(_customProducts[index]);
+                      await _loadCustomProducts();
                     },
                   );
                 },

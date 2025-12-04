@@ -46,7 +46,10 @@ class _ProductSearchPageState extends State<ProductSearchPage> with SingleTicker
         controller: _tabController,
         children: [
           SearchTab(productService: _productService, onProductSelected: _handleProductSelected),
-          CustomProductsTab(onProductSelected: _handleProductSelected),
+          CustomProductsTab(
+            onProductSelected: _handleProductSelected,
+            onProductPressed: _showCustomProductDeleteDialog,
+          ),
         ],
       ),
     );
@@ -65,6 +68,49 @@ class _ProductSearchPageState extends State<ProductSearchPage> with SingleTicker
     if (result != null && result['success'] == true) {
       Navigator.pop(context, result);
     }
+  }
+
+  void _handleCustomProductDelete(ProductModel customProduct) async {
+    final productService = Provider.of<ProductService>(context, listen: false);
+    try {
+      await productService.deleteCustomProduct(customProduct);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error when deleting custom product')));
+      }
+    }
+  }
+
+  void _showCustomProductDeleteDialog(ProductModel customProduct) async {
+    return showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Delete Product'),
+          content: const SingleChildScrollView(
+            child: ListBody(children: [Text('Do you want to delete this product from log?')]),
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+              onPressed: () async {
+                _handleCustomProductDelete(customProduct);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override

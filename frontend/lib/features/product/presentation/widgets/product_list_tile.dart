@@ -4,9 +4,16 @@ import 'package:frontend/features/product/data/product_model.dart';
 class ProductListTile extends StatelessWidget {
   final ProductModel product;
   final VoidCallback onTap;
+  final VoidCallback? onPressed;
   final Widget? trailing;
 
-  const ProductListTile({super.key, required this.product, required this.onTap, this.trailing});
+  const ProductListTile({
+    super.key,
+    required this.product,
+    required this.onTap,
+    this.onPressed,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +33,7 @@ class ProductListTile extends StatelessWidget {
       ),
       trailing: trailing ?? const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
+      onLongPress: onPressed,
     );
   }
 }
