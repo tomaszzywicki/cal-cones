@@ -5,8 +5,12 @@ RUN pip install --no-cache-dir --upgrade -r /app/requirements.txt
 
 # for cv2 to work
 RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
+    libx11-6 \
+    libsm6 \
+    libxext6 \
+    libxrender1 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY . .
