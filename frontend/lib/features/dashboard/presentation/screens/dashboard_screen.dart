@@ -21,7 +21,7 @@ class DashboardScreen extends StatelessWidget {
               crossAxisCount: 2,
               crossAxisSpacing: 8.0,
               mainAxisSpacing: 8.0,
-              childAspectRatio: 1.9,
+              childAspectRatio: 1.4,
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               children: const [CurrentGoalCard(), WeighInCalendarCard()],
