@@ -28,4 +28,9 @@ class ProductService {
     final userId = _currentUserService.getUserId();
     return await _productRepository.createCustomProduct(customProduct, userId);
   }
+
+  Future<int> deleteCustomProduct(ProductModel customProduct) async {
+    final userId = _currentUserService.getUserId();
+    return await _productRepository.deleteCustomProduct(customProduct, userId);
+  }
 }

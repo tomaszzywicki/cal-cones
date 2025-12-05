@@ -98,6 +98,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 36.0),
         child: Column(

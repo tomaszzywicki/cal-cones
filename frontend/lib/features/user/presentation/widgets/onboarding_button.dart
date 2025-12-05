@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:frontend/core/theme/theme.dart';
 
 class OnboardingButton extends StatelessWidget {
   final String text;
@@ -11,14 +12,14 @@ class OnboardingButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 14),
-        backgroundColor: Color(0xFF101010),
-        foregroundColor: Colors.white,
-        elevation: 2, // to chyba cień
-        shape: RoundedRectangleBorder(borderRadius: BorderRadiusGeometry.circular(4)),
-      ),
+      // style: Theme.of(context)
       child: Text(text),
+      // child: Text(
+      //   text,
+      //   style: TextTheme.of(
+      //     context,
+      //   ).bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+      // ),
     );
   }
 }

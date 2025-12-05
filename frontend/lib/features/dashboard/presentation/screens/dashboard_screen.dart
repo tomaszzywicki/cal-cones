@@ -13,17 +13,6 @@ class DashboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Dashboard')),
-      // body: Column(
-      //   children: [
-      //     Row(
-      //       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      //       children: [CurrentGoalCard(), WeighInCalendarCard()],
-      //     ),
-      //     BMIcard(),
-      //     WeightHistoryChart(),
-      //     MacroIntakeChart(),
-      //   ],
-      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(8.0),
         child: Column(

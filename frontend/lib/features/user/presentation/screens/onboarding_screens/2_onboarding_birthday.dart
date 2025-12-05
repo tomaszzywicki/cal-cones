@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/user/presentation/widgets/onboarding_button.dart';
 
 class OnboardingBirthday extends StatefulWidget {
@@ -75,116 +76,118 @@ class _OnboardingBirthdayState extends State<OnboardingBirthday> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Padding(
-        padding: EdgeInsetsGeometry.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          children: [
-            SizedBox(height: 50),
-            Text('When were you born?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-            SizedBox(height: 100),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: SafeArea(
+          child: Column(
+            children: [
+              SizedBox(height: 100),
+              Text('When were you born?', style: TextTheme.of(context).headlineLarge),
+              SizedBox(height: 50),
 
-            Stack(
-              children: [
-                Container(
-                  height: 30,
-                  margin: EdgeInsets.only(top: 135),
-                  decoration: BoxDecoration(
-                    color: CupertinoColors.secondarySystemBackground,
-                    borderRadius: BorderRadius.circular(5),
+              Stack(
+                children: [
+                  Container(
+                    height: 30,
+                    margin: EdgeInsets.only(top: 135),
+                    decoration: BoxDecoration(
+                      color: Color(0xFF7C98A5),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
                   ),
-                ),
-                Container(
-                  height: 300,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: ListWheelScrollView.useDelegate(
-                          controller: _dayController,
-                          itemExtent: 45,
-                          perspective: 0.005,
-                          diameterRatio: 1.2,
-                          physics: FixedExtentScrollPhysics(),
+                  Container(
+                    height: 300,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: ListWheelScrollView.useDelegate(
+                            controller: _dayController,
+                            itemExtent: 45,
+                            perspective: 0.005,
+                            diameterRatio: 1.2,
+                            physics: FixedExtentScrollPhysics(),
 
-                          onSelectedItemChanged: (value) {
-                            setState(() => selectedDay = value + 1);
-                          },
-                          childDelegate: ListWheelChildBuilderDelegate(
-                            builder: (context, index) {
-                              return Center(
-                                child: Text(
-                                  '${index + 1}',
-                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                ),
-                              );
+                            onSelectedItemChanged: (value) {
+                              setState(() => selectedDay = value + 1);
                             },
-                            // jeszcze trzeba będzie lata przestępne dać xd
-                            childCount: selectedMonth == 2
-                                ? (isLeapYear(selectedYear) ? 29 : 28)
-                                : ([1, 3, 5, 7, 8, 10, 12].contains(selectedMonth) ? 31 : 30),
+                            childDelegate: ListWheelChildBuilderDelegate(
+                              builder: (context, index) {
+                                return Center(
+                                  child: Text(
+                                    '${index + 1}',
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                  ),
+                                );
+                              },
+                              // jeszcze trzeba będzie lata przestępne dać xd
+                              childCount: selectedMonth == 2
+                                  ? (isLeapYear(selectedYear) ? 29 : 28)
+                                  : ([1, 3, 5, 7, 8, 10, 12].contains(selectedMonth) ? 31 : 30),
+                            ),
                           ),
                         ),
-                      ),
-                      Expanded(
-                        child: ListWheelScrollView.useDelegate(
-                          controller: _monthController,
-                          itemExtent: 45,
-                          perspective: 0.005,
-                          diameterRatio: 1.2,
-                          physics: FixedExtentScrollPhysics(),
+                        Expanded(
+                          child: ListWheelScrollView.useDelegate(
+                            controller: _monthController,
+                            itemExtent: 45,
+                            perspective: 0.005,
+                            diameterRatio: 1.2,
+                            physics: FixedExtentScrollPhysics(),
 
-                          onSelectedItemChanged: (value) {
-                            setState(() => selectedMonth = value + 1);
-                          },
-                          childDelegate: ListWheelChildBuilderDelegate(
-                            builder: (context, index) {
-                              return Center(
-                                child: Text(
-                                  '${_monthList[index]}',
-                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                ),
-                              );
+                            onSelectedItemChanged: (value) {
+                              setState(() => selectedMonth = value + 1);
                             },
-                            childCount: 12,
+                            childDelegate: ListWheelChildBuilderDelegate(
+                              builder: (context, index) {
+                                return Center(
+                                  child: Text(
+                                    '${_monthList[index]}',
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                  ),
+                                );
+                              },
+                              childCount: 12,
+                            ),
                           ),
                         ),
-                      ),
-                      Expanded(
-                        child: ListWheelScrollView.useDelegate(
-                          controller: _yearController,
-                          itemExtent: 45,
-                          perspective: 0.005,
-                          diameterRatio: 1.2,
-                          physics: FixedExtentScrollPhysics(),
-                          onSelectedItemChanged: (value) {
-                            setState(() => selectedYear = value + 1900);
-                          },
-                          childDelegate: ListWheelChildBuilderDelegate(
-                            builder: (context, index) {
-                              return Center(
-                                child: Text(
-                                  '${index + 1900}',
-                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                ),
-                              );
+                        Expanded(
+                          child: ListWheelScrollView.useDelegate(
+                            controller: _yearController,
+                            itemExtent: 45,
+                            perspective: 0.005,
+                            diameterRatio: 1.2,
+                            physics: FixedExtentScrollPhysics(),
+                            onSelectedItemChanged: (value) {
+                              setState(() => selectedYear = value + 1900);
                             },
-                            childCount: 125,
+                            childDelegate: ListWheelChildBuilderDelegate(
+                              builder: (context, index) {
+                                return Center(
+                                  child: Text(
+                                    '${index + 1900}',
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                  ),
+                                );
+                              },
+                              childCount: 125,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            Spacer(),
-            OnboardingButton(
-              text: 'Next',
-              onPressed: () {
-                widget.setBirthday(selectedDay, selectedMonth, selectedYear);
-              },
-            ),
+                ],
+              ),
+              Spacer(),
+              OnboardingButton(
+                text: 'Next',
+                onPressed: () {
+                  widget.setBirthday(selectedDay, selectedMonth, selectedYear);
+                },
+              ),
 
-            SizedBox(height: 20),
-          ],
+              // SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
     );

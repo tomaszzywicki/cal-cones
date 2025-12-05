@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/theme/theme.dart';
 import 'package:frontend/features/auth/presentation/screens/landing_page.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/auth/services/firebase_auth_service.dart';
@@ -13,7 +14,9 @@ class AppWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'CalCones',
-      // themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       home: Consumer2<FirebaseAuthService, CurrentUserService>(
         builder: (context, authService, currentUserService, _) {
           return StreamBuilder(
@@ -44,8 +47,8 @@ class AppWidget extends StatelessWidget {
 
               // Setup not completed → Onboarding
               if (!user.setupCompleted) {
-                // return const MainScreen();
-                return Onboarding();
+                return const MainScreen();
+                // return Onboarding();
               } else {
                 // Setup completed → Main Screen
                 return MainScreen(key: mainScreenKey);

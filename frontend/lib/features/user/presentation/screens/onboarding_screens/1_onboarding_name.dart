@@ -39,40 +39,35 @@ class _OnboardingNameState extends State<OnboardingName> {
       onTap: () => FocusScope.of(context).unfocus(), // to żeby ukryć klawiaturę po kliknięciu na ekran
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 150),
-                      const Text(
-                        'What is your name?',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                      ),
-                      const SizedBox(height: 100),
-                      TextField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          hintText: 'Your name',
-                          border: OutlineInputBorder(),
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: SafeArea(
+            child: Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 150),
+                        Text('What is your name?', style: TextTheme.of(context).headlineLarge),
+                        const SizedBox(height: 100),
+                        TextField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(hintText: 'Your name'),
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _handleNext(),
                         ),
-                        textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => _handleNext(),
-                      ),
-                      SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
-                    ],
+                        SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
+                      ],
+                    ),
                   ),
                 ),
-              ),
 
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-                child: OnboardingButton(text: 'Next', onPressed: _handleNext),
-              ),
-            ],
+                Spacer(),
+                OnboardingButton(text: 'Next', onPressed: _handleNext),
+              ],
+            ),
           ),
         ),
       ),

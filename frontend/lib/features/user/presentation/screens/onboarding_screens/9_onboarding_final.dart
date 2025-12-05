@@ -83,48 +83,52 @@ class _OnboardingFinalState extends State<OnboardingFinal> with SingleTickerProv
           opacity: _fadeAnimation,
           child: SlideTransition(
             position: _slideAnimation,
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 40),
-
-                        // Success Icon
-                        Container(
-                          width: 100,
-                          height: 100,
-                          decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.1),
-                            shape: BoxShape.circle,
+            child: Center(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 40),
+                          //
+                          // Success Icon
+                          Container(
+                            width: 100,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              color: Colors.green.withAlpha(36),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.check_circle, color: Colors.green, size: 60),
                           ),
-                          child: const Icon(Icons.check_circle, color: Colors.green, size: 60),
-                        ),
 
-                        // Title
-                        Text(
-                          'All Set, ${widget.name ?? "Friend"}!',
-                          style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
+                          const SizedBox(height: 20),
 
-                        const SizedBox(height: 20),
-                      ],
+                          // Title
+                          Text(
+                            'All Set, ${widget.name ?? "Friend"}!',
+                            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+
+                          const SizedBox(height: 20),
+                        ],
+                      ),
                     ),
                   ),
-                ),
 
-                // Finish button
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: _isLoading
-                      ? const CircularProgressIndicator()
-                      : OnboardingButton(text: 'Start My Journey', onPressed: _handleFinish),
-                ),
-              ],
+                  // Finish button
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                    child: _isLoading
+                        ? const CircularProgressIndicator()
+                        : OnboardingButton(text: 'Start My Journey', onPressed: _handleFinish),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

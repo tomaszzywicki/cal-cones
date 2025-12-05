@@ -33,50 +33,52 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: SafeArea(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
 
-          children: [
-            SizedBox(height: 100),
-            Text('What is your activity level?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
-            SizedBox(height: 50),
-            _activityContainer('Mostly Sedentary', 'Jakiś tam opis 1', () {
-              setState(() {
-                _isFirstSelected = true;
-                _isSecondSelected = false;
-                _isThirdSelected = false;
-                _selectedActivityLevel = 'sedentary';
-              });
-            }, _isFirstSelected ? Colors.grey : Color(0xFFFDF8FE)),
-            SizedBox(height: 10),
-            _activityContainer('Moderately Active', 'Jakiś tam opis 1', () {
-              setState(() {
-                _isFirstSelected = false;
-                _isSecondSelected = true;
-                _isThirdSelected = false;
-                _selectedActivityLevel = 'moderately_active';
-              });
-            }, _isSecondSelected ? Colors.grey : Color(0xFFFDF8FE)),
-            SizedBox(height: 10),
-            _activityContainer('Very Active', 'Jakiś tam opis 1', () {
-              setState(() {
-                _isFirstSelected = false;
-                _isSecondSelected = false;
-                _isThirdSelected = true;
-                _selectedActivityLevel = 'very_active';
-              });
-            }, _isThirdSelected ? Colors.grey : Color(0xFFFDF8FE)),
+            children: [
+              SizedBox(height: 100),
+              Text('What is your activity level?', style: TextTheme.of(context).headlineLarge),
+              SizedBox(height: 50),
+              _activityContainer('Mostly Sedentary', 'Jakiś tam opis 1', () {
+                setState(() {
+                  _isFirstSelected = true;
+                  _isSecondSelected = false;
+                  _isThirdSelected = false;
+                  _selectedActivityLevel = 'sedentary';
+                });
+              }, _isFirstSelected ? Color(0xFF7C98A5) : Color(0xFFFDF8FE)),
+              SizedBox(height: 10),
+              _activityContainer('Moderately Active', 'Jakiś tam opis 1', () {
+                setState(() {
+                  _isFirstSelected = false;
+                  _isSecondSelected = true;
+                  _isThirdSelected = false;
+                  _selectedActivityLevel = 'moderately_active';
+                });
+              }, _isSecondSelected ? Color(0xFF7C98A5) : Color(0xFFFDF8FE)),
+              SizedBox(height: 10),
+              _activityContainer('Very Active', 'Jakiś tam opis 1', () {
+                setState(() {
+                  _isFirstSelected = false;
+                  _isSecondSelected = false;
+                  _isThirdSelected = true;
+                  _selectedActivityLevel = 'very_active';
+                });
+              }, _isThirdSelected ? Color(0xFF7C98A5) : Color(0xFFFDF8FE)),
 
-            Spacer(),
-            OnboardingButton(
-              text: 'Next',
-              onPressed: _selectedActivityLevel == null
-                  ? () {}
-                  : () {
-                      widget.setActivityLevel(_selectedActivityLevel!.toUpperCase());
-                    },
-            ),
-          ],
+              Spacer(),
+              OnboardingButton(
+                text: 'Next',
+                onPressed: _selectedActivityLevel == null
+                    ? () {}
+                    : () {
+                        widget.setActivityLevel(_selectedActivityLevel!.toUpperCase());
+                      },
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -98,7 +100,7 @@ Widget _activityContainer(text, description, onTap, color) {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(text, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
-          Text(description, style: TextStyle(color: Colors.grey)),
+          Text(description, style: TextStyle(color: Color(0xFF0C1C24))),
         ],
       ),
     ),

@@ -25,15 +25,33 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.grey[50],
         currentIndex: _currentIndex >= 2 ? _currentIndex + 1 : _currentIndex,
         onTap: (index) => _onBottomNavTap(index),
         type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.black,
+
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'Meal Log'),
-          BottomNavigationBarItem(icon: Icon(Icons.add_circle_sharp, size: 40), label: ''),
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
-          BottomNavigationBarItem(icon: Icon(Icons.more_horiz), label: 'Other'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home, size: 26, color: Colors.black),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list, size: 26, color: Colors.black),
+            label: 'Meal Log',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle_sharp, size: 40, color: Colors.black),
+            label: '',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard, size: 26, color: Colors.black),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.more_horiz, size: 26, color: Colors.black),
+            label: 'Other',
+          ),
         ],
       ),
     );

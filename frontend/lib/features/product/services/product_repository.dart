@@ -59,4 +59,18 @@ class ProductRepository {
       throw Exception('Failed to add custom product');
     }
   }
+
+  Future<int> deleteCustomProduct(ProductModel customProduct, int userId) async {
+    try {
+      final db = await _databaseService.database;
+      return await db.delete(
+        'products',
+        where: 'id = ? AND user_id = ?',
+        whereArgs: [customProduct.id, userId],
+      );
+    } catch (e) {
+      AppLogger.error("Error deleting product: $e");
+      throw Exception('Error deleting product: $e');
+    }
+  }
 }

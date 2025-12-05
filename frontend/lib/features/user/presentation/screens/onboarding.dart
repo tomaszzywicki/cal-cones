@@ -27,7 +27,7 @@ class Onboarding extends StatefulWidget {
 }
 
 class _Onboarding extends State<Onboarding> {
-  final PageController _pageController = PageController();
+  final PageController _pageController = PageController(initialPage: 5);
   bool onFirstPage = true;
   bool onLastPage = false;
 
@@ -201,7 +201,7 @@ class _Onboarding extends State<Onboarding> {
             effect: WormEffect(
               dotWidth: 30,
               dotHeight: 4,
-              activeDotColor: Colors.grey[800]!,
+              activeDotColor: Color(0xFF0C1C24),
               dotColor: Colors.grey[300]!,
               spacing: 6,
             ),
@@ -221,40 +221,40 @@ class _Onboarding extends State<Onboarding> {
             ),
           ),
 
-          Container(
-            alignment: Alignment(0, 0.8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: onFirstPage
-                      ? null
-                      : () {
-                          _pageController.previousPage(
-                            duration: Duration(microseconds: 200),
-                            curve: Curves.easeInOut,
-                          );
-                        },
-                  child: Text("Back"),
-                ),
+          // Container(
+          //   alignment: Alignment(0, 0.8),
+          //   child: Row(
+          //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          //     children: [
+          //       ElevatedButton(
+          //         onPressed: onFirstPage
+          //             ? null
+          //             : () {
+          //                 _pageController.previousPage(
+          //                   duration: Duration(microseconds: 200),
+          //                   curve: Curves.easeInOut,
+          //                 );
+          //               },
+          //         child: Text("Back"),
+          //       ),
 
-                // progress indicator (dots on the screen)
-                ElevatedButton(
-                  onPressed: onLastPage
-                      ? () {
-                          _saveOnboardingInfo();
-                        }
-                      : () {
-                          _pageController.nextPage(
-                            duration: Duration(microseconds: 200),
-                            curve: Curves.easeInOut,
-                          );
-                        },
-                  child: onLastPage ? Text("Done") : Text("Next"),
-                ),
-              ],
-            ),
-          ),
+          //       // progress indicator (dots on the screen)
+          //       ElevatedButton(
+          //         onPressed: onLastPage
+          //             ? () {
+          //                 _saveOnboardingInfo();
+          //               }
+          //             : () {
+          //                 _pageController.nextPage(
+          //                   duration: Duration(microseconds: 200),
+          //                   curve: Curves.easeInOut,
+          //                 );
+          //               },
+          //         child: onLastPage ? Text("Done") : Text("Next"),
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );
