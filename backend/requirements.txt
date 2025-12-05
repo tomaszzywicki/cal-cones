@@ -11,3 +11,6 @@ pytest-asyncio
 httpx                    
 pytest-cov              
 faker 
+opencv-python
+ultralytics
+python-multipart
