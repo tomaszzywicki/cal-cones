@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/database/local_database_service.dart';
+import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/other/presentation/screens/password_reset_page.dart';
 import 'package:frontend/features/other/presentation/widgets/profile_card.dart';
@@ -32,6 +34,7 @@ class _OtherScreenState extends State<OtherScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -80,7 +83,13 @@ class _OtherScreenState extends State<OtherScreen> {
                   title: 'Log out',
                   iconColor: Colors.red,
                   titleColor: Colors.red,
-                  onTap: () {},
+                  onTap: () async {
+                    authService.signOut();
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) => LoginScreen()),
+                      (route) => false,
+                    );
+                  },
                 ),
               ],
             ),
