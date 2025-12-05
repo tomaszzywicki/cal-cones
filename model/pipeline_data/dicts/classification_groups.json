@@ -59,7 +59,7 @@
         "21": "broccoli",
         "22": "lettuce",
         "23": "potato",
-        "24": "mixed-vegetables",
+        "24": "black-olives",
         "25": "sun-dried-tomatoe",
         "26": "spring-onion-scallion",
         "27": "french-fries"
@@ -110,6 +110,8 @@
         "7": "pizza-with-vegetables-baked",
         "8": "tomato-sauce",
         "9": "mixed-vegetables",
-        "10": "hamburger-bread-meat-ketchup"
+        "10": "hamburger-bread-meat-ketchup",
+        "11": "dark-chocolate",
+        "12": "tofu"
     }
 }

@@ -59,7 +59,6 @@
         "broccoli",
         "lettuce",
         "potato",
-        "mixed-vegetables",
         "sun-dried-tomatoe",
         "spring-onion-scallion",
         "french-fries",
@@ -111,6 +110,8 @@
         "pizza-with-vegetables-baked",
         "tomato-sauce",
         "mixed-vegetables",
-        "hamburger-bread-meat-ketchup"
+        "hamburger-bread-meat-ketchup",
+        "dark-chocolate",
+        "tofu"
     ]
 }
