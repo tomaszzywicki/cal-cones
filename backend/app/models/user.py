@@ -1,8 +1,9 @@
-from enum import Enum
+# from enum import Enum
 from sqlalchemy import String, Date, Integer, DateTime
 from sqlalchemy.dialects.postgresql import ENUM, BOOLEAN, JSON
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from datetime import date, datetime, timezone
+from enum import Enum
 
 from app.core.database import Base
 from app.models.weight_log import WeightLog
@@ -13,6 +14,9 @@ if TYPE_CHECKING:
     from app.models.goal import Goal
     from app.models.weight_log import WeightLog
     from app.models.product import Product
+
+    # from app.models.meal import Meal
+    from app.models.meal_product import MealProduct
 
 
 class DietTypeEnum(str, Enum):
@@ -54,3 +58,5 @@ class User(Base):
     goals: Mapped[List["Goal"]] = relationship("Goal", back_populates="user")
     weight_logs: Mapped[List["WeightLog"]] = relationship("WeightLog", back_populates="user")
     products: Mapped[List["Product"]] = relationship("Product", back_populates="user")
+    # meals: Mapped[List["Meal"]] = relationship("Meal", back_populates="user")
+    meal_products: Mapped[List["MealProduct"]] = relationship("MealProduct", back_populates="user")

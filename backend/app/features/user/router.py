@@ -1,17 +1,16 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.exceptions import RequestValidationError
-from requests import get
 
 from app.core.logger_setup import get_logger
 from app.core.dependencies import get_current_user_uid, get_db
-from app.features.user.schemas import UserOnboardingCreate
-from app.features.user.service import complete_user_onboarding
+from app.features.user.schemas import UserOnboardingCreate, UserProfileUpdate
+from app.features.user.service import complete_user_onboarding, update_user_data
 from app.features.auth.service import get_user_account_by_uid
 
 
 logger = get_logger(__name__)
 
-router = APIRouter(prefix="/user")
+router = APIRouter(prefix="/user", tags=["user"])
 
 
 @router.post("/onboarding/create/", status_code=status.HTTP_201_CREATED)
@@ -40,5 +39,22 @@ async def create_onboarding_data(
 
 
 @router.post("/update/")
-async def update_user_profile():
-    pass
+async def update_user_profile(
+    update_data: UserProfileUpdate,
+    db=Depends(get_db),
+    current_user_uid: str = Depends(get_current_user_uid),
+):
+    user = get_user_account_by_uid(db, current_user_uid)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    if user.id != update_data.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden action")
+    try:
+        user_response = update_user_data(db, update_data)
+        return user_response
+    except ValueError as e:
+        logger.error(f"User update failed: {e}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        logger.error(f"User update failed: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")

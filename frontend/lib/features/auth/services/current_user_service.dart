@@ -24,9 +24,7 @@ class CurrentUserService extends ChangeNotifier {
     AppLogger.debug('[$_tag] Initializing CurrentUserService...');
     await _loadUserFromStorage();
     _isInitialized = true;
-    AppLogger.info(
-      '[$_tag] CurrentUserService initialized. User logged in: $isLoggedIn',
-    );
+    AppLogger.info('[$_tag] CurrentUserService initialized. User logged in: $isLoggedIn');
   }
 
   Future<void> setUser(UserModel user) async {
@@ -60,9 +58,7 @@ class CurrentUserService extends ChangeNotifier {
       if (userJson != null) {
         final userData = jsonDecode(userJson);
         _currentUser = UserModel.fromMap(userData);
-        AppLogger.debug(
-          '[$_tag] User loaded from storage: ${_currentUser!.email}',
-        );
+        AppLogger.debug('[$_tag] User loaded from storage: ${_currentUser!.email}');
       } else {
         AppLogger.debug('[$_tag] No user found in storage');
       }
@@ -75,6 +71,7 @@ class CurrentUserService extends ChangeNotifier {
   Future<void> _saveUserToStorage(UserModel user) async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      user.id ??= 1;
       final userMap = jsonEncode(user.toMap());
       await prefs.setString(_userKey, userMap);
       AppLogger.debug('[$_tag] User saved to storage');
@@ -91,5 +88,16 @@ class CurrentUserService extends ChangeNotifier {
     } catch (e) {
       AppLogger.error('[$_tag] Failed to remove user from storage', e);
     }
+  }
+
+  int getUserId() {
+    final user = _currentUser;
+    if (user == null) {
+      throw Exception('No current user found');
+    }
+    if (user.id == null) {
+      throw Exception('Current user has no ID');
+    }
+    return user.id!;
   }
 }

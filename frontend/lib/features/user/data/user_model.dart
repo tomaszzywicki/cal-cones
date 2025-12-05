@@ -86,7 +86,7 @@ class UserModel extends UserEntity {
       createdAt: DateTime.parse(map['created_at'] as String),
       lastModifiedAt: DateTime.parse(map['last_modified_at'] as String),
       dietType: map['diet_type'] as String?,
-      macroSplit: map['macro_split'] as Map<String, int>?,
+      macroSplit: map['macro_split'] as Map<String, dynamic>?,
       activityLevel: map['activity_level'] as String?,
       setupCompleted: map['setup_completed'] as bool,
     );

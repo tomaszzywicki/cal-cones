@@ -9,6 +9,7 @@ from typing_extensions import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from app.models.user import User
+    from app.models.meal_product import MealProduct
 
 
 class Product(Base):
@@ -27,3 +28,4 @@ class Product(Base):
 
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="products")
+    meal_products: Mapped[list["MealProduct"]] = relationship("MealProduct", back_populates="product")

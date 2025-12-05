@@ -13,9 +13,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post(
-    "/signup/", response_model=UserResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/signup/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 async def register_user(
     user_credential: UserCreate,
     db: Session = Depends(get_db),
@@ -26,22 +24,16 @@ async def register_user(
     try:
         user = create_user_account(db, user_credential)
     except UserAlreadyExistsException:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, detail="User already exists"
-        )
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail="User already exists")
     return user
 
 
 @router.post("/signin/", response_model=UserResponse, status_code=status.HTTP_200_OK)
-async def login_user(
-    db: Session = Depends(get_db), current_user_uid=Depends(get_current_user_uid)
-):
+async def login_user(db: Session = Depends(get_db), current_user_uid=Depends(get_current_user_uid)):
     try:
         user = get_user_account_by_uid(db, current_user_uid)
     except UserDoesNotExistsException:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
 

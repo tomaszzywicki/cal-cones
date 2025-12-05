@@ -3,7 +3,7 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from app.core.logger_setup import get_logger
-from app.features.user.schemas import UserOnboardingCreate
+from app.features.user.schemas import UserOnboardingCreate, UserProfileUpdate
 from app.features.auth.schemas import UserResponse
 from app.features.goal.schemas import GoalResponse
 from app.models.user import User
@@ -60,3 +60,32 @@ def complete_user_onboarding(
         logger.error(f"GoalResponse validation failed: {e}")
         logger.error(f"Goal data: {goal.__dict__}")
         raise
+
+
+def update_user_data(db: Session, update_data: UserProfileUpdate) -> UserResponse:
+    """Update user profile data"""
+    user = db.query(User).filter(User.id == update_data.id).first()
+    if not user:
+        raise ValueError(f"User with id {update_data.id} does not exist")
+
+    if update_data.username is not None:
+        user.username = update_data.username
+    if update_data.birthday is not None:
+        user.birthday = update_data.birthday
+    if update_data.height is not None:
+        user.height = update_data.height
+    if update_data.diet_type is not None:
+        user.diet_type = update_data.diet_type
+    if update_data.macro_split is not None:
+        user.macro_split = update_data.macro_split
+    if update_data.activity_level is not None:
+        user.activity_level = update_data.activity_level
+
+    user.last_modified_at = datetime.now(timezone.utc)
+
+    db.commit()
+    db.refresh(user)
+
+    logger.info(f"User profile updated for user_id={user.id}")
+
+    return UserResponse.model_validate(user)
