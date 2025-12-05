@@ -6,8 +6,14 @@ from sqlalchemy import pool
 
 from alembic import context  # type: ignore
 
-from app.database import Base
-from app.user.models import *
+from app.core.database import Base
+from app.models.user import User
+from app.models.goal import Goal
+from app.models.weight_log import WeightLog
+from app.models.product import Product
+from app.models.meal import Meal
+from app.models.meal_product import MealProduct
+from app.models.unit import Unit
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
