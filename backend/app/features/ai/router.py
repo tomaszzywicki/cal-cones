@@ -1,7 +1,9 @@
 from typing import List
-from fastapi import APIRouter, status, HTTPException, UploadFile
+from fastapi import APIRouter, status, HTTPException, UploadFile, Depends
+from sqlalchemy.orm import Session
 
-from backend.app.features.ai.schemas import AIResponse
+from app.features.ai.schemas import AIResponse
+from app.core.dependencies import get_db
 
 from .model_loader import model
 from .service import prepare_file_for_model, cleanup_temp_file, process_model_output
@@ -15,13 +17,13 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 
 
 @router.post("/detect", response_model=List[AIResponse])
-async def detect_products(image: UploadFile):
+async def detect_products(image: UploadFile, db: Session = Depends(get_db)):
     tmp_path = None
     try:
         tmp_path = await prepare_file_for_model(image)
 
         results = model.run(tmp_path, conf_threshold=CONF_THRESHOLD, det_imgsz=DET_IMGSZ, verbose=False)
-        results = process_model_output(results)
+        results = process_model_output(results, db)
         return results
 
     except ValueError as ve:

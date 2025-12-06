@@ -80,3 +80,8 @@ def search_products(db: Session, query: str) -> list[ProductResponse]:
     query = query.strip()
     products = db.query(Product).filter(Product.name.ilike(f"%{query}%")).all()
     return [ProductResponse.model_validate(product) for product in products]
+
+
+def get_product_from_model(db: Session, name_from_model: str) -> ProductResponse:
+    product = db.query(Product).filter(Product.name_from_model == name_from_model).first()
+    return ProductResponse.model_validate(product)

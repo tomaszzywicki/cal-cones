@@ -4,6 +4,8 @@ from fastapi import UploadFile
 from pathlib import Path
 from io import BytesIO
 from PIL import Image
+from sqlalchemy.orm import Session
+from app.features.product.service import get_product_from_model
 
 
 async def prepare_file_for_model(image: UploadFile) -> str:
@@ -36,18 +38,20 @@ def cleanup_temp_file(file_path: str):
         raise RuntimeError(f"Failed to delete temporary file: {file_path}") from e
 
 
-def process_model_output(output: list[dict]) -> list[dict]:
+def process_model_output(output: list[dict], db: Session) -> list[dict]:
     processed_results = []
     for item in output:
-        name = item["top_5_cls_results"][0]["class_name"]
-        product = _get_product_info(name)
+        class_name = item["top_5_cls_results"][0]["class_name"]
+
+        product_info = _get_product_info(db, class_name)
+
         processed_item = {
-            "name": item["top_5_cls_results"][0]["class_name"],
+            "product": product_info,
             "probability": round(item["top_5_cls_results"][0]["probability"], 4),
         }
         processed_results.append(processed_item)
     return processed_results
 
 
-def _get_product_info(name: str):
-    pass
+def _get_product_info(db: Session, name: str):
+    return get_product_from_model(db, name)
