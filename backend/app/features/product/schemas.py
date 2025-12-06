@@ -29,6 +29,8 @@ class ProductResponse(BaseModel):
     created_at: datetime
     last_modified_at: datetime
     from_model: bool
+    name_from_model: str | None
+    average_portion: float | None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -45,5 +47,7 @@ class ProductUpdate(BaseModel):
     created_at: datetime | None
     last_modified_at: datetime | None
     from_model: bool | None
+    name_from_model: str | None
+    average_portion: float | None
 
     model_config = ConfigDict(from_attributes=True)

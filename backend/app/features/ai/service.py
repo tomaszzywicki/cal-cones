@@ -34,3 +34,20 @@ def cleanup_temp_file(file_path: str):
             os.remove(file_path)
     except Exception as e:
         raise RuntimeError(f"Failed to delete temporary file: {file_path}") from e
+
+
+def process_model_output(output: list[dict]) -> list[dict]:
+    processed_results = []
+    for item in output:
+        name = item["top_5_cls_results"][0]["class_name"]
+        product = _get_product_info(name)
+        processed_item = {
+            "name": item["top_5_cls_results"][0]["class_name"],
+            "probability": round(item["top_5_cls_results"][0]["probability"], 4),
+        }
+        processed_results.append(processed_item)
+    return processed_results
+
+
+def _get_product_info(name: str):
+    pass

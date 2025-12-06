@@ -1,7 +1,7 @@
 from AI.FoodDetection import FoodDetectionModel
 
 
-YOLO_PATH = "app/app/AI/models/classification_models/YOLO/"
+YOLO_PATH = "/app/AI/models/classification_models/YOLO/"
 
 clsModelsDict = {
     "meat": f"{YOLO_PATH}/meat.pt",
@@ -15,8 +15,8 @@ clsModelsDict = {
 
 
 model = FoodDetectionModel(
-    detection_model_path="app/app/AI/models/detection_models/detection.pt",
+    detection_model_path="/app/AI/models/detection_models/detection.pt",
     classification_config=clsModelsDict,
-    detection_id_to_name="app/app/AI/dicts/detect_classes_v4.json",
-    det_to_cls_group="app/app/AI/dicts/det_to_cls_groups.json",
+    detection_id_to_name="/app/AI/dicts/detect_classes_v4.json",
+    det_to_cls_group="/app/AI/dicts/det_to_cls_groups.json",
 )

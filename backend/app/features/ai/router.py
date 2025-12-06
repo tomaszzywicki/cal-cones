@@ -1,24 +1,29 @@
+from typing import List
 from fastapi import APIRouter, status, HTTPException, UploadFile
 
+from backend.app.features.ai.schemas import AIResponse
+
 from .model_loader import model
-from .service import prepare_file_for_model, cleanup_temp_file
+from .service import prepare_file_for_model, cleanup_temp_file, process_model_output
 from app.config import CONF_THRESHOLD, DET_IMGSZ
 
-from core.logger_setup import get_logger
+from app.core.logger_setup import get_logger
 
 logger = get_logger(__name__)
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 
-@router.post("/detect")
+@router.post("/detect", response_model=List[AIResponse])
 async def detect_products(image: UploadFile):
     tmp_path = None
     try:
         tmp_path = await prepare_file_for_model(image)
 
         results = model.run(tmp_path, conf_threshold=CONF_THRESHOLD, det_imgsz=DET_IMGSZ, verbose=False)
+        results = process_model_output(results)
         return results
+
     except ValueError as ve:
         logger.error(f"ValueError during detection: {ve}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(ve))
