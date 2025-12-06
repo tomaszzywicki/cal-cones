@@ -22,11 +22,12 @@ Future<void> initTables(Database db, int version) async {
   ''');
 
   await db.execute('''
-    CREATE TABLE weight_logs (
+    CREATE TABLE weight_entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       uuid TEXT,
       user_id INTEGER NOT NULL,
       weight REAL NOT NULL,
+      date TEXT NOT NULL,
       created_at TEXT NOT NULL,
       last_modified_at TEXT NOT NULL,
       is_synced INTEGER NOT NULL DEFAULT 0

@@ -16,6 +16,8 @@ import 'package:frontend/features/product/services/product_repository.dart';
 import 'package:frontend/features/product/services/product_service.dart';
 import 'package:frontend/features/user/services/user_api_service.dart';
 import 'package:frontend/features/user/services/user_service.dart';
+import 'package:frontend/features/weight_log/services/weight_log_repository.dart';
+import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -45,6 +47,9 @@ void main() async {
   final mealService = MealService(mealApiService, currentUserService, mealRepository);
   final dayMacroProvider = DayMacroProvider();
 
+  final weightLogRepository = WeightLogRepository(localDatabaseService);
+  final weightLogService = WeightLogService(currentUserService, weightLogRepository);
+
   await currentUserService.initialize();
   runApp(
     MultiProvider(
@@ -55,6 +60,7 @@ void main() async {
         Provider<AuthService>.value(value: authService),
         Provider<ProductService>.value(value: productService),
         Provider<MealService>.value(value: mealService),
+        Provider<WeightLogService>.value(value: weightLogService),
         ChangeNotifierProvider<CurrentUserService>.value(value: currentUserService),
         ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
         ChangeNotifierProvider<DayMacroProvider>.value(value: dayMacroProvider),
