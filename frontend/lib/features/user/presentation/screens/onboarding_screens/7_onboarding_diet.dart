@@ -39,6 +39,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(
@@ -56,7 +57,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
                 _selectedActivityLevel = 'balanced';
                 _macroSplit = {"Carbs": 40, "Protein": 30, "Fat": 30};
               });
-            }, _isFirstSelected ? Colors.grey : Color(0xFFFDF8FE)),
+            }, _isFirstSelected ? Colors.grey[400] : Colors.white),
             SizedBox(height: 10),
             _dietContainer('Low Carb', 'Jakiś tam opis 1', () {
               setState(() {
@@ -66,7 +67,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
                 _selectedActivityLevel = 'low_carb';
                 _macroSplit = {"Carbs": 10, "Protein": 30, "Fat": 60};
               });
-            }, _isSecondSelected ? Colors.grey : Color(0xFFFDF8FE)),
+            }, _isSecondSelected ? Colors.grey[400] : Colors.white),
             SizedBox(height: 10),
             _dietContainer('Low Fat', 'Jakiś tam opis 1', () {
               setState(() {
@@ -76,7 +77,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
                 _selectedActivityLevel = 'low_fat';
                 _macroSplit = {"Carbs": 60, "Protein": 30, "Fat": 10};
               });
-            }, _isThirdSelected ? Colors.grey : Color(0xFFFDF8FE)),
+            }, _isThirdSelected ? Colors.grey[400] : Colors.white),
 
             SizedBox(height: 20),
 

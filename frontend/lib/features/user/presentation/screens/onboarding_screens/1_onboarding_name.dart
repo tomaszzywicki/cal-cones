@@ -38,6 +38,7 @@ class _OnboardingNameState extends State<OnboardingName> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(), // to żeby ukryć klawiaturę po kliknięciu na ekran
       child: Scaffold(
+        backgroundColor: Colors.grey[50],
         resizeToAvoidBottomInset: true,
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -106,6 +106,7 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
     final isMaintenanceMode = _weightDifference.abs() < 0.1;
 
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: Column(
           children: [
