@@ -73,4 +73,19 @@ class ProductRepository {
       throw Exception('Error deleting product: $e');
     }
   }
+
+  Future<int> updateCustomProduct(ProductModel product, int userId) async {
+    try {
+      final db = await _databaseService.database;
+      return await db.update(
+        'products',
+        product.toMap(),
+        where: 'id = ? AND user_id = ?',
+        whereArgs: [product.id, userId],
+      );
+    } catch (e) {
+      AppLogger.error("Error updating product: $e");
+      throw Exception('Error updating product: $e');
+    }
+  }
 }
