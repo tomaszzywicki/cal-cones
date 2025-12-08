@@ -255,6 +255,7 @@ class _AddCustomProductPageState extends State<AddCustomProductPage> {
         createdAt: DateTime.now().toUtc(),
         lastModifiedAt: DateTime.now().toUtc(),
         fromModel: false,
+        averagePortion: 100, // TODO add controller for that
         isSynced: false,
       );
 

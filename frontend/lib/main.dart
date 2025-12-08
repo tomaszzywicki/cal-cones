@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:frontend/core/database/local_database_service.dart';
 import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/core/network/connectivity_service.dart';
+import 'package:frontend/features/ai/services/ai_api_service.dart';
+import 'package:frontend/features/ai/services/ai_service.dart';
 import 'package:frontend/features/auth/services/auth_api_service.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
@@ -45,6 +47,10 @@ void main() async {
   final mealService = MealService(mealApiService, currentUserService, mealRepository);
   final dayMacroProvider = DayMacroProvider();
 
+  // ai
+  final aiApiService = AIApiService(firebaseAuthService);
+  final aiService = AIService(aiApiService: aiApiService);
+
   await currentUserService.initialize();
   runApp(
     MultiProvider(
@@ -55,6 +61,7 @@ void main() async {
         Provider<AuthService>.value(value: authService),
         Provider<ProductService>.value(value: productService),
         Provider<MealService>.value(value: mealService),
+        Provider<AIService>.value(value: aiService),
         ChangeNotifierProvider<CurrentUserService>.value(value: currentUserService),
         ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
         ChangeNotifierProvider<DayMacroProvider>.value(value: dayMacroProvider),

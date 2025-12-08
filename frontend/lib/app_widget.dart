@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/theme/theme.dart';
+import 'package:frontend/features/ai/data/ai_response.dart';
+import 'package:frontend/features/ai/presentation/screens/ai_detected_products_page.dart';
 import 'package:frontend/features/auth/presentation/screens/landing_page.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/auth/services/firebase_auth_service.dart';
+import 'package:frontend/features/product/data/product_model.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding.dart';
 import 'package:frontend/main_screen.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AppWidget extends StatelessWidget {
   const AppWidget({super.key});

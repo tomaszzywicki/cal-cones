@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/logger/app_logger.dart';
+import 'package:frontend/features/ai/presentation/screens/ai_detected_products_page.dart';
+import 'package:frontend/features/ai/services/ai_service.dart';
 import 'package:frontend/features/product/presentation/screens/product_search_page.dart';
 import 'package:frontend/main_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ShowMenuBottomSheet extends StatelessWidget {
   const ShowMenuBottomSheet({super.key});
@@ -69,12 +73,69 @@ class ShowMenuBottomSheet extends StatelessWidget {
   }
 
   // Handlowanie AI Detect
+  // TODO dodać sprawdzenie czy jest połączenie z netem
+  // a jeśli jest to i tak dać jakiś timeout max 20 sekund bo jak się wywali serwer to za długo to trwa
   static Future<void> _handleAIDetect(BuildContext context) async {
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    navigator.pop();
-    scaffoldMessenger.showSnackBar(const SnackBar(content: Text('AI Detection coming soon!')));
+    final aiService = Provider.of<AIService>(context, listen: false);
+
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+
+      // anulowanie
+      if (image == null) {
+        return;
+      }
+
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (ctx) => const Center(
+            child: Card(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [CircularProgressIndicator(), SizedBox(height: 16), Text("Analyzing food...")],
+                ),
+              ),
+            ),
+          ),
+        );
+      }
+
+      final results = await aiService.detectProducts(image);
+
+      // Zamknięcie okienka analyzing food...
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+
+      // Zamknięcie bottom sheet
+      if (context.mounted) {
+        navigator.pop();
+      }
+
+      if (context.mounted) {
+        navigator.push(
+          MaterialPageRoute(
+            builder: (context) => AiDetectedProductsPage(image: image, detectedProducts: results),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+      }
+      AppLogger.error("AI Detect Error: $e");
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text('Error analyzing image: $e'), backgroundColor: Colors.red),
+      );
+    }
   }
 }
 

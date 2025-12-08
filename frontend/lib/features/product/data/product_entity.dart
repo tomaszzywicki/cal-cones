@@ -11,6 +11,7 @@ class ProductEntity {
   DateTime createdAt;
   DateTime lastModifiedAt;
   bool fromModel;
+  double? averagePortion;
   bool isSynced;
 
   ProductEntity({
@@ -26,6 +27,7 @@ class ProductEntity {
     required this.createdAt,
     required this.lastModifiedAt,
     this.fromModel = false,
+    this.averagePortion,
     this.isSynced = false,
   });
 }

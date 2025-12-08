@@ -6,6 +6,9 @@ from io import BytesIO
 from PIL import Image
 from sqlalchemy.orm import Session
 from app.features.product.service import get_product_from_model
+from app.core.logger_setup import get_logger
+
+logger = get_logger(__name__)
 
 
 async def prepare_file_for_model(image: UploadFile) -> str:
@@ -38,19 +41,23 @@ def cleanup_temp_file(file_path: str):
         raise RuntimeError(f"Failed to delete temporary file: {file_path}") from e
 
 
-def process_model_output(output: list[dict], db: Session) -> list[dict]:
-    processed_results = []
-    for item in output:
-        class_name = item["top_5_cls_results"][0]["class_name"]
+def process_model_output(output: list[dict], db: Session) -> list[dict] | None:
+    try:
+        processed_results = []
+        for item in output:
+            class_name = item["top5_cls_results"][0]["class_name"]
+            logger.info(f"AI has Detected a product {class_name}")
 
-        product_info = _get_product_info(db, class_name)
+            product_info = _get_product_info(db, class_name)
 
-        processed_item = {
-            "product": product_info,
-            "probability": round(item["top_5_cls_results"][0]["probability"], 4),
-        }
-        processed_results.append(processed_item)
-    return processed_results
+            processed_item = {
+                "product": product_info,
+                "probability": round(item["top5_cls_results"][0]["probability"], 4),
+            }
+            processed_results.append(processed_item)
+        return processed_results
+    except Exception as e:
+        logger.error(f"Error during process_model_output: {e}")
 
 
 def _get_product_info(db: Session, name: str):

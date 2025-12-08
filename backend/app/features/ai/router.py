@@ -16,7 +16,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/ai", tags=["ai"])
 
 
-@router.post("/detect", response_model=List[AIResponse])
+@router.post("/detect", status_code=status.HTTP_200_OK)
 async def detect_products(image: UploadFile, db: Session = Depends(get_db)):
     tmp_path = None
     try:

@@ -14,6 +14,7 @@ class ProductModel extends ProductEntity {
     required super.createdAt,
     required super.lastModifiedAt,
     super.fromModel = false,
+    super.averagePortion,
     super.isSynced = false,
   });
 
@@ -32,6 +33,7 @@ class ProductModel extends ProductEntity {
       createdAt: DateTime.parse(json['created_at'] as String),
       lastModifiedAt: DateTime.parse(json['last_modified_at'] as String),
       fromModel: json['from_model'] == 1,
+      averagePortion: (json['average_portion'] as num).toDouble(),
       isSynced: json['is_synced'] == 1,
     );
   }
@@ -51,6 +53,7 @@ class ProductModel extends ProductEntity {
       'created_at': createdAt.toIso8601String(),
       'last_modified_at': lastModifiedAt.toIso8601String(),
       'from_model': fromModel ? 1 : 0,
+      'average_portion': averagePortion,
       'is_synced': isSynced ? 1 : 0,
     };
   }
@@ -70,6 +73,7 @@ class ProductModel extends ProductEntity {
       'created_at': createdAt.toIso8601String(),
       'last_modified_at': lastModifiedAt.toIso8601String(),
       'from_model': fromModel ? 1 : 0,
+      'average_portion': averagePortion,
       'is_synced': isSynced ? 1 : 0,
     };
   }
@@ -89,6 +93,7 @@ class ProductModel extends ProductEntity {
       createdAt: DateTime.parse(map['created_at'] as String),
       lastModifiedAt: DateTime.parse(map['last_modified_at'] as String),
       fromModel: map['from_model'] == 1,
+      averagePortion: map['average_portion'] != null ? (map['average_portion'] as num).toDouble() : null,
       isSynced: map['is_synced'] == 1,
     );
   }
@@ -106,6 +111,7 @@ class ProductModel extends ProductEntity {
     DateTime? createdAt,
     DateTime? lastModifiedAt,
     bool? fromModel,
+    double? averagePortion,
     bool? isSynced,
   }) {
     return ProductModel(
@@ -121,6 +127,7 @@ class ProductModel extends ProductEntity {
       createdAt: createdAt ?? this.createdAt,
       lastModifiedAt: lastModifiedAt ?? this.lastModifiedAt,
       fromModel: fromModel ?? this.fromModel,
+      averagePortion: averagePortion ?? this.averagePortion,
       isSynced: isSynced ?? this.isSynced,
     );
   }

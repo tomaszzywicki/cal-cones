@@ -47,6 +47,7 @@ Future<void> initTables(Database db, int version) async {
       created_at TEXT NOT NULL,
       last_modified_at TEXT NOT NULL,
       from_model INTEGER NOT NULL DEFAULT 0,
+      average_portion REAL,
       is_synced INTEGER NOT NULL DEFAULT 0
     )
 ''');

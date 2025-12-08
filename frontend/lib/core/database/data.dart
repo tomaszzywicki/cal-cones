@@ -44,6 +44,7 @@ Future<void> addData(Database db, int version) async {
     'created_at': now,
     'last_modified_at': now,
     'from_model': 0,
+    'average_portion': 100,
     'is_synced': 1,
   });
 
@@ -59,6 +60,7 @@ Future<void> addData(Database db, int version) async {
     'created_at': now,
     'last_modified_at': now,
     'from_model': 0,
+    'average_portion': 100,
     'is_synced': 1,
   });
 
@@ -74,6 +76,7 @@ Future<void> addData(Database db, int version) async {
     'created_at': now,
     'last_modified_at': now,
     'from_model': 0,
+    'average_portion': 100,
     'is_synced': 1,
   });
 
@@ -89,6 +92,7 @@ Future<void> addData(Database db, int version) async {
     'created_at': now,
     'last_modified_at': now,
     'from_model': 0,
+    'average_portion': 100,
     'is_synced': 1,
   });
 
@@ -104,6 +108,7 @@ Future<void> addData(Database db, int version) async {
     'created_at': now,
     'last_modified_at': now,
     'from_model': 0,
+    'average_portion': 100,
     'is_synced': 1,
   });
 }
