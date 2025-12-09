@@ -14,6 +14,7 @@ import 'package:frontend/features/meal/services/day_macro_provider.dart';
 import 'package:frontend/features/meal/services/meal_api_service.dart';
 import 'package:frontend/features/meal/services/meal_repository.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
+import 'package:frontend/features/product/services/product_api_service.dart';
 import 'package:frontend/features/product/services/product_repository.dart';
 import 'package:frontend/features/product/services/product_service.dart';
 import 'package:frontend/features/user/services/user_api_service.dart';
@@ -39,7 +40,8 @@ void main() async {
   final userService = UserService(userApiService, currentUserService);
   // product
   final productRepository = ProductRepository(localDatabaseService);
-  final productService = ProductService(productRepository, currentUserService);
+  final productApiService = ProductApiService(firebaseAuthService);
+  final productService = ProductService(productRepository, productApiService, currentUserService);
 
   // meal
   final mealApiService = MealApiService(firebaseAuthService);
@@ -56,9 +58,9 @@ void main() async {
     MultiProvider(
       providers: [
         Provider<LocalDatabaseService>.value(value: localDatabaseService),
-        Provider<UserService>.value(value: userService),
         Provider<FirebaseAuthService>.value(value: firebaseAuthService),
         Provider<AuthService>.value(value: authService),
+        Provider<UserService>.value(value: userService),
         Provider<ProductService>.value(value: productService),
         Provider<MealService>.value(value: mealService),
         Provider<AIService>.value(value: aiService),

@@ -153,7 +153,7 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.blue,
+                                color: Colors.black,
                               ),
                             ),
                           ],
@@ -165,10 +165,10 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
 
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: Colors.blue,
+                        activeTrackColor: Colors.black,
                         inactiveTrackColor: Colors.grey[300],
-                        thumbColor: Colors.blue,
-                        overlayColor: Colors.blue.withOpacity(0.2),
+                        thumbColor: Colors.black,
+                        overlayColor: Colors.black.withOpacity(0.2),
                         trackHeight: 4,
                         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                       ),
@@ -202,7 +202,7 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: isMaintenanceMode
-                                ? Colors.blue
+                                ? Colors.black
                                 : (_weightDifference > 0 ? Colors.green : Colors.orange),
                           ),
                         ),
@@ -223,7 +223,7 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
                           _getTempoLabel(),
                           style: const TextStyle(
                             fontSize: 16,
-                            color: Colors.blue,
+                            color: Colors.black,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -233,10 +233,10 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
 
                       SliderTheme(
                         data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: Colors.blue,
+                          activeTrackColor: Colors.black,
                           inactiveTrackColor: Colors.grey[300],
-                          thumbColor: Colors.blue,
-                          overlayColor: Colors.blue.withOpacity(0.2),
+                          thumbColor: Colors.black,
+                          overlayColor: Colors.black.withOpacity(0.2),
                           trackHeight: 4,
                           thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                         ),
@@ -288,14 +288,14 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
                           decoration: BoxDecoration(
                             color: Colors.grey[100],
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.blue, width: 2),
+                            border: Border.all(color: Colors.black, width: 2),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.calendar_today, color: Colors.blue, size: 20),
+                                  const Icon(Icons.calendar_today, color: Colors.black, size: 20),
                                   const SizedBox(width: 12),
                                   Text(
                                     _targetDate != null

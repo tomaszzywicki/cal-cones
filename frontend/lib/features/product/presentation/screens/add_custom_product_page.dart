@@ -259,7 +259,7 @@ class _AddCustomProductPageState extends State<AddCustomProductPage> {
         isSynced: false,
       );
 
-      await productService.addCustomProduct(product);
+      await productService.createCustomProduct(product);
 
       if (!mounted) return;
 
