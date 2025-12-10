@@ -3,7 +3,7 @@ import 'package:frontend/features/product/data/product_entity.dart';
 class ProductModel extends ProductEntity {
   ProductModel({
     super.id,
-    super.uuid,
+    required super.uuid,
     required super.userId,
     required super.name,
     super.manufacturer,
@@ -22,7 +22,7 @@ class ProductModel extends ProductEntity {
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
       id: json['id'] as int?,
-      uuid: json['uuid'] as String?,
+      uuid: json['uuid'] as String,
       userId: json['user_id'] as int,
       name: json['name'] as String,
       manufacturer: json['manufacturer'] as String?,
@@ -82,7 +82,7 @@ class ProductModel extends ProductEntity {
   factory ProductModel.fromMap(Map<String, dynamic> map) {
     return ProductModel(
       id: map['id'] as int?,
-      uuid: map['uuid'] as String?,
+      uuid: map['uuid'] as String,
       userId: map['user_id'] as int,
       name: map['name'] as String,
       manufacturer: map['manufacturer'] as String?,

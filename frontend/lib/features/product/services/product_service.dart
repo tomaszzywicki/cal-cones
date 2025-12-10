@@ -1,14 +1,24 @@
+import 'package:frontend/core/network/connectivity_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/product/data/product_model.dart';
 import 'package:frontend/features/product/services/product_api_service.dart';
 import 'package:frontend/features/product/services/product_repository.dart';
+import 'package:frontend/features/product/services/product_sync_service.dart';
 
 class ProductService {
   final ProductRepository _productRepository;
   final ProductApiService _productApiService;
+  final ProductSyncService _productSyncService;
   final CurrentUserService _currentUserService;
+  final ConnectivityService _connectivityService;
 
-  ProductService(this._productRepository, this._productApiService, this._currentUserService);
+  ProductService(
+    this._productRepository,
+    this._productApiService,
+    this._productSyncService,
+    this._currentUserService,
+    this._connectivityService,
+  );
 
   // ================== CRUD ===================
   Future<ProductModel> createCustomProduct(ProductModel customProduct) async {
@@ -16,9 +26,12 @@ class ProductService {
 
     final savedProduct = await _productRepository.createCustomProduct(customProduct, userId);
 
-    // await _productSyncService.onCreate(savedProduct)
+    await _productSyncService.onCreate(savedProduct);
 
     // try to sync
+    if (_connectivityService.isConnected) {
+      await _productSyncService.syncAll();
+    }
 
     return savedProduct;
   }
@@ -28,20 +41,26 @@ class ProductService {
 
     await _productRepository.updateCustomProduct(customProduct, userId);
 
-    // await _productSyncService.onUpdate(product);
+    await _productSyncService.onUpdate(customProduct);
 
     // try to sync
+    if (_connectivityService.isConnected) {
+      await _productSyncService.syncAll();
+    }
   }
 
   Future<int> deleteCustomProduct(ProductModel customProduct) async {
     final userId = _currentUserService.getUserId();
 
     // 1. Do kolejki
-    // await _productSyncService.onDelete(customProduct.uuid!);
+    await _productSyncService.onDelete(customProduct.uuid);
 
     final result = await _productRepository.deleteCustomProduct(customProduct, userId);
 
     // try to sync
+    if (_connectivityService.isConnected) {
+      await _productSyncService.syncAll();
+    }
 
     return result;
   }

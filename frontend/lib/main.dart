@@ -4,6 +4,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:frontend/core/database/local_database_service.dart';
 import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/core/network/connectivity_service.dart';
+import 'package:frontend/core/sync/sync_queue_repository.dart';
+import 'package:frontend/core/sync/sync_service.dart';
 import 'package:frontend/features/ai/services/ai_api_service.dart';
 import 'package:frontend/features/ai/services/ai_service.dart';
 import 'package:frontend/features/auth/services/auth_api_service.dart';
@@ -17,6 +19,7 @@ import 'package:frontend/features/meal/services/meal_service.dart';
 import 'package:frontend/features/product/services/product_api_service.dart';
 import 'package:frontend/features/product/services/product_repository.dart';
 import 'package:frontend/features/product/services/product_service.dart';
+import 'package:frontend/features/product/services/product_sync_service.dart';
 import 'package:frontend/features/user/services/user_api_service.dart';
 import 'package:frontend/features/user/services/user_service.dart';
 import 'package:provider/provider.dart';
@@ -28,20 +31,38 @@ void main() async {
   await Firebase.initializeApp();
   AppLogger.info('[App] Firebase initialized');
 
+  // core
   final localDatabaseService = LocalDatabaseService();
-  final connectivityService = ConnectivityService()..initConnectivity();
+  final connectivityService = ConnectivityService();
+  await connectivityService.initConnectivity();
+  final syncService = SyncService(connectivityService: connectivityService);
+  syncService.init();
+  final syncQueueRepository = SyncQueueRepository(localDatabaseService);
+
   // auth
   final firebaseAuthService = FirebaseAuthService();
   final authApiService = AuthApiService(firebaseAuthService);
   final currentUserService = CurrentUserService();
   final authService = AuthService(firebaseAuthService, authApiService, currentUserService);
+  // sync
   // user
   final userApiService = UserApiService(firebaseAuthService);
   final userService = UserService(userApiService, currentUserService);
   // product
   final productRepository = ProductRepository(localDatabaseService);
   final productApiService = ProductApiService(firebaseAuthService);
-  final productService = ProductService(productRepository, productApiService, currentUserService);
+  final productSyncService = ProductSyncService(
+    repository: productRepository,
+    apiService: productApiService,
+    syncQueueRepository: syncQueueRepository,
+  );
+  final productService = ProductService(
+    productRepository,
+    productApiService,
+    productSyncService,
+    currentUserService,
+    connectivityService,
+  );
 
   // meal
   final mealApiService = MealApiService(firebaseAuthService);

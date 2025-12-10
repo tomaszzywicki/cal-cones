@@ -1,6 +1,6 @@
 class ProductEntity {
   int? id;
-  String? uuid;
+  String uuid;
   int userId;
   String name;
   String? manufacturer;
@@ -16,7 +16,7 @@ class ProductEntity {
 
   ProductEntity({
     this.id,
-    this.uuid,
+    required this.uuid,
     required this.userId,
     required this.name,
     this.manufacturer,

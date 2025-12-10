@@ -4,6 +4,7 @@ import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/product/data/product_model.dart';
 import 'package:frontend/features/product/services/product_service.dart';
 import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 
 class AddCustomProductPage extends StatefulWidget {
   const AddCustomProductPage({super.key});
@@ -244,6 +245,7 @@ class _AddCustomProductPageState extends State<AddCustomProductPage> {
 
       final product = ProductModel(
         userId: currentUserService.getUserId(),
+        uuid: Uuid().v4(),
         name: _nameController.text.trim(),
         manufacturer: _manufacturerController.text.trim().isEmpty
             ? null

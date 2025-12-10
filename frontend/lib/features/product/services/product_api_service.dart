@@ -5,18 +5,18 @@ class ProductApiService extends ApiClient {
   ProductApiService(super.firebaseAuthService);
 
   Future<http.Response> createProduct(Map<String, dynamic> data) {
-    return post('/products', data);
+    return post('/products/create', data);
   }
 
   Future<http.Response> updateProduct(String uuid, Map<String, dynamic> data) {
-    return put('/products/$uuid', data);
+    return put('/products/update', data);
   }
 
   Future<http.Response> deleteProduct(String uuid) {
-    return delete('/products/$uuid');
+    return delete('/products/delete/$uuid');
   }
 
-  Future<http.Response> getProducts() {
-    return get('/products');
+  Future<http.Response> searchProducts(String query) {
+    return get('/products/$query');
   }
 }

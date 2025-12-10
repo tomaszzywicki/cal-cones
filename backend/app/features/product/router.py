@@ -18,8 +18,8 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/product", tags=["product"])
 
 
-@router.get("/add/", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
-async def add_user_product(
+@router.post("/create", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
+async def create_user_product(
     product_data: ProductCreate,
     db: Session = Depends(get_db),
     current_user_uid: str = Depends(get_current_user_uid),
@@ -53,7 +53,7 @@ async def get_all_user_products(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
-@router.put("/update/", response_model=ProductResponse, status_code=status.HTTP_200_OK)
+@router.put("/update", response_model=ProductResponse, status_code=status.HTTP_200_OK)
 async def update_user_product(
     product_data: ProductUpdate,
     db: Session = Depends(get_db),
@@ -89,9 +89,9 @@ async def delete_user_product(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
-@router.get(f"/search/", response_model=list[ProductResponse], status_code=status.HTTP_200_OK)
+@router.get("/search/{query}", response_model=list[ProductResponse], status_code=status.HTTP_200_OK)
 async def search_all_products(
-    query: Optional[str] = None,
+    query: str,
     db: Session = Depends(get_db),
 ):
     """Search products in the database"""
