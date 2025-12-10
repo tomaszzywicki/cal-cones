@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logger_setup import get_logger
 from app.core.dependencies import get_current_user_uid, get_db
-from app.features.meal.schemas import MealCreate, MealProductCreate, MealUpdate
+from app.features.meal.schemas import MealProductCreate, MealProductResponse
 
 from app.core.logger_setup import get_logger
 
