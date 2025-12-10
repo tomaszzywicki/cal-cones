@@ -30,7 +30,7 @@ class ProductService {
 
     // try to sync
     if (_connectivityService.isConnected) {
-      await _productSyncService.syncAll();
+      await _productSyncService.syncToServer();
     }
 
     return savedProduct;
@@ -45,7 +45,7 @@ class ProductService {
 
     // try to sync
     if (_connectivityService.isConnected) {
-      await _productSyncService.syncAll();
+      await _productSyncService.syncToServer();
     }
   }
 
@@ -59,7 +59,7 @@ class ProductService {
 
     // try to sync
     if (_connectivityService.isConnected) {
-      await _productSyncService.syncAll();
+      await _productSyncService.syncToServer();
     }
 
     return result;

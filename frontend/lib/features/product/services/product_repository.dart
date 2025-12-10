@@ -105,4 +105,27 @@ class ProductRepository {
       throw Exception('Error marking product as synced: $e');
     }
   }
+
+  Future<void> insertFromServer(ProductModel product, int userId) async {
+    final db = await _databaseService.database;
+
+    final productToInsert = product.copyWith(userId: userId, isSynced: true);
+
+    await db.insert('products', productToInsert.toMap());
+  }
+
+  Future<void> updateFromServer(ProductModel product) async {
+    final db = await _databaseService.database;
+
+    final productToUpdate = product.copyWith(isSynced: true);
+
+    await db.update('products', productToUpdate.toMap(), where: 'uuid = ?', whereArgs: [product.uuid]);
+  }
+
+  Future<ProductModel?> getByUuid(String uuid) async {
+    final db = await _databaseService.database;
+    final result = await db.query('products', where: 'uuid = ?', whereArgs: [uuid]);
+    if (result.isEmpty) return null;
+    return ProductModel.fromMap(result.first);
+  }
 }

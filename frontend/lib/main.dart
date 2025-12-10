@@ -35,16 +35,13 @@ void main() async {
   final localDatabaseService = LocalDatabaseService();
   final connectivityService = ConnectivityService();
   await connectivityService.initConnectivity();
-  final syncService = SyncService(connectivityService: connectivityService);
-  syncService.init();
   final syncQueueRepository = SyncQueueRepository(localDatabaseService);
 
   // auth
   final firebaseAuthService = FirebaseAuthService();
   final authApiService = AuthApiService(firebaseAuthService);
   final currentUserService = CurrentUserService();
-  final authService = AuthService(firebaseAuthService, authApiService, currentUserService);
-  // sync
+
   // user
   final userApiService = UserApiService(firebaseAuthService);
   final userService = UserService(userApiService, currentUserService);
@@ -74,7 +71,22 @@ void main() async {
   final aiApiService = AIApiService(firebaseAuthService);
   final aiService = AIService(aiApiService: aiApiService);
 
+  // sync
+  final syncService = SyncService(
+    connectivityService: connectivityService,
+    productSyncService: productSyncService,
+  );
+  syncService.init();
+
+  // auth znów
+  final authService = AuthService(firebaseAuthService, authApiService, currentUserService, syncService);
+
   await currentUserService.initialize();
+
+  if (currentUserService.isLoggedIn && connectivityService.isConnected) {
+    await syncService.syncFromServer(currentUserService.getUserId());
+  }
+
   runApp(
     MultiProvider(
       providers: [

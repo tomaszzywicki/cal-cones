@@ -4,6 +4,7 @@ import 'package:frontend/core/sync/sync_queue_repository.dart';
 import 'package:frontend/features/product/data/product_model.dart';
 import 'package:frontend/features/product/services/product_api_service.dart';
 import 'package:frontend/features/product/services/product_repository.dart';
+import 'dart:convert';
 
 class ProductSyncService {
   static const String featureName = 'product';
@@ -80,7 +81,7 @@ class ProductSyncService {
 
   // Synchronizacja
 
-  Future<void> syncAll() async {
+  Future<void> syncToServer() async {
     final operations = await syncQueueRepository.getByFeature(featureName);
 
     if (operations.isEmpty) {
@@ -121,6 +122,45 @@ class ProductSyncService {
         if (response.statusCode != 200 && response.statusCode != 204 && response.statusCode != 404) {
           throw Exception('API ${response.statusCode}: ${response.body}');
         }
+    }
+  }
+
+  Future<void> syncFromServer(int userId) async {
+    AppLogger.info('[ProductSync] Syncing from server...');
+
+    try {
+      final response = await apiService.getUserProducts();
+
+      if (response.statusCode != 200) {
+        throw Exception('API ${response.statusCode}: ${response.body}');
+      }
+
+      final List<dynamic> productsJson = jsonDecode(response.body);
+      AppLogger.info('[ProductSync] Received ${productsJson.length} products from server');
+
+      for (final productJson in productsJson) {
+        final product = ProductModel.fromJson(productJson);
+
+        // Czy produkt już istnieje lokalnie
+        final existingProduct = await repository.getByUuid(product.uuid);
+
+        if (existingProduct == null) {
+          // Nowy produkt
+          await repository.insertFromServer(product, userId);
+          AppLogger.debug('[ProductSync] Inserted: ${product.name}');
+        } else {
+          // Istnieje
+          if (product.lastModifiedAt.isAfter(existingProduct.lastModifiedAt)) {
+            await repository.updateFromServer(product);
+            AppLogger.debug('[ProductSync] Updated: ${product.name}');
+          }
+        }
+      }
+
+      AppLogger.info('[ProductSync] Sync from server completed');
+    } catch (e) {
+      AppLogger.error('[ProductSync] Sync from server failed: $e');
+      rethrow;
     }
   }
 }

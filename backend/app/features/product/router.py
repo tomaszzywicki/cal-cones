@@ -36,23 +36,6 @@ async def create_user_product(
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
 
 
-@router.get("/added/", response_model=list[ProductResponse], status_code=status.HTTP_200_OK)
-async def get_all_user_products(
-    db: Session = Depends(get_db),
-    current_user_uid: str = Depends(get_current_user_uid),
-):
-    """Get all products for the current user"""
-    try:
-        products = get_user_products(db, current_user_uid)
-        return products
-    except ValueError as e:
-        logger.error(f"Get user products failed: {e}")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
-    except Exception as e:
-        logger.error(f"Get user products failed: {e}")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
-
-
 @router.put("/update", response_model=ProductResponse, status_code=status.HTTP_200_OK)
 async def update_user_product(
     product_data: ProductUpdate,
@@ -100,4 +83,21 @@ async def search_all_products(
         return products
     except Exception as e:
         logger.error(f"Search products failed: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
+
+
+@router.get("/added/", response_model=list[ProductResponse], status_code=status.HTTP_200_OK)
+async def get_all_user_products(
+    db: Session = Depends(get_db),
+    current_user_uid: str = Depends(get_current_user_uid),
+):
+    """Get all products for the current user"""
+    try:
+        products = get_user_products(db, current_user_uid)
+        return products
+    except ValueError as e:
+        logger.error(f"Get user products failed: {e}")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except Exception as e:
+        logger.error(f"Get user products failed: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
