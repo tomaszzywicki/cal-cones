@@ -18,7 +18,17 @@ class WeightLogRepository {
     }
   }
 
-  Future<List<WeightEntryModel>> getWeightEntriesForUser(int userId) async {
+  Future<void> deleteWeightEntry(WeightEntryModel weightEntry) async {
+    try {
+      final db = await _databaseService.database;
+      await db.delete('weight_entries', where: 'id = ?', whereArgs: [weightEntry.id]);
+    } catch (e) {
+      AppLogger.error('WeightLogRepository.deleteWeightEntry error: $e');
+      throw Exception('Failed to delete weight entry: $e');
+    }
+  }
+
+  Future<List<WeightEntryModel>> getWeightEntries(int userId) async {
     try {
       final db = await _databaseService.database;
       List<Map<String, dynamic>> result = await db.query(
@@ -29,8 +39,29 @@ class WeightLogRepository {
       );
       return result.map((weightEntryMap) => WeightEntryModel.fromMap(weightEntryMap)).toList();
     } catch (e) {
-      AppLogger.error('WeightLogRepository.getWeightEntriesForUser error: $e');
-      throw Exception('Failed to get weight entries for user: $e');
+      AppLogger.error('WeightLogRepository.getWeightEntries error: $e');
+      throw Exception('Failed to get weight entries: $e');
+    }
+  }
+
+  Future<WeightEntryModel?> getLatestWeightEntry(int userId) async {
+    try {
+      final db = await _databaseService.database;
+      List<Map<String, dynamic>> result = await db.query(
+        'weight_entries',
+        where: 'user_id = ?',
+        whereArgs: [userId],
+        orderBy: 'date DESC',
+        limit: 1,
+      );
+      if (result.isNotEmpty) {
+        return WeightEntryModel.fromMap(result.first);
+      } else {
+        return null;
+      }
+    } catch (e) {
+      AppLogger.error('WeightLogRepository.getLatestWeightEntry error: $e');
+      throw Exception('Failed to get latest weight entry: $e');
     }
   }
 }

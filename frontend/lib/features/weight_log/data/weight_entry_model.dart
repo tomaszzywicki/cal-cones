@@ -50,4 +50,8 @@ class WeightEntryModel extends WeightEntryEntity {
       isSynced: (map['is_synced'] as int) == 1,
     );
   }
+
+  int daysSinceToday() {
+    return date.difference(DateTime.now().toUtc()).inDays;
+  }
 }

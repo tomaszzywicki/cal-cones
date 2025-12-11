@@ -15,8 +15,17 @@ class WeightLogService {
     await _weightLogRepository.addWeightEntry(weightEntry, userId);
   }
 
+  Future<void> deleteWeightEntry(WeightEntryModel weightEntry) async {
+    await _weightLogRepository.deleteWeightEntry(weightEntry);
+  }
+
   Future<List<WeightEntryModel>> getAllWeightEntries() async {
     final userId = _currentUserService.getUserId();
-    return await _weightLogRepository.getWeightEntriesForUser(userId);
+    return await _weightLogRepository.getWeightEntries(userId);
+  }
+
+  Future<WeightEntryModel?> getLatestWeightEntry() async {
+    final userId = _currentUserService.getUserId();
+    return await _weightLogRepository.getLatestWeightEntry(userId);
   }
 }
