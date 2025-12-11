@@ -45,6 +45,7 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Center(
         child: SafeArea(
           child: Form(
@@ -73,6 +74,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : signIn,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
                     child: _isLoading ? CircularProgressIndicator() : Text('Log In'),
                   ),
                 ),
@@ -85,7 +90,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () {
                         Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignupScreen()));
                       },
-                      child: Text("Sign up"),
+                      child: Text(
+                        "Sign up",
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
                 ),

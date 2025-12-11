@@ -48,6 +48,7 @@ Future<void> initTables(Database db, int version) async {
       created_at TEXT NOT NULL,
       last_modified_at TEXT NOT NULL,
       from_model INTEGER NOT NULL DEFAULT 0,
+      average_portion REAL,
       is_synced INTEGER NOT NULL DEFAULT 0
     )
 ''');
@@ -109,4 +110,15 @@ Future<void> initTables(Database db, int version) async {
       base_unit INTEGER NOT NULL DEFAULT 0
     )
   ''');
+
+  await db.execute('''
+  CREATE TABLE IF NOT EXISTS sync_queue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    feature TEXT NOT NULL,
+    operation TEXT NOT NULL,
+    entity_uuid TEXT NOT NULL,
+    payload TEXT,
+    created_at TEXT NOT NULL
+  )
+''');
 }

@@ -1,7 +1,28 @@
-import 'package:frontend/core/network/api_client.template.dart';
+import 'package:frontend/core/network/api_client.dart';
+import 'package:http/http.dart' as http;
 
 class ProductApiService extends ApiClient {
-  ProductApiService(super._firebaseAuthService);
+  ProductApiService(super.firebaseAuthService);
 
-  // todo implement methods
+  static const String name = 'product';
+
+  Future<http.Response> createProduct(Map<String, dynamic> data) {
+    return post('/$name/create', data);
+  }
+
+  Future<http.Response> updateProduct(String uuid, Map<String, dynamic> data) {
+    return put('/$name/update', data);
+  }
+
+  Future<http.Response> deleteProduct(String uuid) {
+    return delete('/$name/delete/$uuid');
+  }
+
+  Future<http.Response> searchProducts(String query) {
+    return get('/$name/$query');
+  }
+
+  Future<http.Response> getUserProducts() {
+    return get('/$name/added/');
+  }
 }

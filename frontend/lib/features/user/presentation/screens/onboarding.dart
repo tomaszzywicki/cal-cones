@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/network/connectivity_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
-import 'package:frontend/features/home/presentation/screens/home_screen.dart';
-import 'package:frontend/features/user/data/user_model.dart';
 import 'package:frontend/features/user/data/user_onboarding_model.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/9_onboarding_final.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/1_onboarding_name.dart';
@@ -27,7 +25,7 @@ class Onboarding extends StatefulWidget {
 }
 
 class _Onboarding extends State<Onboarding> {
-  final PageController _pageController = PageController(initialPage: 5);
+  final PageController _pageController = PageController(initialPage: 3);
   bool onFirstPage = true;
   bool onLastPage = false;
 
@@ -192,6 +190,7 @@ class _Onboarding extends State<Onboarding> {
       ),
     ];
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Column(
         children: [
           SizedBox(height: 50),
@@ -220,41 +219,6 @@ class _Onboarding extends State<Onboarding> {
               children: pages,
             ),
           ),
-
-          // Container(
-          //   alignment: Alignment(0, 0.8),
-          //   child: Row(
-          //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          //     children: [
-          //       ElevatedButton(
-          //         onPressed: onFirstPage
-          //             ? null
-          //             : () {
-          //                 _pageController.previousPage(
-          //                   duration: Duration(microseconds: 200),
-          //                   curve: Curves.easeInOut,
-          //                 );
-          //               },
-          //         child: Text("Back"),
-          //       ),
-
-          //       // progress indicator (dots on the screen)
-          //       ElevatedButton(
-          //         onPressed: onLastPage
-          //             ? () {
-          //                 _saveOnboardingInfo();
-          //               }
-          //             : () {
-          //                 _pageController.nextPage(
-          //                   duration: Duration(microseconds: 200),
-          //                   curve: Curves.easeInOut,
-          //                 );
-          //               },
-          //         child: onLastPage ? Text("Done") : Text("Next"),
-          //       ),
-          //     ],
-          //   ),
-          // ),
         ],
       ),
     );

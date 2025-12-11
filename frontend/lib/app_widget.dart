@@ -3,7 +3,6 @@ import 'package:frontend/core/theme/theme.dart';
 import 'package:frontend/features/auth/presentation/screens/landing_page.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/auth/services/firebase_auth_service.dart';
-import 'package:frontend/features/user/presentation/screens/onboarding.dart';
 import 'package:frontend/main_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -52,6 +51,7 @@ class AppWidget extends StatelessWidget {
               } else {
                 // Setup completed → Main Screen
                 return MainScreen(key: mainScreenKey);
+                // return Onboarding();
               }
             },
           );

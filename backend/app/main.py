@@ -9,6 +9,7 @@ from app.features.user.router import router as user_router
 from app.features.goal.router import router as goal_router
 from app.features.meal.router import router as meal_router
 from app.features.product.router import router as product_router
+from app.features.ai.router import router as ai_router
 
 from app.core.firebase import initialize_firebase
 from app.core.dependencies import verify_firebase_token, get_current_user_uid
@@ -22,6 +23,7 @@ app.include_router(user_router)
 app.include_router(goal_router)
 app.include_router(meal_router)
 app.include_router(product_router)
+app.include_router(ai_router)
 
 initialize_firebase()
 

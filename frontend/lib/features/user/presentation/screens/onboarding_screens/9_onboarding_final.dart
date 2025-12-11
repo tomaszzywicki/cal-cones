@@ -78,6 +78,7 @@ class _OnboardingFinalState extends State<OnboardingFinal> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: FadeTransition(
           opacity: _fadeAnimation,

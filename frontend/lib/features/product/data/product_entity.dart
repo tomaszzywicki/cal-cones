@@ -1,6 +1,6 @@
 class ProductEntity {
   int? id;
-  String? uuid;
+  String uuid;
   int userId;
   String name;
   String? manufacturer;
@@ -11,11 +11,12 @@ class ProductEntity {
   DateTime createdAt;
   DateTime lastModifiedAt;
   bool fromModel;
+  double? averagePortion;
   bool isSynced;
 
   ProductEntity({
     this.id,
-    this.uuid,
+    required this.uuid,
     required this.userId,
     required this.name,
     this.manufacturer,
@@ -26,6 +27,7 @@ class ProductEntity {
     required this.createdAt,
     required this.lastModifiedAt,
     this.fromModel = false,
+    this.averagePortion,
     this.isSynced = false,
   });
 }

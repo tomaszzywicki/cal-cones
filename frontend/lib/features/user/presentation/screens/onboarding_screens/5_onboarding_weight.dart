@@ -33,8 +33,9 @@ class _OnboardingWeightState extends State<OnboardingWeight> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
 
@@ -42,7 +43,7 @@ class _OnboardingWeightState extends State<OnboardingWeight> {
             SizedBox(height: 150),
             Text('What is your weight?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
             Text('Tu ogólnie też tak jak birthday ma być'),
-            SizedBox(height: 100),
+            SizedBox(height: 80),
             TextField(
               controller: _weightController,
               decoration: InputDecoration(hintText: 'Weight'),
