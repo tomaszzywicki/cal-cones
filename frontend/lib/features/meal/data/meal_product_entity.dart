@@ -4,8 +4,8 @@ class MealProductEntity {
   // int? mealId;
   // String? mealUuid;
   int? userId;
-  int productId;
-  String? productUuid;
+  // int productId;
+  String productUuid;
   String name;
   String? manufacturer;
   int kcal;
@@ -27,8 +27,8 @@ class MealProductEntity {
     // required this.mealId,
     // this.mealUuid,
     required this.userId,
-    required this.productId,
-    this.productUuid,
+    // required this.productId,
+    required this.productUuid,
     required this.name,
     this.manufacturer,
     required this.kcal,
