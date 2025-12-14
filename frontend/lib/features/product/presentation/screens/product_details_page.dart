@@ -322,6 +322,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
 
     final mealProduct = MealProductModel.fromProductWithAmount(
       productId: product.id ?? -99,
+      productUuid: product.uuid,
       name: product.name,
       manufacturer: product.manufacturer,
       baseKcal: product.kcal,

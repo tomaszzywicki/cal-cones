@@ -77,7 +77,7 @@ Future<void> initTables(Database db, int version) async {
     -- meal_id INTEGER NOT NULL,
     -- meal_uuid TEXT,
     user_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
+    product_id INTEGER,
     product_uuid TEXT,
     name TEXT NOT NULL,
     manufacturer TEXT,
