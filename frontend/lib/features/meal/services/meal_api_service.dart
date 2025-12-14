@@ -1,4 +1,4 @@
-import 'package:frontend/core/network/api_client.template.dart';
+import 'package:frontend/core/network/api_client.dart';
 import 'package:http/http.dart' as http;
 
 class MealApiService extends ApiClient {

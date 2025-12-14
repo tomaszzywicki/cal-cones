@@ -147,18 +147,23 @@ class MealSyncService {
       AppLogger.info('[MealSync] Received ${mealProductsJson.length} products from server');
 
       for (final json in mealProductsJson) {
-        final mealProduct = MealProductModel.fromJson(json);
+        try {
+          final mealProduct = MealProductModel.fromJson(json);
 
-        final existingMealProduct = await repository.getByUuid(mealProduct.uuid);
+          final existingMealProduct = await repository.getByUuid(mealProduct.uuid);
 
-        if (existingMealProduct == null) {
-          await repository.insertFromServer(mealProduct, userId);
-          AppLogger.debug('[MealSync] Inserted ${mealProduct.name}');
-        } else {
-          if (mealProduct.lastModifiedAt.isAfter(existingMealProduct.lastModifiedAt)) {
-            await repository.updateFromServer(mealProduct);
-            AppLogger.debug('[MealSync] Updated: ${mealProduct.name}');
+          if (existingMealProduct == null) {
+            await repository.insertFromServer(mealProduct, userId);
+            AppLogger.debug('[MealSync] Inserted ${mealProduct.name}');
+          } else {
+            if (mealProduct.lastModifiedAt.isAfter(existingMealProduct.lastModifiedAt)) {
+              await repository.updateFromServer(mealProduct);
+              AppLogger.debug('[MealSync] Updated: ${mealProduct.name}');
+            }
           }
+        } catch (e) {
+          AppLogger.error('[MealSync] Failed to parse meal: $e');
+          AppLogger.error('[MealSync] Problematic JSON: $json');
         }
       }
 

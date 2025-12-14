@@ -136,6 +136,7 @@ class _OtherScreenState extends State<OtherScreen> {
                 ),
               ],
             ),
+            _buildDivider(),
 
             const SizedBox(height: 40),
           ],

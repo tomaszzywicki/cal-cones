@@ -24,6 +24,7 @@ class MealProductCreate(BaseModel):
 
 class MealProductResponse(BaseModel):
     uuid: UUID4
+    user_id: int
     product_uuid: UUID4 | None
     name: str
     manufacturer: str | None
