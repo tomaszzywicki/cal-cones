@@ -1,6 +1,6 @@
 class MealProductEntity {
   int? id;
-  String? uuid;
+  String uuid;
   // int? mealId;
   // String? mealUuid;
   int? userId;
@@ -23,7 +23,7 @@ class MealProductEntity {
 
   MealProductEntity({
     this.id,
-    this.uuid,
+    required this.uuid,
     // required this.mealId,
     // this.mealUuid,
     required this.userId,

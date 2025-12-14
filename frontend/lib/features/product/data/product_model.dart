@@ -21,7 +21,6 @@ class ProductModel extends ProductEntity {
   // Backend API response parsing
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
-      id: json['id'] as int?,
       uuid: json['uuid'] as String,
       userId: json['user_id'] as int,
       name: json['name'] as String,

@@ -1,15 +1,21 @@
 import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/core/network/connectivity_service.dart';
+import 'package:frontend/features/meal/services/meal_sync_service.dart';
 import 'package:frontend/features/product/services/product_sync_service.dart';
 
 class SyncService {
   final ConnectivityService connectivityService;
 
   final ProductSyncService productSyncService;
+  final MealSyncService mealSyncService;
 
   bool _isSyncing = false;
 
-  SyncService({required this.connectivityService, required this.productSyncService});
+  SyncService({
+    required this.connectivityService,
+    required this.productSyncService,
+    required this.mealSyncService,
+  });
 
   void init() {
     connectivityService.onConnectivityRestored = syncAll;
@@ -32,7 +38,8 @@ class SyncService {
 
     try {
       await productSyncService.syncToServer();
-      //
+      await mealSyncService.syncToServer();
+      // ...
     } catch (e) {
       AppLogger.error("Sync failed: $e");
     } finally {
@@ -51,6 +58,7 @@ class SyncService {
 
     try {
       await productSyncService.syncFromServer(userId);
+      await mealSyncService.syncFromServer(userId);
       // ...
 
       AppLogger.info("[Sync] Sync from server completed");

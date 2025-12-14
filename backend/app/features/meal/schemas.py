@@ -3,7 +3,7 @@ from datetime import datetime
 
 
 class MealProductCreate(BaseModel):
-    user_id: int
+    uuid: UUID4 | None
     product_uuid: UUID4 | None
     name: str
     manufacturer: str | None
@@ -24,7 +24,6 @@ class MealProductCreate(BaseModel):
 
 class MealProductResponse(BaseModel):
     uuid: UUID4
-    user_id: int
     product_uuid: UUID4 | None
     name: str
     manufacturer: str | None
@@ -39,5 +38,26 @@ class MealProductResponse(BaseModel):
     notes: str | None
     created_at: datetime
     last_modified_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MealProductUpdate(BaseModel):
+    uuid: UUID4
+    user_id: int
+    product_uuid: UUID4 | None
+    name: str | None
+    manufacturer: str | None
+    kcal: int | None
+    carbs: float | None
+    protein: float | None
+    fat: float | None
+    unit_id: int | None
+    unit_short: str | None
+    conversion_factor: float | None
+    amount: float | None
+    notes: str | None
+    created_at: datetime | None
+    last_modified_at: datetime | None
 
     model_config = ConfigDict(from_attributes=True)
