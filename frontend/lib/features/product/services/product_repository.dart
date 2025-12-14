@@ -14,8 +14,7 @@ class ProductRepository {
     try {
       final db = await _databaseService.database;
       final id = await db.insert('products', product.toMap());
-      final uuid = Uuid().v4();
-      return product.copyWith(id: id, uuid: uuid);
+      return product.copyWith(id: id);
     } catch (e) {
       AppLogger.error('Failed to add custom product: $e');
       throw Exception('Failed to add custom product');

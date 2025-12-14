@@ -16,6 +16,7 @@ import 'package:frontend/features/meal/services/day_macro_provider.dart';
 import 'package:frontend/features/meal/services/meal_api_service.dart';
 import 'package:frontend/features/meal/services/meal_repository.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
+import 'package:frontend/features/meal/services/meal_sync_service.dart';
 import 'package:frontend/features/product/services/product_api_service.dart';
 import 'package:frontend/features/product/services/product_repository.dart';
 import 'package:frontend/features/product/services/product_service.dart';
@@ -55,16 +56,20 @@ void main() async {
   );
   final productService = ProductService(
     productRepository,
-    productApiService,
     productSyncService,
     currentUserService,
     connectivityService,
   );
 
   // meal
-  final mealApiService = MealApiService(firebaseAuthService);
   final mealRepository = MealRepository(localDatabaseService);
-  final mealService = MealService(mealApiService, currentUserService, mealRepository);
+  final mealApiService = MealApiService(firebaseAuthService);
+  final mealSyncService = MealSyncService(
+    repository: mealRepository,
+    apiService: mealApiService,
+    syncQueueRepository: syncQueueRepository,
+  );
+  final mealService = MealService(mealRepository, mealSyncService, currentUserService, connectivityService);
   final dayMacroProvider = DayMacroProvider();
 
   // ai
@@ -75,6 +80,7 @@ void main() async {
   final syncService = SyncService(
     connectivityService: connectivityService,
     productSyncService: productSyncService,
+    mealSyncService: mealSyncService,
   );
   syncService.init();
 

@@ -1,9 +1,10 @@
 import 'package:frontend/features/meal/data/meal_product_entity.dart';
+import 'package:uuid/uuid.dart';
 
 class MealProductModel extends MealProductEntity {
   MealProductModel({
     super.id,
-    super.uuid,
+    required super.uuid,
     // super.mealId,
     // super.mealUuid,
     super.userId,
@@ -43,6 +44,7 @@ class MealProductModel extends MealProductEntity {
     final factor = amount * conversionFactor / 100;
 
     return MealProductModel(
+      uuid: Uuid().v4(),
       userId: userId,
       productId: productId,
       name: name,
@@ -87,8 +89,8 @@ class MealProductModel extends MealProductEntity {
   // Backend API response parsing
   factory MealProductModel.fromJson(Map<String, dynamic> json) {
     return MealProductModel(
-      id: json['id'] as int?,
-      uuid: json['uuid'] as String?,
+      // id: json['id'] as int?,
+      uuid: json['uuid'] as String,
       // mealId: json['meal_id'] as int,
       // mealUuid: json['meal_uuid'] as String?,
       userId: json['user_id'] as int,
@@ -114,7 +116,6 @@ class MealProductModel extends MealProductEntity {
   // MealProductModel to JSON for API requests
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'uuid': uuid,
       // 'meal_id': mealId,
       // 'meal_uuid': mealUuid,
@@ -169,7 +170,7 @@ class MealProductModel extends MealProductEntity {
   factory MealProductModel.fromMap(Map<String, dynamic> map) {
     return MealProductModel(
       id: map['id'] as int?,
-      uuid: map['uuid'] as String?,
+      uuid: map['uuid'] as String,
       // mealId: map['meal_id'] as int,
       // mealUuid: map['meal_uuid'] as String?,
       userId: map['user_id'] as int,

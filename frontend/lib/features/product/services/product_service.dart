@@ -7,16 +7,16 @@ import 'package:frontend/features/product/services/product_sync_service.dart';
 
 class ProductService {
   final ProductRepository _productRepository;
-  final ProductApiService _productApiService;
   final ProductSyncService _productSyncService;
+  // final ProductApiService _productApiService;
   final CurrentUserService _currentUserService;
   final ConnectivityService _connectivityService;
 
   ProductService(
     this._productRepository,
-    this._productApiService,
     this._productSyncService,
     this._currentUserService,
+    // this._productApiService,
     this._connectivityService,
   );
 
