@@ -139,21 +139,26 @@ class ProductSyncService {
       AppLogger.info('[ProductSync] Received ${productsJson.length} products from server');
 
       for (final productJson in productsJson) {
-        final product = ProductModel.fromJson(productJson);
+        try {
+          final product = ProductModel.fromJson(productJson);
+          final existingProduct = await repository.getByUuid(product.uuid);
 
-        // Czy produkt już istnieje lokalnie
-        final existingProduct = await repository.getByUuid(product.uuid);
-
-        if (existingProduct == null) {
-          // Nowy produkt
-          await repository.insertFromServer(product, userId);
-          AppLogger.debug('[ProductSync] Inserted: ${product.name}');
-        } else {
-          // Istnieje
-          if (product.lastModifiedAt.isAfter(existingProduct.lastModifiedAt)) {
-            await repository.updateFromServer(product);
-            AppLogger.debug('[ProductSync] Updated: ${product.name}');
+          // Czy produkt już istnieje lokalnie
+          if (existingProduct == null) {
+            // Nowy produkt
+            await repository.insertFromServer(product, userId);
+            AppLogger.debug('[ProductSync] Inserted: ${product.name}');
+          } else {
+            // Istnieje
+            if (product.lastModifiedAt.isAfter(existingProduct.lastModifiedAt)) {
+              await repository.updateFromServer(product);
+              AppLogger.debug('[ProductSync] Updated: ${product.name}');
+            }
           }
+        } catch (e, stackTrace) {
+          AppLogger.error('[ProductSync] Failed to parse product: $e');
+          AppLogger.error('[ProductSync] Stack trace: $stackTrace');
+          AppLogger.error('[ProductSync] Problematic JSON: $productJson');
         }
       }
 

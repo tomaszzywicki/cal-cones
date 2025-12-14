@@ -32,7 +32,7 @@ class ProductModel extends ProductEntity {
       createdAt: DateTime.parse(json['created_at'] as String),
       lastModifiedAt: DateTime.parse(json['last_modified_at'] as String),
       fromModel: json['from_model'] == 1,
-      averagePortion: (json['average_portion'] as num).toDouble(),
+      averagePortion: json['average_portion'] != null ? (json['average_portion'] as num).toDouble() : 100,
       isSynced: true,
     );
   }

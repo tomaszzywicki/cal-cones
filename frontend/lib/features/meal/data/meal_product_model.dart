@@ -132,7 +132,7 @@ class MealProductModel extends MealProductEntity {
       'unit_short': unitShort,
       'conversion_factor': conversionFactor,
       'amount': amount,
-      'notes': notes,
+      'notes': notes ?? '',
       'created_at': createdAt.toIso8601String(),
       'last_modified_at': lastModifiedAt.toIso8601String(),
       'is_synced': isSynced ? 1 : 0,
