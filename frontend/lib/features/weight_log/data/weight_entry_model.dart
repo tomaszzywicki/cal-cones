@@ -25,6 +25,12 @@ class WeightEntryModel extends WeightEntryEntity {
     );
   }
 
+  void changeDate(DateTime newDate) {
+    date = newDate;
+    lastModifiedAt = DateTime.now().toUtc();
+    isSynced = false;
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

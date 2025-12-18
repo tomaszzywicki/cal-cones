@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/weight_log/data/weight_entry_model.dart';
+import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/time_since_latest_measurement_text.dart';
+import 'package:frontend/features/weight_log/services/weight_log_service.dart';
+import 'package:provider/provider.dart';
 
-class CurrentWeightCard extends StatefulWidget {
-  final WeightEntryModel? latestEntry;
-  final Future<void> Function() handleAddWeightEntry;
+class CurrentWeightCard extends StatelessWidget {
+  const CurrentWeightCard({super.key});
 
-  const CurrentWeightCard({super.key, required this.latestEntry, required this.handleAddWeightEntry});
+  Future<void> handleAddWeightEntry(BuildContext context) async {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16.0))),
+      builder: (context) => AddWeightEntryBottomSheet(),
+    );
+  }
 
-  @override
-  State<CurrentWeightCard> createState() => _CurrentWeightCardState();
-}
-
-class _CurrentWeightCardState extends State<CurrentWeightCard> {
   @override
   Widget build(BuildContext context) {
+    final weightLogService = context.watch<WeightLogService>();
+    final latestEntry = weightLogService.latestEntry;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -26,7 +32,7 @@ class _CurrentWeightCardState extends State<CurrentWeightCard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "${widget.latestEntry?.weight ?? 'N/A'} kg",
+                  "${latestEntry?.weight ?? 'N/A'} kg",
                   style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                     fontSize: 60,
                     fontWeight: FontWeight.w900,
@@ -35,7 +41,7 @@ class _CurrentWeightCardState extends State<CurrentWeightCard> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    await widget.handleAddWeightEntry();
+                    await handleAddWeightEntry(context);
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero,
@@ -47,7 +53,7 @@ class _CurrentWeightCardState extends State<CurrentWeightCard> {
                 ),
               ],
             ),
-            TimeSinceLatestMeasurementText(widget.latestEntry),
+            TimeSinceLatestMeasurementText(latestEntry),
           ],
         ),
       ),

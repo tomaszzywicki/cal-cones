@@ -1,49 +1,68 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/weight_log/data/weight_entry_model.dart';
+import 'package:frontend/features/weight_log/services/weight_log_service.dart';
+import 'package:provider/provider.dart';
 
-class WeightCalendar extends StatefulWidget {
-  const WeightCalendar({
-    super.key,
-    required this.weightEntries,
-    required this.isLoading,
-    required this.removeEntry,
-  });
+class WeightCalendar extends StatelessWidget {
+  const WeightCalendar({super.key});
 
-  final List<WeightEntryModel> weightEntries;
-  final bool isLoading;
-  final void Function(WeightEntryModel) removeEntry;
+  Future<void> _deleteEntry(BuildContext context, WeightEntryModel entry) async {
+    try {
+      bool? confirmDelete = await showDialog<bool>(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Confirm Deletion'),
+            content: const Text('Are you sure you want to delete this entry?'),
+            actions: [
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+              TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Delete')),
+            ],
+          );
+        },
+      );
 
-  @override
-  State<WeightCalendar> createState() => _WeightCalendarState();
-}
+      if (confirmDelete == true) {
+        if (!context.mounted) return;
+        await context.read<WeightLogService>().deleteWeightEntry(entry);
+      }
+    } catch (e) {
+      AppLogger.error('WeightCalendar._deleteEntry error: $e');
+    }
+  }
 
-class _WeightCalendarState extends State<WeightCalendar> {
   @override
   Widget build(BuildContext context) {
+    final weightLogService = context.watch<WeightLogService>();
+    final weightEntries = weightLogService.entries;
+    final isLoading = false;
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Text("There are ${widget.weightEntries.length} entries."),
-            widget.isLoading
+            Text("There are ${weightEntries.length} entries."),
+            isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : Expanded(
-                    child: ListView.builder(
-                      itemCount: widget.weightEntries.length,
-                      itemBuilder: (context, index) {
-                        final entry = widget.weightEntries[index];
-                        return ListTile(
-                          title: Text('${entry.weight} kg'),
-                          subtitle: Text(
-                            '${entry.date.toLocal().toString().split(' ')[0]} ${entry.date.toLocal().toIso8601String().split('T')[1].split('.')[0]}',
-                          ),
-                          onLongPress: () {
-                            widget.removeEntry(entry);
-                          },
-                        );
-                      },
-                    ),
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: weightEntries.length,
+                    itemBuilder: (context, index) {
+                      final entry = weightEntries[index];
+                      return ListTile(
+                        title: Text('${entry.weight} kg'),
+                        subtitle: Text(
+                          '${entry.date.toLocal().toString().split(' ')[0]} ${entry.date.toLocal().toIso8601String().split('T')[1].split('.')[0]}',
+                        ),
+                        onLongPress: () {
+                          _deleteEntry(context, entry);
+                        },
+                      );
+                    },
                   ),
           ],
         ),

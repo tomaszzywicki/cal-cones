@@ -84,7 +84,6 @@ void main() async {
   final authService = AuthService(firebaseAuthService, authApiService, currentUserService, syncService);
 
   final weightLogRepository = WeightLogRepository(localDatabaseService);
-  final weightLogService = WeightLogService(currentUserService, weightLogRepository);
 
   await currentUserService.initialize();
 
@@ -102,10 +101,16 @@ void main() async {
         Provider<ProductService>.value(value: productService),
         Provider<MealService>.value(value: mealService),
         Provider<AIService>.value(value: aiService),
-        Provider<WeightLogService>.value(value: weightLogService),
         ChangeNotifierProvider<CurrentUserService>.value(value: currentUserService),
         ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
         ChangeNotifierProvider<DayMacroProvider>.value(value: dayMacroProvider),
+        ChangeNotifierProxyProvider<CurrentUserService, WeightLogService>(
+          create: (_) => WeightLogService(currentUserService.getUserId(), weightLogRepository),
+          update: (_, currentUserService, previousService) {
+            final int? currentUserId = currentUserService.isLoggedIn ? currentUserService.getUserId() : null;
+            return WeightLogService(currentUserId, weightLogRepository);
+          },
+        ),
       ],
       child: MainApp(),
     ),
