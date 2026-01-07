@@ -57,6 +57,7 @@ void main() async {
   final productService = ProductService(
     productRepository,
     productSyncService,
+    productApiService,
     currentUserService,
     connectivityService,
   );

@@ -19,7 +19,7 @@ class ProductApiService extends ApiClient {
   }
 
   Future<http.Response> searchProducts(String query) {
-    return get('/$name/$query');
+    return get('/$name/search/$query');
   }
 
   Future<http.Response> getUserProducts() {

@@ -28,6 +28,7 @@ dev_dependencies:
   fl_chart: ^1.1.1
   image_picker: ^1.2.1
   uuid: ^4.5.2
+  mocktail: ^1.0.4
 
 flutter:
   uses-material-design: true
