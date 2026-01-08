@@ -10,8 +10,16 @@ class ProductDetailsPage extends StatefulWidget {
   final ProductModel product;
   final DateTime consumedAt;
   final ProductPageMode mode;
+  // Added: The existing entry to edit (optional)
+  final MealProductModel? mealProductToEdit;
 
-  const ProductDetailsPage({super.key, required this.product, required this.consumedAt, required this.mode});
+  const ProductDetailsPage({
+    super.key,
+    required this.product,
+    required this.consumedAt,
+    required this.mode,
+    this.mealProductToEdit,
+  });
 
   @override
   State<ProductDetailsPage> createState() => _ProductDetailsPageState();
@@ -21,7 +29,17 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   double _amount = 100.0;
   String _selectedUnit = 'g';
   bool _isLoading = false;
-  final TextEditingController _amountController = TextEditingController(text: '100');
+  late TextEditingController _amountController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Pre-fill amount if in Edit mode
+    if (widget.mode == ProductPageMode.edit && widget.mealProductToEdit != null) {
+      _amount = widget.mealProductToEdit!.amount;
+    }
+    _amountController = TextEditingController(text: _amount.toStringAsFixed(0));
+  }
 
   @override
   void dispose() {
@@ -29,6 +47,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     super.dispose();
   }
 
+  // Dynamic calculations based on input amount
   int get _calculatedKcal => (widget.product.kcal * _amount / 100).round();
   double get _calculatedProtein => widget.product.protein * _amount / 100;
   double get _calculatedCarbs => widget.product.carbs * _amount / 100;
@@ -51,6 +70,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if we should show the Save/Add button
+    final bool canEdit = widget.mode == ProductPageMode.add || widget.mode == ProductPageMode.edit;
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -59,7 +81,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          widget.product.name,
+          widget.mode == ProductPageMode.edit ? 'Edit Entry' : widget.product.name,
           style: const TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w600),
         ),
       ),
@@ -143,7 +165,8 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                     ),
                   ),
 
-                  if (widget.mode == ProductPageMode.add) ...[
+                  // Show input fields only for Add/Edit modes
+                  if (canEdit) ...[
                     const SizedBox(height: 32),
 
                     // Amount label
@@ -235,7 +258,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           ),
 
           // ===== BOTTOM BUTTON =====
-          if (widget.mode == ProductPageMode.add)
+          if (canEdit)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -268,9 +291,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : const Text(
-                            'Add to Meal',
-                            style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                        : Text(
+                            widget.mode == ProductPageMode.edit ? 'Save Changes' : 'Add to Meal',
+                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                           ),
                   ),
                 ),
@@ -318,35 +341,38 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     setState(() => _isLoading = true);
 
     final mealProductService = Provider.of<MealService>(context, listen: false);
-    final product = widget.product;
-
-    final mealProduct = MealProductModel.fromProductWithAmount(
-      productId: product.id ?? -99,
-      productUuid: product.uuid,
-      name: product.name,
-      manufacturer: product.manufacturer,
-      baseKcal: product.kcal,
-      baseCarbs: product.carbs,
-      baseProtein: product.protein,
-      baseFat: product.fat,
-      unitId: 1,
-      unitShort: 'g',
-      conversionFactor: 1.0,
-      amount: _amount,
-      consumedAt: widget.consumedAt,
-    );
 
     try {
-      await mealProductService.addMealProduct(mealProduct);
+      if (widget.mode == ProductPageMode.edit && widget.mealProductToEdit != null) {
+        // === UPDATE EXISTING PRODUCT ===
+        final updatedProduct = widget.mealProductToEdit!.updateAmount(_amount);
+        await mealProductService.updateMealProduct(updatedProduct);
+      } else {
+        // === ADD NEW PRODUCT ===
+        final product = widget.product;
+        final mealProduct = MealProductModel.fromProductWithAmount(
+          productId: product.id ?? -99,
+          productUuid: product.uuid,
+          name: product.name,
+          manufacturer: product.manufacturer,
+          baseKcal: product.kcal,
+          baseCarbs: product.carbs,
+          baseProtein: product.protein,
+          baseFat: product.fat,
+          unitId: 1,
+          unitShort: 'g',
+          conversionFactor: 1.0,
+          amount: _amount,
+          consumedAt: widget.consumedAt,
+        );
+        await mealProductService.addMealProduct(mealProduct);
+      }
 
       if (!mounted) return;
 
       Navigator.pop(context, {
         'success': true,
-        'product': product,
         'amount': _amount,
-        'unit': _selectedUnit,
-        'consumedAt': widget.consumedAt,
       });
     } catch (e) {
       setState(() => _isLoading = false);
@@ -355,7 +381,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
 
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Error adding product: $e'), backgroundColor: Colors.red));
+      ).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
     }
   }
 }

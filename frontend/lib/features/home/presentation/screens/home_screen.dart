@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/enums/app_enums.dart';
+import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/home/presentation/widgets/day_macro_card.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
@@ -8,32 +10,75 @@ class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  HomeScreenState createState() => HomeScreenState(); // Public State class
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+// Removed underscore to make it public for GlobalKey
+class HomeScreenState extends State<HomeScreen> {
   List<MealProductModel> _todayProducts = [];
   bool _isLoading = true;
 
-  // Targety na razie hardcoded
-  final double _targetKcal = 2500;
-  final double _targetCarbs = 200;
-  final double _targetProtein = 160;
-  final double _targetFat = 90;
+  // Default fallback values
+  double _targetKcal = 2000;
+  double _targetCarbs = 250;
+  double _targetProtein = 150;
+  double _targetFat = 70;
 
   @override
   void initState() {
     super.initState();
-    _loadTodayMacros();
+    _calculateLocalTargets();
+    loadTodayMacros();
   }
 
-  Future<void> _loadTodayMacros() async {
+  /// Calculates BMR and Targets based on LOCAL User Data
+  void _calculateLocalTargets() {
+    final user = Provider.of<CurrentUserService>(context, listen: false).currentUser;
+    if (user == null) return;
+
+    // 1. Get basic stats (use defaults if missing)
+    final double weight = 75.0; // TODO: Fetch latest weight from WeightLogs
+    final double height = (user.height ?? 175).toDouble();
+    final int age = user.birthday != null 
+        ? DateTime.now().year - user.birthday!.year 
+        : 25;
+    
+    // 2. Calculate BMR (Mifflin-St Jeor Equation)
+    double bmr;
+    if (user.sex == 'Female') {
+      bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+    } else {
+      bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+    }
+
+    // 3. Apply Activity Multiplier
+    double activityMultiplier = 1.2; // Sedentary default
+    if (user.activityLevel == 'light') activityMultiplier = 1.375;
+    if (user.activityLevel == 'moderate') activityMultiplier = 1.55;
+    if (user.activityLevel == 'active') activityMultiplier = 1.725;
+    if (user.activityLevel == 'very_active') activityMultiplier = 1.9;
+
+    final double tdee = bmr * activityMultiplier;
+
+    // 4. Set Targets (e.g. Maintenance)
+    setState(() {
+      _targetKcal = tdee;
+      // Example Split: 50% Carbs, 30% Protein, 20% Fat
+      _targetCarbs = (_targetKcal * 0.50) / 4;
+      _targetProtein = (_targetKcal * 0.30) / 4;
+      _targetFat = (_targetKcal * 0.20) / 9;
+    });
+  }
+
+  Future<void> loadTodayMacros() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
 
     try {
       final mealService = Provider.of<MealService>(context, listen: false);
       final today = DateTime.now();
 
+      // Fetches from LOCAL DATABASE
       final products = await mealService.getMealProductsForDate(today);
 
       setState(() {
@@ -42,29 +87,15 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error loading macros: $e'), backgroundColor: Colors.red));
-      }
+      // Suppress error snackbars during rapid tab switching
+      debugPrint('Error loading macros: $e');
     }
   }
 
-  double get _consumedKcal {
-    return _todayProducts.fold(0, (sum, product) => sum + product.kcal);
-  }
-
-  double get _consumedCarbs {
-    return _todayProducts.fold(0, (sum, product) => sum + product.carbs);
-  }
-
-  double get _consumedProtein {
-    return _todayProducts.fold(0, (sum, product) => sum + product.protein);
-  }
-
-  double get _consumedFat {
-    return _todayProducts.fold(0, (sum, product) => sum + product.fat);
-  }
+  double get _consumedKcal => _todayProducts.fold(0, (sum, p) => sum + p.kcal);
+  double get _consumedCarbs => _todayProducts.fold(0, (sum, p) => sum + p.carbs);
+  double get _consumedProtein => _todayProducts.fold(0, (sum, p) => sum + p.protein);
+  double get _consumedFat => _todayProducts.fold(0, (sum, p) => sum + p.fat);
 
   @override
   Widget build(BuildContext context) {
@@ -78,70 +109,68 @@ class _HomeScreenState extends State<HomeScreen> {
           style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold),
         ),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadTodayMacros,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  children: [
-                    // Macro Card
-                    DayMacroCard(
-                      consumedKcal: _consumedKcal.toDouble(),
-                      consumedCarbs: _consumedCarbs,
-                      consumedProtein: _consumedProtein,
-                      consumedFat: _consumedFat,
-                      targetKcal: _targetKcal,
-                      targetCarbs: _targetCarbs,
-                      targetProtein: _targetProtein,
-                      targetFat: _targetFat,
-                    ),
+      body: RefreshIndicator(
+        onRefresh: loadTodayMacros,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // Macro Card
+              DayMacroCard(
+                consumedKcal: _consumedKcal,
+                consumedCarbs: _consumedCarbs,
+                consumedProtein: _consumedProtein,
+                consumedFat: _consumedFat,
+                targetKcal: _targetKcal,
+                targetCarbs: _targetCarbs,
+                targetProtein: _targetProtein,
+                targetFat: _targetFat,
+              ),
 
-                    const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.04),
-                              blurRadius: 10,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'Quick Stats',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 16),
-                            _buildStatRow(
-                              'Total Products Added',
-                              _todayProducts.length.toString(),
-                              Icons.restaurant_menu,
-                            ),
-                            const Divider(height: 24),
-                            _buildStatRow(
-                              'Calories Remaining',
-                              '${(_targetKcal - _consumedKcal).round()}',
-                              Icons.local_fire_department,
-                            ),
-                          ],
-                        ),
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Quick Stats',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      _buildStatRow(
+                        'Total Products',
+                        _todayProducts.length.toString(),
+                        Icons.restaurant_menu,
+                      ),
+                      const Divider(height: 24),
+                      _buildStatRow(
+                        'Calories Left',
+                        '${(_targetKcal - _consumedKcal).round()}',
+                        Icons.local_fire_department,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

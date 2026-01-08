@@ -25,7 +25,7 @@ class Onboarding extends StatefulWidget {
 }
 
 class _Onboarding extends State<Onboarding> {
-  final PageController _pageController = PageController(initialPage: 3);
+  final PageController _pageController = PageController(initialPage: 0);
   bool onFirstPage = true;
   bool onLastPage = false;
 
@@ -153,7 +153,7 @@ class _Onboarding extends State<Onboarding> {
       // 4.
       OnboardingHeight(setHeight: (height) => _updateHeight(height), initialHeight: _height),
       // 5.
-      OnboardingWeight(setWeight: (weight) => _updateWeight(weight), initialWeight: _startWeight),
+      OnboardingWeight(setWeight: (weight) => _updateWeight(weight), initialWeight: _startWeight, sex: _sex),
       // 6.
       OnboardingActivity(
         setActivityLevel: (activityLevel) => _updateActivityLevel(activityLevel),
