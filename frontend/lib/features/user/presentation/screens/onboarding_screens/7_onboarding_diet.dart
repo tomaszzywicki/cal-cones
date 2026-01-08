@@ -49,7 +49,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
             SizedBox(height: 100),
             Text('What is your diet type?', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
             SizedBox(height: 50),
-            _dietContainer('Balanced', 'Jakiś tam opis 1', () {
+            _dietContainer('Balanced', 'Optimal balance for general health', () {
               setState(() {
                 _isFirstSelected = true;
                 _isSecondSelected = false;
@@ -59,7 +59,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
               });
             }, _isFirstSelected ? Colors.grey[400] : Colors.white),
             SizedBox(height: 10),
-            _dietContainer('Low Carb', 'Jakiś tam opis 1', () {
+            _dietContainer('Low Carb', 'Higher fats & protein, limited carbs', () {
               setState(() {
                 _isFirstSelected = false;
                 _isSecondSelected = true;
@@ -69,7 +69,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
               });
             }, _isSecondSelected ? Colors.grey[400] : Colors.white),
             SizedBox(height: 10),
-            _dietContainer('Low Fat', 'Jakiś tam opis 1', () {
+            _dietContainer('Low Fat', 'Higher carbs & protein, limited fats', () {
               setState(() {
                 _isFirstSelected = false;
                 _isSecondSelected = false;
@@ -80,8 +80,6 @@ class _OnboardingDietState extends State<OnboardingDiet> {
             }, _isThirdSelected ? Colors.grey[400] : Colors.white),
 
             SizedBox(height: 20),
-
-            Text('*Tutaj pasek kolorowy że 50/30/30*'),
 
             Spacer(),
             OnboardingButton(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/user/presentation/screens/onboarding.dart'; // Added import
 import 'package:provider/provider.dart';
 
 class UserInfo extends StatelessWidget {
@@ -68,6 +69,14 @@ class UserInfo extends StatelessWidget {
                   value: user?.setupCompleted == true ? 'Yes' : 'No',
                   valueColor: user?.setupCompleted == true ? Colors.green : Colors.orange,
                   isFirst: true,
+                  // Added logic: Navigate to Onboarding if setup is not completed
+                  onTap: (user != null && !user.setupCompleted)
+                      ? () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (context) => const Onboarding()),
+                          );
+                        }
+                      : null,
                 ),
                 _buildDivider(),
                 _buildInfoTile(
@@ -154,49 +163,64 @@ class UserInfo extends StatelessWidget {
     Color? valueColor,
     bool isFirst = false,
     bool isLast = false,
+    VoidCallback? onTap, // Added onTap callback
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
+    return Material(
+      color: Colors.transparent, // Needed for InkWell to show on top of white container
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.vertical(
           top: isFirst ? const Radius.circular(16) : Radius.zero,
           bottom: isLast ? const Radius.circular(16) : Radius.zero,
         ),
-      ),
-      child: Row(
-        children: [
-          // Icon
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: Colors.black87, size: 20),
-          ),
-          const SizedBox(width: 16),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: valueColor ?? Colors.black,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          // Keep structure but rely on InkWell for interaction
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+              top: isFirst ? const Radius.circular(16) : Radius.zero,
+              bottom: isLast ? const Radius.circular(16) : Radius.zero,
             ),
           ),
-        ],
+          child: Row(
+            children: [
+              // Icon
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(10)),
+                child: Icon(icon, color: Colors.black87, size: 20),
+              ),
+              const SizedBox(width: 16),
+
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: valueColor ?? Colors.black,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              // Show arrow if clickable
+              if (onTap != null)
+                const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+            ],
+          ),
+        ),
       ),
     );
   }

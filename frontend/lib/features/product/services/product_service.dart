@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:frontend/core/network/connectivity_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/product/data/product_model.dart';
@@ -8,15 +10,15 @@ import 'package:frontend/features/product/services/product_sync_service.dart';
 class ProductService {
   final ProductRepository _productRepository;
   final ProductSyncService _productSyncService;
-  // final ProductApiService _productApiService;
+  final ProductApiService _productApiService;
   final CurrentUserService _currentUserService;
   final ConnectivityService _connectivityService;
 
   ProductService(
     this._productRepository,
     this._productSyncService,
+    this._productApiService,
     this._currentUserService,
-    // this._productApiService,
     this._connectivityService,
   );
 
@@ -80,6 +82,18 @@ class ProductService {
     if (query.isEmpty) {
       return loadProducts();
     }
-    return _productRepository.searchProducts(query);
+
+    try {
+      final response = await _productApiService.searchProducts(query);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> productsJson = json.decode(response.body);
+        return productsJson.map((json) => ProductModel.fromJson(json)).toList();
+      } else {
+        return _productRepository.searchProducts(query);
+      }
+    } catch (e) {
+      return _productRepository.searchProducts(query);
+    }
   }
 }

@@ -5,8 +5,10 @@ import 'package:frontend/features/meal_log/presentation/screens/meal_log_screen.
 import 'package:frontend/features/other/presentation/screens/other_screen.dart';
 import 'package:frontend/show_menu_bottom_sheet.dart';
 
-// ✅ DODAJ GLOBAL KEY
 final GlobalKey<_MainScreenState> mainScreenKey = GlobalKey<_MainScreenState>();
+
+// 1. Key to access HomeScreen state
+final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,7 +20,13 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 2;
 
-  final List<Widget> _screens = [HomeScreen(), MealLogScreen(), DashboardScreen(), OtherScreen()];
+  // 2. Assign Key to HomeScreen
+  final List<Widget> _screens = [
+    HomeScreen(key: homeScreenKey),
+    MealLogScreen(),
+    DashboardScreen(),
+    OtherScreen()
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +38,6 @@ class _MainScreenState extends State<MainScreen> {
         onTap: (index) => _onBottomNavTap(index),
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.black,
-
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home, size: 26, color: Colors.black),
@@ -62,8 +69,15 @@ class _MainScreenState extends State<MainScreen> {
       ShowMenuBottomSheet.show(context);
       return;
     }
+
     int pageIndex = index >= 2 ? index - 1 : index;
     setState(() => _currentIndex = pageIndex);
+
+    // 3. Auto-Refresh Logic
+    if (pageIndex == 0) {
+      // Refresh Home Screen Macros
+      homeScreenKey.currentState?.loadTodayMacros();
+    }
   }
 
   void navigateToMealLog() {

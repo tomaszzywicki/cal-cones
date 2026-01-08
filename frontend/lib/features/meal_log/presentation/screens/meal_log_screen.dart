@@ -7,6 +7,8 @@ import 'package:frontend/features/meal_log/presentation/widgets/date_widget.dart
 import 'package:frontend/features/meal_log/presentation/widgets/macro_line.dart';
 import 'package:frontend/features/meal_log/presentation/widgets/meal_card.dart';
 import 'package:frontend/features/product/presentation/screens/product_search_page.dart';
+import 'package:frontend/features/product/data/product_model.dart';
+import 'package:frontend/features/product/presentation/screens/product_details_page.dart';
 import 'package:provider/provider.dart';
 
 class MealLogScreen extends StatefulWidget {
@@ -196,11 +198,42 @@ class _MealLogScreenState extends State<MealLogScreen> {
   }
 
   Future<void> _handleEditProduct(MealProductModel mealProduct) async {
+    // 1. We need to calculate the "Base" (per 100g) values from the logged product
+    // so that ProductDetailsPage can recalculate them dynamically.
+    final double factor = (mealProduct.amount * mealProduct.conversionFactor) / 100.0;
+    
+    // Avoid division by zero
+    final double safeFactor = factor <= 0 ? 1.0 : factor;
+
+    // 2. Create a temporary ProductModel with base values
+    final baseProduct = ProductModel(
+      id: null,
+      uuid: mealProduct.productUuid,
+      userId: mealProduct.userId ?? 0,
+      name: mealProduct.name,
+      manufacturer: mealProduct.manufacturer,
+      // Reverse calculation to get values per 100g
+      kcal: (mealProduct.kcal / safeFactor).round(),
+      carbs: mealProduct.carbs / safeFactor,
+      protein: mealProduct.protein / safeFactor,
+      fat: mealProduct.fat / safeFactor,
+      createdAt: DateTime.now(), 
+      lastModifiedAt: DateTime.now(),
+    );
+
+    // 3. Open ProductDetailsPage in Edit Mode
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => MealProductPage(mealProduct: mealProduct, mode: MealProductPageMode.edit),
+        builder: (context) => ProductDetailsPage(
+          product: baseProduct,
+          consumedAt: mealProduct.createdAt,
+          mode: ProductPageMode.edit,
+          mealProductToEdit: mealProduct, // Pass the original entry so we can update it
+        ),
       ),
     );
+
+    // 4. Refresh the list when we return
     await _loadMealProducts();
   }
 

@@ -42,7 +42,7 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
               SizedBox(height: 100),
               Text('What is your activity level?', style: TextTheme.of(context).headlineMedium),
               SizedBox(height: 50),
-              _activityContainer('Mostly Sedentary', 'Jakiś tam opis 1', () {
+              _activityContainer('Mostly Sedentary', 'Little or no exercise', () {
                 setState(() {
                   _isFirstSelected = true;
                   _isSecondSelected = false;
@@ -51,7 +51,7 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
                 });
               }, _isFirstSelected ? Colors.grey[400] : Colors.white),
               SizedBox(height: 10),
-              _activityContainer('Moderately Active', 'Jakiś tam opis 1', () {
+              _activityContainer('Moderately Active', '2 to 3 workouts a week', () {
                 setState(() {
                   _isFirstSelected = false;
                   _isSecondSelected = true;
@@ -60,7 +60,7 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
                 });
               }, _isSecondSelected ? Colors.grey[400] : Colors.white),
               SizedBox(height: 10),
-              _activityContainer('Very Active', 'Jakiś tam opis 1', () {
+              _activityContainer('Very Active', 'Around 5 workouts a week', () {
                 setState(() {
                   _isFirstSelected = false;
                   _isSecondSelected = false;
