@@ -87,6 +87,29 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           widget.mode == ProductPageMode.edit ? "Edit Product" : "Add Product",
           style: const TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w600),
         ),
+        actions: [
+          if (widget.mode == ProductPageMode.edit)
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert, color: Colors.black),
+              onSelected: (value) {
+                if (value == 'delete') {
+                  _showDeleteConfirmation();
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                const PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_outline, color: Colors.red, size: 20),
+                      SizedBox(width: 12),
+                      Text('Delete Entry', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -330,7 +353,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                             ),
                           )
                         : Text(
-                            widget.mode == ProductPageMode.edit ? 'Save Changes' : 'Add to Meal',
+                            widget.mode == ProductPageMode.edit ? 'Save Changes' : 'Add to log',
                             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                           ),
                   ),
@@ -373,6 +396,56 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         ),
       ],
     );
+  }
+
+  Future<void> _showDeleteConfirmation() async {
+    final bool? shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Entry'),
+          content: const Text('Are you sure you want to remove this product from your log?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete == true) {
+      await _deleteEntry();
+    }
+  }
+
+  Future<void> _deleteEntry() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final mealService = Provider.of<MealService>(context, listen: false);
+      
+      if (widget.mealProductToEdit != null) {
+        await mealService.deleteMealProduct(widget.mealProductToEdit!);
+      }
+
+      if (!mounted) return;
+
+      // Pop the screen. The MealLogScreen will detect the return and refresh the list.
+      Navigator.pop(context, {'deleted': true}); 
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting entry: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Future<void> _handleConfirm() async {

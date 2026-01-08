@@ -162,7 +162,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
                             _handleEditProduct(_mealProducts[index]);
                           },
                           onLongPress: () async {
-                            _showDeleteDialog(_mealProducts[index]);
+                            _showDeleteConfirmation(_mealProducts[index]);
                           },
                           onEditAmount: () {
                             _showEditDialog(_mealProducts[index]);
@@ -180,7 +180,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
         onPressed: () async {
           await _handleAddProduct();
         },
-        label: const Text('Add Product for today', style: TextStyle(fontSize: 13)),
+        label: const Text('Add Product for this day', style: TextStyle(fontSize: 13)),
         icon: const Icon(Icons.add, size: 20),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -260,34 +260,32 @@ class _MealLogScreenState extends State<MealLogScreen> {
     }
   }
 
-  Future<void> _showDeleteDialog(MealProductModel mealProduct) async {
-    return showDialog(
+  Future<void> _showDeleteConfirmation(MealProductModel mealProduct) async {
+    // 1. Show the dialog and wait for a Yes/No result
+    final bool? shouldDelete = await showDialog<bool>(
       context: context,
-      barrierDismissible: true,
       builder: (context) {
         return AlertDialog(
-          title: Text('Delete Product'),
-          content: const SingleChildScrollView(
-            child: ListBody(children: [Text('Do you want to delete this product from log?')]),
-          ),
+          title: const Text('Delete Entry'), 
+          content: const Text('Are you sure you want to remove this product from your log?'),
           actions: [
             TextButton(
+              onPressed: () => Navigator.pop(context, false), 
               child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
             ),
             TextButton(
+              onPressed: () => Navigator.pop(context, true), 
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
-              onPressed: () async {
-                 Navigator.of(context).pop();
-                 await _handleDeleteProduct(mealProduct);
-              },
             ),
           ],
         );
       },
     );
+
+    // 2. Perform the delete only if the user confirmed
+    if (shouldDelete == true) {
+      await _handleDeleteProduct(mealProduct);
+    }
   }
 
   Future<void> _showEditDialog(MealProductModel mealProduct) async {
