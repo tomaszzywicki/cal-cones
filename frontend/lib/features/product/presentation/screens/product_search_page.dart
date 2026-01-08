@@ -8,6 +8,7 @@ import 'package:frontend/features/product/presentation/screens/product_details_p
 import 'package:frontend/features/product/services/product_service.dart';
 import 'package:frontend/features/product/presentation/tabs/search_tab.dart';
 import 'package:frontend/features/product/presentation/tabs/custom_products_tab.dart';
+import '../tabs/barcode_scanner_tab.dart';
 import 'package:provider/provider.dart';
 
 class ProductSearchPage extends StatefulWidget {
@@ -26,7 +27,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> with SingleTicker
   void initState() {
     super.initState();
     _productService = Provider.of<ProductService>(context, listen: false);
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
   }
 
   @override
@@ -39,7 +40,8 @@ class _ProductSearchPageState extends State<ProductSearchPage> with SingleTicker
           controller: _tabController,
           tabs: const [
             Tab(text: 'Search'),
-            Tab(text: 'My Custom Products'),
+            Tab(text: 'MyProducts'),
+            Tab(icon: Icon(Icons.qr_code_scanner)),
           ],
         ),
       ),
@@ -52,6 +54,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> with SingleTicker
             onProductSelected: _handleProductSelected,
             onProductPressed: _showCustomProductDeleteDialog,
           ),
+          BarcodeScannerTab(consumedAt: widget.consumedAt),
         ],
       ),
     );
