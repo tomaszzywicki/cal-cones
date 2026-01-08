@@ -78,14 +78,44 @@ class ShowMenuBottomSheet extends StatelessWidget {
   static Future<void> _handleAIDetect(BuildContext context) async {
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-
     final aiService = Provider.of<AIService>(context, listen: false);
+
+    // 1. Ask user for source (Camera or Gallery)
+    final ImageSource? source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext ctx) {
+        return SafeArea(
+          child: Wrap(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Colors.blue),
+                title: const Text('Take a photo'),
+                onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
+              ),
+              ListTile(
+                leading: const Icon(Icons.photo_library, color: Colors.green),
+                title: const Text('Choose from gallery'),
+                onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    // If user cancelled selection (clicked outside), return
+    if (source == null) return;
 
     try {
       final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(source: ImageSource.camera, imageQuality: 80);
+      // Use the selected source here
+      final XFile? image = await picker.pickImage(source: source, imageQuality: 80);
 
-      // anulowanie
+      // User cancelled camera/gallery picker
       if (image == null) {
         return;
       }
@@ -110,12 +140,12 @@ class ShowMenuBottomSheet extends StatelessWidget {
 
       final results = await aiService.detectProducts(image);
 
-      // Zamknięcie okienka analyzing food...
+      // Close loading dialog
       if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
       }
 
-      // Zamknięcie bottom sheet
+      // Close the main menu bottom sheet
       if (context.mounted) {
         navigator.pop();
       }
@@ -128,6 +158,7 @@ class ShowMenuBottomSheet extends StatelessWidget {
         );
       }
     } catch (e) {
+      // Close loading dialog if error occurs
       if (context.mounted) {
         Navigator.of(context, rootNavigator: true).pop();
       }
