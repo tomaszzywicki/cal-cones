@@ -280,8 +280,8 @@ class _MealLogScreenState extends State<MealLogScreen> {
             TextButton(
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
               onPressed: () async {
-                _handleDeleteProduct(mealProduct);
-                Navigator.of(context).pop();
+                 Navigator.of(context).pop();
+                 await _handleDeleteProduct(mealProduct);
               },
             ),
           ],

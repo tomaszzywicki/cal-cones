@@ -37,6 +37,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     // Pre-fill amount if in Edit mode
     if (widget.mode == ProductPageMode.edit && widget.mealProductToEdit != null) {
       _amount = widget.mealProductToEdit!.amount;
+    } else {
+      _amount = widget.product.averagePortion ?? 100.0;
+      if (_amount <= 0) _amount = 100.0;
     }
     _amountController = TextEditingController(text: _amount.toStringAsFixed(0));
   }
