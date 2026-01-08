@@ -36,39 +36,51 @@ class _OnboardingNameState extends State<OnboardingName> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(), // to żeby ukryć klawiaturę po kliknięciu na ekran
+      onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: Colors.grey[50],
-        resizeToAvoidBottomInset: true,
-        body: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
+        // This ensures the body resizes when keyboard opens
+        resizeToAvoidBottomInset: true, 
+        body: SafeArea(
+          child: Column(
+            children: [
+              // This Expanded section will shrink when keyboard opens
+              Expanded(
+                child: Center( 
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const SizedBox(height: 150),
-                        Text('What is your name?', style: TextTheme.of(context).headlineLarge),
-                        const SizedBox(height: 100),
+                        // Removed huge hardcoded SizedBox(height: 150)
+                        Text(
+                          'What is your name?', 
+                          style: TextTheme.of(context).headlineLarge,
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 60), // Reduced spacing to fit better
                         TextField(
                           controller: _nameController,
-                          decoration: const InputDecoration(hintText: 'Your name'),
+                          decoration: const InputDecoration(
+                            hintText: 'Your name',
+                            // Optional: Add a border or fill for better visibility
+                          ),
                           textInputAction: TextInputAction.done,
                           onSubmitted: (_) => _handleNext(),
                         ),
-                        SizedBox(height: MediaQuery.of(context).viewInsets.bottom + 20),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),
                 ),
-
-                Spacer(),
-                OnboardingButton(text: 'Next', onPressed: _handleNext),
-              ],
-            ),
+              ),
+              
+              // Button stays pinned to the bottom (or top of keyboard)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: OnboardingButton(text: 'Next', onPressed: _handleNext),
+              ),
+            ],
           ),
         ),
       ),
@@ -79,15 +91,13 @@ class _OnboardingNameState extends State<OnboardingName> {
     validateName();
 
     if (!_isValid) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please enter your name'), duration: Duration(seconds: 2)));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your name'), duration: Duration(seconds: 2)),
+      );
       return;
     }
 
-    // Ukrycie klawiaturę
     FocusScope.of(context).unfocus();
-
     await Future.delayed(const Duration(milliseconds: 200));
 
     if (mounted) {
