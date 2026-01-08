@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fl_chart/fl_chart.dart';
 import 'package:frontend/features/dashboard/presentation/screens/b_m_icard.dart';
 import 'package:frontend/features/dashboard/presentation/screens/current_goal_card.dart';
 import 'package:frontend/features/dashboard/presentation/screens/macro_intake_chart.dart';
@@ -38,7 +37,7 @@ class DashboardScreen extends StatelessWidget {
               ],
             ),
             AspectRatio(aspectRatio: 4.5, child: BMIcard()),
-            AspectRatio(aspectRatio: 16 / 11, child: WeightHistoryChart()),
+            AspectRatio(aspectRatio: 16 / 14, child: WeightHistoryChart()),
             AspectRatio(aspectRatio: 16 / 11, child: MacroIntakeChart()),
           ],
         ),

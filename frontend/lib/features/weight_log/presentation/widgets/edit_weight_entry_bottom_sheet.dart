@@ -4,23 +4,18 @@ import 'package:frontend/features/weight_log/data/weight_entry_model.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
 
-class AddWeightEntryBottomSheet extends StatefulWidget {
-  const AddWeightEntryBottomSheet({super.key});
+class EditWeightEntryBottomSheet extends StatefulWidget {
+  final WeightEntryModel? entry;
+
+  const EditWeightEntryBottomSheet({super.key, this.entry});
 
   @override
-  State<AddWeightEntryBottomSheet> createState() => _AddWeightEntryBottomSheetState();
+  State<EditWeightEntryBottomSheet> createState() => _EditWeightEntryBottomSheetState();
 }
 
-class _AddWeightEntryBottomSheetState extends State<AddWeightEntryBottomSheet> {
-  late DateTime _selectedDate;
+class _EditWeightEntryBottomSheetState extends State<EditWeightEntryBottomSheet> {
   final TextEditingController _weightController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedDate = DateTime.now();
-  }
 
   @override
   void dispose() {
@@ -34,18 +29,9 @@ class _AddWeightEntryBottomSheetState extends State<AddWeightEntryBottomSheet> {
       final double? weight = rawWeight != null ? (rawWeight * 10).roundToDouble() / 10 : null;
 
       if (weight != null) {
-        if (context.read<WeightLogService>().entryExistsWithDate(_selectedDate)) {
-          final oldEntry = await context.read<WeightLogService>().getEntryByDate(_selectedDate);
-          if (mounted) {
-            await context.read<WeightLogService>().changeWeightForEntry(oldEntry, weight);
-            Navigator.of(context).pop();
-          }
-          return;
-        }
-        final newEntry = WeightEntryModel.create(weight: weight, date: _selectedDate);
-        await context.read<WeightLogService>().addWeightEntry(newEntry);
-        if (mounted) Navigator.of(context).pop();
+        await context.read<WeightLogService>().changeWeightForEntry(widget.entry!, weight);
       }
+      if (mounted) Navigator.of(context).pop();
     }
   }
 
@@ -56,19 +42,14 @@ class _AddWeightEntryBottomSheetState extends State<AddWeightEntryBottomSheet> {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          Text("Add Weight Entry", style: Theme.of(context).textTheme.headlineMedium),
+          Text("Modify Weight Entry", style: Theme.of(context).textTheme.headlineMedium),
           SizedBox(
             height: 300,
-            child: CalendarDatePicker(
-              initialDate: _selectedDate,
-              firstDate: DateTime(2000),
-              lastDate: DateTime.now(),
-              onDateChanged: (newDate) {
-                setState(() {
-                  _selectedDate = newDate;
-                  AppLogger.debug("Selected date changed to: $_selectedDate");
-                });
-              },
+            child: Center(
+              child: Text(
+                '${widget.entry!.date.toLocal().toString().split(' ')[0]} (${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][widget.entry!.date.weekday - 1]})',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
           ),
           Form(

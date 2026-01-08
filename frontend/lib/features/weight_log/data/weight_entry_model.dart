@@ -31,6 +31,12 @@ class WeightEntryModel extends WeightEntryEntity {
     isSynced = false;
   }
 
+  void changeWeight(double newWeight) {
+    weight = newWeight;
+    lastModifiedAt = DateTime.now().toUtc();
+    isSynced = false;
+  }
+
   Map<String, dynamic> toMap() {
     return {
       'id': id,

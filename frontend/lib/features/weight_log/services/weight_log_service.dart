@@ -58,4 +58,12 @@ class WeightLogService extends ChangeNotifier {
       return null;
     }
   }
+
+  Future<void> changeWeightForEntry(WeightEntryModel? oldEntry, double weight) async {
+    if (oldEntry == null) return;
+    oldEntry.changeWeight(weight);
+    notifyListeners();
+
+    await _weightLogRepository.updateWeightEntry(oldEntry);
+  }
 }

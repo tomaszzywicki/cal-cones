@@ -4,8 +4,8 @@ import 'package:frontend/features/weight_log/data/weight_entry_model.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
 
-class WeightCalendar extends StatelessWidget {
-  const WeightCalendar({super.key});
+class WeightEntryCalendar extends StatelessWidget {
+  const WeightEntryCalendar({super.key});
 
   Future<void> _deleteEntry(BuildContext context, WeightEntryModel entry) async {
     try {
@@ -38,34 +38,29 @@ class WeightCalendar extends StatelessWidget {
     final weightEntries = weightLogService.entries;
     final isLoading = false;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text("There are ${weightEntries.length} entries."),
-            isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: NeverScrollableScrollPhysics(),
-                    itemCount: weightEntries.length,
-                    itemBuilder: (context, index) {
-                      final entry = weightEntries[index];
-                      return ListTile(
-                        title: Text('${entry.weight} kg'),
-                        subtitle: Text(
-                          '${entry.date.toLocal().toString().split(' ')[0]} ${entry.date.toLocal().toIso8601String().split('T')[1].split('.')[0]}',
-                        ),
-                        onLongPress: () {
-                          _deleteEntry(context, entry);
-                        },
-                      );
-                    },
-                  ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: weightEntries.length,
+            itemBuilder: (context, index) {
+              final entry = weightEntries[index];
+              return ListTile(
+                title: Text('${entry.weight} kg'),
+                subtitle: Text(
+                  '${entry.date.toLocal().toString().split(' ')[0]} ${entry.date.toLocal().toIso8601String().split('T')[1].split('.')[0]}',
+                ),
+                onLongPress: () {
+                  _deleteEntry(context, entry);
+                },
+              );
+            },
+          ),
+        ],
       ),
     );
   }

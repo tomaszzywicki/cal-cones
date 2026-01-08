@@ -64,4 +64,14 @@ class WeightLogRepository {
       throw Exception('Failed to get latest weight entry: $e');
     }
   }
+
+  Future<void> updateWeightEntry(WeightEntryModel oldEntry) async {
+    try {
+      final db = await _databaseService.database;
+      await db.update('weight_entries', oldEntry.toMap(), where: 'id = ?', whereArgs: [oldEntry.id]);
+    } catch (e) {
+      AppLogger.error('WeightLogRepository.updateWeightEntry error: $e');
+      throw Exception('Failed to update weight entry: $e');
+    }
+  }
 }
