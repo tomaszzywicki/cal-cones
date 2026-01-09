@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/ai/data/ai_response.dart';
 import 'package:frontend/features/ai/presentation/widgets/ai_product_card.dart';
+import 'package:frontend/features/meal/services/meal_service.dart';
 import 'package:frontend/features/product/data/product_model.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
 
 class AiDetectedProductsPage extends StatefulWidget {
   final XFile? image;
@@ -19,10 +21,12 @@ class AiDetectedProductsPage extends StatefulWidget {
 
 class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
   final Map<int, _AcceptedProduct> _acceptedProducts = {};
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -36,69 +40,90 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 24),
-                    const SizedBox(width: 8),
-                    Text(
-                      'Found ${widget.detectedProducts.length} items',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 24,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-
-                // Image
-                Container(
-                  width: double.infinity,
-                  height: 220,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.1),
-                        blurRadius: 15,
-                        offset: const Offset(0, 8),
-                      ),
-                    ],
-                    image: DecorationImage(image: FileImage(File(widget.image!.path)), fit: BoxFit.cover),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Produkty
+          // ✅ Wszystko w jednym scrollable
           Expanded(
             child: widget.detectedProducts.isEmpty
                 ? _buildEmptyState()
-                : ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: widget.detectedProducts.length,
-                    itemBuilder: (context, index) {
-                      final predictions = widget.detectedProducts[index];
-                      return AiProductCard(
-                        key: ValueKey(index),
-                        predictions: predictions,
-                        onRemove: () => _onRemove(index),
-                        onAccepted: (product, weight) => _onAccepted(index, product, weight),
-                      );
-                    },
+                : CustomScrollView(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    slivers: [
+                      // Header z obrazem
+                      SliverToBoxAdapter(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 24),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Found ${widget.detectedProducts.length} items',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 24,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              // Image
+                              Container(
+                                width: double.infinity,
+                                height: 220,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                  image: DecorationImage(
+                                    image: FileImage(File(widget.image!.path)),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Lista produktów
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate((context, index) {
+                            final predictions = widget.detectedProducts[index];
+                            return AiProductCard(
+                              key: ValueKey(index),
+                              predictions: predictions,
+                              onRemove: () => _onRemove(index),
+                              onAccepted: (product, weight) => _onAccepted(index, product, weight),
+                            );
+                          }, childCount: widget.detectedProducts.length),
+                        ),
+                      ),
+
+                      // Padding na dole żeby ostatni item nie był zakryty przez przycisk
+                      const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                    ],
                   ),
           ),
 
-          // Przycisk
+          // Przycisk (zawsze na dole)
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            ),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
@@ -111,7 +136,7 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
             ),
             child: SafeArea(
               child: ElevatedButton(
-                onPressed: _handleConfirm, //_acceptedProducts.isNotEmpty ? _handleConfirm : null,
+                onPressed: _handleConfirm,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
@@ -160,19 +185,51 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
   }
 
   Future<void> _handleConfirm() async {
-    AppLogger.info('Saving ${_acceptedProducts.length} products to meal log');
+    if (_acceptedProducts.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please accept at least one product')));
+      return;
+    }
 
-    // Konwertuj na format do zapisu
-    final productsToSave = _acceptedProducts.entries.map((entry) {
-      final accepted = entry.value;
-      return {
-        'product': accepted.product.product,
-        'weight': accepted.weight,
-        'confidence': accepted.product.probability,
-      };
-    }).toList();
-    if (mounted) {
-      Navigator.of(context).pop(productsToSave);
+    setState(() => _isLoading = true);
+
+    try {
+      final mealService = Provider.of<MealService>(context, listen: false);
+      AppLogger.info('Saving ${_acceptedProducts.length} products to meal log');
+
+      // Konwertuj na format do zapisu
+      final productsToSave = _acceptedProducts.entries.map((entry) {
+        final accepted = entry.value;
+        return {
+          'product': accepted.product.product,
+          'weight': accepted.weight,
+          'confidence': accepted.product.probability,
+        };
+      }).toList();
+
+      await mealService.addMealProductsFromAI(productsToSave, DateTime.now());
+
+      if (mounted) {
+        // ScaffoldMessenger.of(context).showSnackBar(
+        //   SnackBar(
+        //     content: Text('Added ${_acceptedProducts.length} products to meal log'),
+        //     backgroundColor: Colors.green,
+        //   ),
+        // );
+        Navigator.of(context).pop(true);
+      }
+    } catch (e) {
+      AppLogger.error('Failed to save meal products: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save products: $e'), backgroundColor: Colors.red));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 }

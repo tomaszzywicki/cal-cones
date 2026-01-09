@@ -7,6 +7,7 @@ from PIL import Image
 from sqlalchemy.orm import Session
 from app.features.product.service import get_product_from_model
 from app.core.logger_setup import get_logger
+from backend.app.features.product.schemas import ProductResponse
 
 logger = get_logger(__name__)
 
@@ -41,7 +42,7 @@ def cleanup_temp_file(file_path: str):
         raise RuntimeError(f"Failed to delete temporary file: {file_path}") from e
 
 
-def process_model_output(output: list[dict], db: Session) -> list[dict] | None:
+def process_model_output(output: list[dict], db: Session) -> list[list[dict]] | None:
     try:
         processed_results = []
         for item in output:
@@ -61,5 +62,5 @@ def process_model_output(output: list[dict], db: Session) -> list[dict] | None:
         logger.error(f"Error during process_model_output: {e}")
 
 
-def _get_product_info(db: Session, name: str):
+def _get_product_info(db: Session, name: str) -> ProductResponse:
     return get_product_from_model(db, name)
