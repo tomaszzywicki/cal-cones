@@ -40,7 +40,7 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
       ),
       body: Column(
         children: [
-          // ✅ Wszystko w jednym scrollable
+          // Wszystko w jednym scrollable
           Expanded(
             child: widget.detectedProducts.isEmpty
                 ? _buildEmptyState()
@@ -110,13 +110,11 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
                         ),
                       ),
 
-                      // Padding na dole żeby ostatni item nie był zakryty przez przycisk
                       const SliverToBoxAdapter(child: SizedBox(height: 100)),
                     ],
                   ),
           ),
 
-          // Przycisk (zawsze na dole)
           Container(
             padding: EdgeInsets.only(
               left: 20,
@@ -198,7 +196,6 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
       final mealService = Provider.of<MealService>(context, listen: false);
       AppLogger.info('Saving ${_acceptedProducts.length} products to meal log');
 
-      // Konwertuj na format do zapisu
       final productsToSave = _acceptedProducts.entries.map((entry) {
         final accepted = entry.value;
         return {

@@ -7,7 +7,7 @@ from PIL import Image
 from sqlalchemy.orm import Session
 from app.features.product.service import get_product_from_model
 from app.core.logger_setup import get_logger
-from backend.app.features.product.schemas import ProductResponse
+from app.features.product.schemas import ProductResponse
 
 logger = get_logger(__name__)
 

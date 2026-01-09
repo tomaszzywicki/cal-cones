@@ -80,7 +80,6 @@ class MealService {
       final product = item['product'] as ProductModel;
       final weight = item['weight'] as double;
 
-      // Przelicz makroskładniki na podstawie wagi (produkt ma wartości na 100g)
       final multiplier = weight / 100.0;
 
       final mealProduct = MealProductModel(
@@ -101,17 +100,16 @@ class MealService {
         lastModifiedAt: DateTime.now(),
       );
 
-      // Dodaj do bazy lokalnej
+      // Do bazy lokalnej
       final saved = await _mealRepository.addMealProduct(mealProduct, userId);
       addedProducts.add(saved);
 
-      // Dodaj do kolejki synchronizacji
+      // Do kolejki synchronizacji
       await _mealSyncService.onCreate(saved);
     }
 
     AppLogger.info('Added ${addedProducts.length} meal products from AI detection');
 
-    // Synchronizuj w tle
     if (_connectivityService.isConnected) {
       _mealSyncService.syncToServer();
     }
