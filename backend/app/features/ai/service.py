@@ -41,7 +41,7 @@ def cleanup_temp_file(file_path: str):
         raise RuntimeError(f"Failed to delete temporary file: {file_path}") from e
 
 
-def process_model_output(output: list[dict]) -> list[dict] | None:
+def process_model_output(output: list[dict], db: Session) -> list[dict] | None:
     try:
         processed_results = []
         for item in output:
@@ -50,9 +50,8 @@ def process_model_output(output: list[dict]) -> list[dict] | None:
             for product in item["top5_cls_results"]:
                 if i >= 3:
                     break
-                products_list.append(
-                    {"product": product["class_name"], "probability": product["probability"]}
-                )
+                product_info = _get_product_info(db, product["class_name"])
+                products_list.append({"product": product_info, "probability": product["probability"]})
                 i += 1
 
             processed_results.append(products_list)
