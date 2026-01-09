@@ -9,7 +9,7 @@ import 'package:image_picker/image_picker.dart';
 
 class AiDetectedProductsPage extends StatefulWidget {
   final XFile? image;
-  final List<AIResponse> detectedProducts;
+  final List<List<AIResponse>> detectedProducts;
 
   const AiDetectedProductsPage({super.key, required this.image, required this.detectedProducts});
 
@@ -18,7 +18,7 @@ class AiDetectedProductsPage extends StatefulWidget {
 }
 
 class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
-  final Map<int, double> _acceptedProducts = {};
+  final Map<int, _AcceptedProduct> _acceptedProducts = {};
 
   @override
   Widget build(BuildContext context) {
@@ -85,12 +85,12 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: widget.detectedProducts.length,
                     itemBuilder: (context, index) {
-                      final item = widget.detectedProducts[index];
+                      final predictions = widget.detectedProducts[index];
                       return AiProductCard(
-                        key: ValueKey(item.product.name),
-                        item: item,
+                        key: ValueKey(index),
+                        predictions: predictions,
                         onRemove: () => _onRemove(index),
-                        onAccepted: (weight) => _onAccepted(index, weight),
+                        onAccepted: (product, weight) => _onAccepted(index, product, weight),
                       );
                     },
                   ),
@@ -111,7 +111,7 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
             ),
             child: SafeArea(
               child: ElevatedButton(
-                onPressed: _acceptedProducts.isNotEmpty ? _handleConfirm : null,
+                onPressed: _handleConfirm, //_acceptedProducts.isNotEmpty ? _handleConfirm : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
                   foregroundColor: Colors.white,
@@ -152,16 +152,33 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
     });
   }
 
-  void _onAccepted(int index, double amount) {
+  void _onAccepted(int index, AIResponse product, double weight) {
     setState(() {
-      _acceptedProducts[index] = amount;
+      _acceptedProducts[index] = _AcceptedProduct(product: product, weight: weight);
     });
-    AppLogger.info("Product at index $index accepted with weight: $amount");
+    AppLogger.info("Product '${product.product.name}' accepted with weight: $weight g");
   }
 
   Future<void> _handleConfirm() async {
     AppLogger.info('Saving ${_acceptedProducts.length} products to meal log');
-    // TODO logika zapisu
-    Navigator.of(context).pop();
+
+    // Konwertuj na format do zapisu
+    final productsToSave = _acceptedProducts.entries.map((entry) {
+      final accepted = entry.value;
+      return {
+        'product': accepted.product.product,
+        'weight': accepted.weight,
+        'confidence': accepted.product.probability,
+      };
+    }).toList();
+    if (mounted) {
+      Navigator.of(context).pop(productsToSave);
+    }
   }
+}
+
+class _AcceptedProduct {
+  final AIResponse product;
+  final double weight;
+  _AcceptedProduct({required this.product, required this.weight});
 }

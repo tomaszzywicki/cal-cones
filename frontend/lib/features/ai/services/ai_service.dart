@@ -9,7 +9,7 @@ class AIService {
 
   AIService({required this.aiApiService});
 
-  Future<List<AIResponse>> detectProducts(XFile image) async {
+  Future<List<List<AIResponse>>> detectProducts(XFile image) async {
     try {
       final response = await aiApiService.detectProducts(image);
       if (response.statusCode != 200) {
@@ -17,8 +17,8 @@ class AIService {
         throw Exception("Failed to detect products: ${response.statusCode}");
       }
 
-      final List<dynamic> decodedBody = jsonDecode(response.body);
-      return decodedBody.map((e) => AIResponse.fromMap(e)).toList();
+      final List<List<dynamic>> decodedBody = jsonDecode(response.body);
+      return decodedBody.map((innerList) => innerList.map((e) => AIResponse.fromMap(e)).toList()).toList();
     } catch (e) {
       AppLogger.error('Error during detecting products: $e');
       rethrow;

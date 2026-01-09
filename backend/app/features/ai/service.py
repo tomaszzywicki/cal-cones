@@ -41,20 +41,22 @@ def cleanup_temp_file(file_path: str):
         raise RuntimeError(f"Failed to delete temporary file: {file_path}") from e
 
 
-def process_model_output(output: list[dict], db: Session) -> list[dict] | None:
+def process_model_output(output: list[dict]) -> list[dict] | None:
     try:
         processed_results = []
         for item in output:
-            class_name = item["top5_cls_results"][0]["class_name"]
-            logger.info(f"AI has Detected a product {class_name}")
+            products_list = []
+            i = 0
+            for product in item["top5_cls_results"]:
+                if i >= 3:
+                    break
+                products_list.append(
+                    {"product": product["class_name"], "probability": product["probability"]}
+                )
+                i += 1
 
-            product_info = _get_product_info(db, class_name)
+            processed_results.append(products_list)
 
-            processed_item = {
-                "product": product_info,
-                "probability": round(item["top5_cls_results"][0]["probability"], 4),
-            }
-            processed_results.append(processed_item)
         return processed_results
     except Exception as e:
         logger.error(f"Error during process_model_output: {e}")
