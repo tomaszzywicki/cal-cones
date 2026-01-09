@@ -1,8 +1,11 @@
+import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/core/network/connectivity_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/services/meal_repository.dart';
 import 'package:frontend/features/meal/services/meal_sync_service.dart';
+import 'package:frontend/features/product/data/product_model.dart';
+import 'package:uuid/uuid.dart';
 
 class MealService {
   final MealRepository _mealRepository;
@@ -64,5 +67,53 @@ class MealService {
   Future<List<MealProductModel>> getMealProductsForDate(DateTime date) async {
     final userId = _currentUserService.getUserId();
     return await _mealRepository.getMealProductsForDate(date, userId);
+  }
+
+  Future<List<MealProductModel>> addMealProductsFromAI(
+    List<Map<String, dynamic>> aiProducts,
+    DateTime date,
+  ) async {
+    final userId = _currentUserService.getUserId();
+    final addedProducts = <MealProductModel>[];
+
+    for (final item in aiProducts) {
+      final product = item['product'] as ProductModel;
+      final weight = item['weight'] as double;
+
+      final multiplier = weight / 100.0;
+
+      final mealProduct = MealProductModel(
+        uuid: const Uuid().v4(),
+        productUuid: product.uuid,
+        name: product.name,
+        manufacturer: product.manufacturer,
+        kcal: (product.kcal * multiplier).round(),
+        carbs: product.carbs * multiplier,
+        protein: product.protein * multiplier,
+        fat: product.fat * multiplier,
+        unitId: 1, // gram
+        unitShort: 'g',
+        conversionFactor: 1.0,
+        amount: weight,
+        notes: 'Added via AI detection',
+        createdAt: date,
+        lastModifiedAt: DateTime.now(),
+      );
+
+      // Do bazy lokalnej
+      final saved = await _mealRepository.addMealProduct(mealProduct, userId);
+      addedProducts.add(saved);
+
+      // Do kolejki synchronizacji
+      await _mealSyncService.onCreate(saved);
+    }
+
+    AppLogger.info('Added ${addedProducts.length} meal products from AI detection');
+
+    if (_connectivityService.isConnected) {
+      _mealSyncService.syncToServer();
+    }
+
+    return addedProducts;
   }
 }

@@ -3,7 +3,6 @@ import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/ai/presentation/screens/ai_detected_products_page.dart';
 import 'package:frontend/features/ai/services/ai_service.dart';
 import 'package:frontend/features/product/presentation/screens/product_search_page.dart';
-import 'package:frontend/main_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 

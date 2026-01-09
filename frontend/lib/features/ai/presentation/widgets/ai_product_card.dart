@@ -2,177 +2,245 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/ai/data/ai_response.dart';
 
 class AiProductCard extends StatefulWidget {
-  final AIResponse item;
+  final List<AIResponse> predictions; // Top 3 predictions
   final VoidCallback onRemove;
-  final Function(double weight) onAccepted;
-  const AiProductCard({super.key, required this.item, required this.onRemove, required this.onAccepted});
+  final Function(AIResponse, double) onAccepted;
+
+  const AiProductCard({
+    super.key,
+    required this.predictions,
+    required this.onRemove,
+    required this.onAccepted,
+  });
 
   @override
   State<AiProductCard> createState() => _AiProductCardState();
 }
 
 class _AiProductCardState extends State<AiProductCard> {
-  bool _isAccepted = false;
-  double _weight = 100.0;
+  bool _isExpanded = false;
+  AIResponse? _selectedProduct;
+  final TextEditingController _weightController = TextEditingController(text: '100');
+
+  @override
+  void dispose() {
+    _weightController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final topPrediction = widget.predictions.first;
+    final isAccepted = _selectedProduct != null;
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isAccepted ? Colors.green : Colors.grey[200]!, width: isAccepted ? 2 : 1),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
-      child: Row(
+      child: Column(
         children: [
-          // --- LEWA STRONA: Nazwa i Pstwo ---
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          // Header
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            leading: CircleAvatar(
+              backgroundColor: _getProbabilityColor(topPrediction.probability),
+              child: Text(
+                '${(topPrediction.probability * 100).toInt()}%',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+              ),
+            ),
+            title: Text(
+              isAccepted ? _selectedProduct!.product.name : topPrediction.product.name,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+            subtitle: Text(
+              isAccepted
+                  ? _selectedProduct!.product.manufacturer ?? 'Unknown'
+                  : topPrediction.product.manufacturer ?? 'Unknown',
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  widget.item.product.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 18),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _getProbabilityColor(widget.item.probability).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                if (!isAccepted && widget.predictions.length > 1)
+                  IconButton(
+                    icon: Icon(_isExpanded ? Icons.expand_less : Icons.expand_more, color: Colors.grey[700]),
+                    onPressed: () => setState(() => _isExpanded = !_isExpanded),
                   ),
-                  child: Text(
-                    '${(widget.item.probability * 100).toStringAsFixed(0)}% confidence',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _getProbabilityColor(widget.item.probability),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.red),
+                  onPressed: widget.onRemove,
                 ),
               ],
             ),
           ),
 
-          const SizedBox(width: 12),
+          // Expanded alternatives (tylko gdy nie zaakceptowano)
+          if (_isExpanded && !isAccepted && widget.predictions.length > 1) _buildAlternatives(),
 
-          // --- PRAWA STRONA: Przyciski LUB Waga ---
-          if (_isAccepted) _buildWeightContainer() else _buildActionButtons(),
+          // Weight input (gdy zaakceptowano)
+          if (isAccepted) _buildWeightInput(),
+
+          // Accept button (gdy nie zaakceptowano)
+          if (!isAccepted) _buildAcceptButton(topPrediction),
         ],
       ),
     );
   }
 
-  Widget _buildActionButtons() {
-    return Row(
-      children: [
-        // Przycisk Tick
-        InkWell(
-          onTap: () {
-            setState(() {
-              _isAccepted = true;
-            });
-            widget.onAccepted(_weight);
-          },
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.green[50],
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.green[100]!),
-            ),
-            child: Icon(Icons.check, color: Colors.green[700], size: 20),
+  Widget _buildAlternatives() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        border: Border(top: BorderSide(color: Colors.grey[200]!)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Other predictions:',
+            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 12, color: Colors.grey[700]),
           ),
-        ),
-        const SizedBox(width: 12),
-        // Przycisk X
-        InkWell(
-          onTap: widget.onRemove,
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: Colors.red[50],
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.red[100]!),
-            ),
-            child: Icon(Icons.close, color: Colors.red[700], size: 20),
-          ),
-        ),
-      ],
+          const SizedBox(height: 8),
+          ...widget.predictions.skip(1).map((prediction) => _buildAlternativeItem(prediction)),
+        ],
+      ),
     );
   }
 
-  Widget _buildWeightContainer() {
-    return GestureDetector(
-      onTap: _showEditWeightDialog,
+  Widget _buildAlternativeItem(AIResponse prediction) {
+    return InkWell(
+      onTap: () => _acceptProduct(prediction),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(20),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.grey[300]!),
         ),
         child: Row(
           children: [
-            Text(
-              '${_weight.toStringAsFixed(0)}g',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: _getProbabilityColor(prediction.probability).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                '${(prediction.probability * 100).toInt()}%',
+                style: TextStyle(
+                  color: _getProbabilityColor(prediction.probability),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 11,
+                ),
+              ),
             ),
-            const SizedBox(width: 4),
-            const Icon(Icons.edit, size: 14, color: Colors.grey),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    prediction.product.name,
+                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  if (prediction.product.manufacturer != null)
+                    Text(
+                      prediction.product.manufacturer!,
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    ),
+                ],
+              ),
+            ),
+            Icon(Icons.check_circle_outline, color: Colors.grey[400], size: 20),
           ],
         ),
       ),
     );
   }
 
-  // Alert Box do edycji wagi
-  Future<void> _showEditWeightDialog() async {
-    final controller = TextEditingController(text: _weight.toStringAsFixed(0));
-
-    await showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text('Edit Quantity'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          autofocus: true,
-          decoration: const InputDecoration(suffixText: 'g', border: OutlineInputBorder()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel', style: TextStyle(color: Colors.black)),
+  Widget _buildWeightInput() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.green.withValues(alpha: 0.05),
+        border: Border(top: BorderSide(color: Colors.grey[200]!)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.scale, color: Colors.green, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: _weightController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Weight (g)',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                filled: true,
+                fillColor: Colors.white,
+              ),
+              onChanged: (_) => _updateAcceptedProduct(),
+            ),
           ),
-          TextButton(
-            onPressed: () {
-              final newWeight = double.tryParse(controller.text);
-              if (newWeight != null && newWeight > 0) {
-                setState(() {
-                  _weight = newWeight;
-                });
-                widget.onAccepted(_weight);
-                Navigator.pop(context);
-              }
-            },
-            child: const Text('Save', style: TextStyle(color: Colors.black)),
+          const SizedBox(width: 12),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.orange),
+            onPressed: () => setState(() {
+              _selectedProduct = null;
+              _isExpanded = false;
+            }),
+            tooltip: 'Change selection',
           ),
         ],
       ),
     );
   }
 
-  Color _getProbabilityColor(double prob) {
-    if (prob > 0.8) return Colors.green[700]!;
-    if (prob > 0.5) return Colors.orange[700]!;
-    return Colors.red[700]!;
+  Widget _buildAcceptButton(AIResponse topPrediction) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: ElevatedButton.icon(
+        onPressed: () => _acceptProduct(topPrediction),
+        icon: const Icon(Icons.check_circle, size: 20),
+        label: const Text('Accept'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(double.infinity, 44),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      ),
+    );
+  }
+
+  void _acceptProduct(AIResponse product) {
+    setState(() {
+      _selectedProduct = product;
+      _isExpanded = false;
+    });
+    _updateAcceptedProduct();
+  }
+
+  void _updateAcceptedProduct() {
+    if (_selectedProduct != null) {
+      final weight = double.tryParse(_weightController.text) ?? 100.0;
+      widget.onAccepted(_selectedProduct!, weight);
+    }
+  }
+
+  Color _getProbabilityColor(double probability) {
+    if (probability > 0.7) return Colors.green;
+    if (probability > 0.4) return Colors.orange;
+    return Colors.red;
   }
 }

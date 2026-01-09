@@ -7,6 +7,7 @@ from PIL import Image
 from sqlalchemy.orm import Session
 from app.features.product.service import get_product_from_model
 from app.core.logger_setup import get_logger
+from app.features.product.schemas import ProductResponse
 
 logger = get_logger(__name__)
 
@@ -41,24 +42,25 @@ def cleanup_temp_file(file_path: str):
         raise RuntimeError(f"Failed to delete temporary file: {file_path}") from e
 
 
-def process_model_output(output: list[dict], db: Session) -> list[dict] | None:
+def process_model_output(output: list[dict], db: Session) -> list[list[dict]] | None:
     try:
         processed_results = []
         for item in output:
-            class_name = item["top5_cls_results"][0]["class_name"]
-            logger.info(f"AI has Detected a product {class_name}")
+            products_list = []
+            i = 0
+            for product in item["top5_cls_results"]:
+                if i >= 3:
+                    break
+                product_info = _get_product_info(db, product["class_name"])
+                products_list.append({"product": product_info, "probability": product["probability"]})
+                i += 1
 
-            product_info = _get_product_info(db, class_name)
+            processed_results.append(products_list)
 
-            processed_item = {
-                "product": product_info,
-                "probability": round(item["top5_cls_results"][0]["probability"], 4),
-            }
-            processed_results.append(processed_item)
         return processed_results
     except Exception as e:
         logger.error(f"Error during process_model_output: {e}")
 
 
-def _get_product_info(db: Session, name: str):
+def _get_product_info(db: Session, name: str) -> ProductResponse:
     return get_product_from_model(db, name)

@@ -17,7 +17,7 @@ router = APIRouter(prefix="/ai", tags=["ai"])
 
 
 @router.post("/detect", status_code=status.HTTP_200_OK)
-async def detect_products(image: UploadFile, db: Session = Depends(get_db)):
+async def detect_products(image: UploadFile, db=Depends(get_db)):
     tmp_path = None
     try:
         tmp_path = await prepare_file_for_model(image)
