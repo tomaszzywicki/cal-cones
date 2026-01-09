@@ -89,25 +89,10 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         ),
         actions: [
           if (widget.mode == ProductPageMode.edit)
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Colors.black),
-              onSelected: (value) {
-                if (value == 'delete') {
-                  _showDeleteConfirmation();
-                }
-              },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete_outline, color: Colors.red, size: 20),
-                      SizedBox(width: 12),
-                      Text('Delete Entry', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: _showDeleteConfirmation,
+              tooltip: 'Delete Entry',
             ),
         ],
       ),
