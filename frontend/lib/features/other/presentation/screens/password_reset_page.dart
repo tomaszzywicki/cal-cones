@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
+import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:provider/provider.dart';
 
 class PasswordResetPage extends StatefulWidget {
@@ -199,7 +200,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    // TODO: Navigate to forgot password flow
+                    _handleForgotPassword();
                   },
                   child: Text(
                     'Forgot your current password?',
@@ -306,14 +307,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
 
-      // TODO: Implement password change logic
-      // await authService.changePassword(
-      //   currentPassword: _currentPasswordController.text,
-      //   newPassword: _newPasswordController.text,
-      // );
-
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+      await authService.changePassword(_currentPasswordController.text, _newPasswordController.text);
 
       if (!mounted) return;
 
@@ -344,7 +338,7 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
             children: [
               const Icon(Icons.error, color: Colors.white),
               const SizedBox(width: 12),
-              Expanded(child: Text('Error: $e')),
+              Expanded(child: Text('$e')),
             ],
           ),
           backgroundColor: Colors.red,
@@ -356,6 +350,62 @@ class _PasswordResetPageState extends State<PasswordResetPage> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  Future<void> _handleForgotPassword() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final currentUserService = Provider.of<CurrentUserService>(context, listen: false);
+    final currentUser = currentUserService.currentUser;
+
+    if (currentUser?.email == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No email associated with this account'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Reset Password'),
+        content: Text('Send password reset email to:\n${currentUser!.email}?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
+            child: const Text('Send'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    try {
+      await authService.sendPasswordResetEmail(currentUser!.email);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Password reset email sent to ${currentUser.email}'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Sign out user po wysłaniu emaila
+      await authService.signOut();
+
+      if (!mounted) return;
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to send reset email: $e'), backgroundColor: Colors.red));
     }
   }
 }
