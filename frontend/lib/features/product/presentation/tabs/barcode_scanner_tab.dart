@@ -6,8 +6,9 @@ import '../screens/product_details_page.dart';
 
 class BarcodeScannerTab extends StatefulWidget {
   final DateTime consumedAt;
+  final ProductPageMode mode;
 
-  const BarcodeScannerTab({super.key, required this.consumedAt});
+  const BarcodeScannerTab({super.key, required this.consumedAt, required this.mode});
 
   @override
   State<BarcodeScannerTab> createState() => _BarcodeScannerTabState();
@@ -48,7 +49,7 @@ class _BarcodeScannerTabState extends State<BarcodeScannerTab> {
               builder: (context) => ProductDetailsPage(
                 product: product,
                 consumedAt: widget.consumedAt,
-                mode: ProductPageMode.add,
+                mode: widget.mode,
               ),
             ),
           );

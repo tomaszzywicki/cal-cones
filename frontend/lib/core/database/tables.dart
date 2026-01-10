@@ -121,4 +121,17 @@ Future<void> initTables(Database db, int version) async {
     created_at TEXT NOT NULL
   )
 ''');
+
+// Recipe table
+  await db.execute('''
+    CREATE TABLE recipes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      time TEXT,
+      calories INTEGER,
+      ingredients TEXT, -- JSON encoded list of strings
+      instructions TEXT, -- JSON encoded list of strings
+      created_at TEXT NOT NULL
+    )
+  ''');
 }

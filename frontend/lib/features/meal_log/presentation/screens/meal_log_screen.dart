@@ -306,6 +306,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete Entry'), 
+          backgroundColor: Colors.white,
           content: const Text('Are you sure you want to remove this product from your log?'),
           actions: [
             TextButton(

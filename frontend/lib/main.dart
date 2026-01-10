@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/app_widget.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:frontend/core/database/local_database_service.dart';
@@ -23,12 +24,16 @@ import 'package:frontend/features/product/services/product_service.dart';
 import 'package:frontend/features/product/services/product_sync_service.dart';
 import 'package:frontend/features/user/services/user_api_service.dart';
 import 'package:frontend/features/user/services/user_service.dart';
+import 'package:frontend/features/recipe/services/recipe_service.dart';
 import 'package:frontend/features/weight_log/services/weight_log_repository.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await dotenv.load(fileName: ".env");
+
   AppLogger.info('[App] Starting CalCones app...');
 
   await Firebase.initializeApp();
@@ -79,6 +84,9 @@ void main() async {
   final aiApiService = AIApiService(firebaseAuthService);
   final aiService = AIService(aiApiService: aiApiService);
 
+  //recipe
+  final recipeService = RecipeService(localDatabaseService);
+
   // sync
   final syncService = SyncService(
     connectivityService: connectivityService,
@@ -108,6 +116,7 @@ void main() async {
         Provider<ProductService>.value(value: productService),
         Provider<MealService>.value(value: mealService),
         Provider<AIService>.value(value: aiService),
+        Provider<RecipeService>.value(value: recipeService),
         ChangeNotifierProvider<CurrentUserService>.value(value: currentUserService),
         ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
         ChangeNotifierProvider<DayMacroProvider>.value(value: dayMacroProvider),

@@ -13,7 +13,12 @@ import 'package:provider/provider.dart';
 
 class ProductSearchPage extends StatefulWidget {
   final DateTime consumedAt;
-  const ProductSearchPage({super.key, required this.consumedAt});
+  final ProductPageMode mode;
+  const ProductSearchPage({
+    super.key,
+     required this.consumedAt,
+     this.mode = ProductPageMode.add,
+    });
 
   @override
   State<ProductSearchPage> createState() => _ProductSearchPageState();
@@ -54,8 +59,7 @@ class _ProductSearchPageState extends State<ProductSearchPage> with SingleTicker
             onProductSelected: _handleProductSelected,
             onProductPressed: _showCustomProductDeleteDialog,
           ),
-          BarcodeScannerTab(consumedAt: widget.consumedAt),
-        ],
+          BarcodeScannerTab(consumedAt: widget.consumedAt, mode: widget.mode),        ],
       ),
     );
   }
@@ -66,7 +70,11 @@ class _ProductSearchPageState extends State<ProductSearchPage> with SingleTicker
       context,
       MaterialPageRoute(
         builder: (context) =>
-            ProductDetailsPage(product: product, mode: ProductPageMode.add, consumedAt: widget.consumedAt),
+            ProductDetailsPage(
+              product: product,
+              mode: widget.mode,
+              consumedAt: widget.consumedAt
+          ),
       ),
     );
 
