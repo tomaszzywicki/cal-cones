@@ -10,7 +10,6 @@ class ProductDetailsPage extends StatefulWidget {
   final ProductModel product;
   final DateTime consumedAt;
   final ProductPageMode mode;
-  // Added: The existing entry to edit (optional)
   final MealProductModel? mealProductToEdit;
 
   const ProductDetailsPage({

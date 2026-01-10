@@ -61,7 +61,7 @@ class _BarcodeScannerTabState extends State<BarcodeScannerTab> {
             // Close the ProductSearchPage (the parent of this tab) 
             // and return the result to MealLogScreen
             Navigator.pop(context, result);
-            return; // Important: stop here so we don't reset processing state on a disposed widget
+            return; 
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -75,7 +75,7 @@ class _BarcodeScannerTabState extends State<BarcodeScannerTab> {
             _isProcessing = false;
           });
         }
-        break; // Stop after first valid code is processed
+        break;
       }
     }
   }

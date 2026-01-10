@@ -53,7 +53,6 @@ class RecipeListCard extends StatelessWidget {
                 ),
               ),
 
-              // Time Pill (Matches ProductCard amount style)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(

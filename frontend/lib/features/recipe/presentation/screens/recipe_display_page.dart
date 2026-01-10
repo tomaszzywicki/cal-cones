@@ -24,10 +24,9 @@ class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context), // Just pop, parent handles refresh via 'then' or lifecycle
+          onPressed: () => Navigator.pop(context), 
         ),
         actions: [
-          // Only show Delete button (since it's auto-saved)
           IconButton(
             icon: const Icon(Icons.delete_outline, color: Colors.red),
             onPressed: _deleteRecipe,

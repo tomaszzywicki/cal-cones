@@ -12,8 +12,9 @@ import 'package:provider/provider.dart';
 class AiDetectedProductsPage extends StatefulWidget {
   final XFile? image;
   final List<List<AIResponse>> detectedProducts;
+  final bool isRecipeMode;
 
-  const AiDetectedProductsPage({super.key, required this.image, required this.detectedProducts});
+  const AiDetectedProductsPage({super.key, required this.image, required this.detectedProducts, this.isRecipeMode = false});
 
   @override
   State<AiDetectedProductsPage> createState() => _AiDetectedProductsPageState();
@@ -187,6 +188,19 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Please accept at least one product')));
+      return;
+    }
+
+    if (widget.isRecipeMode) {
+      // Return the accepted products to CreateRecipeScreen
+      final List<Map<String, dynamic>> results = _acceptedProducts.values.map((e) {
+        return {
+          'product': e.product.product,
+          'amount': e.weight,
+        };
+      }).toList();
+      
+      Navigator.of(context).pop(results);
       return;
     }
 
