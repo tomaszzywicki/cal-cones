@@ -6,8 +6,9 @@ import '../screens/product_details_page.dart';
 
 class BarcodeScannerTab extends StatefulWidget {
   final DateTime consumedAt;
+  final ProductPageMode mode;
 
-  const BarcodeScannerTab({super.key, required this.consumedAt});
+  const BarcodeScannerTab({super.key, required this.consumedAt, required this.mode});
 
   @override
   State<BarcodeScannerTab> createState() => _BarcodeScannerTabState();
@@ -48,7 +49,7 @@ class _BarcodeScannerTabState extends State<BarcodeScannerTab> {
               builder: (context) => ProductDetailsPage(
                 product: product,
                 consumedAt: widget.consumedAt,
-                mode: ProductPageMode.add,
+                mode: widget.mode,
               ),
             ),
           );
@@ -60,7 +61,7 @@ class _BarcodeScannerTabState extends State<BarcodeScannerTab> {
             // Close the ProductSearchPage (the parent of this tab) 
             // and return the result to MealLogScreen
             Navigator.pop(context, result);
-            return; // Important: stop here so we don't reset processing state on a disposed widget
+            return; 
           }
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -74,7 +75,7 @@ class _BarcodeScannerTabState extends State<BarcodeScannerTab> {
             _isProcessing = false;
           });
         }
-        break; // Stop after first valid code is processed
+        break;
       }
     }
   }

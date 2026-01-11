@@ -7,6 +7,7 @@ import 'package:frontend/features/other/presentation/screens/password_reset_page
 import 'package:frontend/features/other/presentation/widgets/profile_card.dart';
 import 'package:frontend/features/other/presentation/screens/user_info_page.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend/features/recipe/presentation/screens/meal_recommender_screen.dart';
 
 class OtherScreen extends StatefulWidget {
   const OtherScreen({super.key});
@@ -114,7 +115,11 @@ class _OtherScreenState extends State<OtherScreen> {
                   icon: Icons.restaurant_menu_outlined,
                   title: 'Meal Recommender',
                   subtitle: 'AI-powered meal suggestions',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const MealRecommenderScreen()),
+                    );
+                  },
                 ),
               ],
             ),

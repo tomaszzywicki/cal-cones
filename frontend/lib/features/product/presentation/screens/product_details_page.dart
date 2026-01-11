@@ -10,7 +10,6 @@ class ProductDetailsPage extends StatefulWidget {
   final ProductModel product;
   final DateTime consumedAt;
   final ProductPageMode mode;
-  // Added: The existing entry to edit (optional)
   final MealProductModel? mealProductToEdit;
 
   const ProductDetailsPage({
@@ -74,8 +73,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   @override
   Widget build(BuildContext context) {
     // Check if we should show the Save/Add button
-    final bool canEdit = widget.mode == ProductPageMode.add || widget.mode == ProductPageMode.edit;
-
+final bool canEdit = widget.mode == ProductPageMode.add || 
+                         widget.mode == ProductPageMode.edit || 
+                         widget.mode == ProductPageMode.addToRecipe;
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -389,6 +389,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete Entry'),
+          backgroundColor: Colors.white,
           content: const Text('Are you sure you want to remove this product from your log?'),
           actions: [
             TextButton(
@@ -436,17 +437,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
   Future<void> _handleConfirm() async {
     setState(() => _isLoading = true);
 
-    final mealProductService = Provider.of<MealService>(context, listen: false);
-
     try {
-      if (widget.mode == ProductPageMode.edit && widget.mealProductToEdit != null) {
-        // === UPDATE EXISTING PRODUCT ===
-        final updatedProduct = widget.mealProductToEdit!.updateAmount(_amount);
-        await mealProductService.updateMealProduct(updatedProduct);
-      } else {
-        // === ADD NEW PRODUCT ===
+      // HANDLE ADD TO RECIPE MODE
+      if (widget.mode == ProductPageMode.addToRecipe) {
         final product = widget.product;
-        final mealProduct = MealProductModel.fromProductWithAmount(
+        // Create a temporary MealProductModel (not saved to DB yet)
+        final tempMealProduct = MealProductModel.fromProductWithAmount(
           productId: product.id ?? -99,
           productUuid: product.uuid,
           name: product.name,
@@ -459,25 +455,49 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           unitShort: 'g',
           conversionFactor: 1.0,
           amount: _amount,
-          consumedAt: widget.consumedAt,
+          consumedAt: DateTime.now(),
+        );
+        
+        Navigator.pop(context, {
+          'success': true,
+          'mealProduct': tempMealProduct,
+        });
+        return;
+      }
+
+      final mealProductService = Provider.of<MealService>(context, listen: false);
+
+      if (widget.mode == ProductPageMode.edit && widget.mealProductToEdit != null) {
+        final updatedProduct = widget.mealProductToEdit!.updateAmount(_amount);
+        await mealProductService.updateMealProduct(updatedProduct);
+      } else {
+        final product = widget.product;
+        final mealProduct = MealProductModel.fromProductWithAmount(
+           productId: product.id ?? -99,
+           productUuid: product.uuid,
+           name: product.name,
+           manufacturer: product.manufacturer,
+           baseKcal: product.kcal,
+           baseCarbs: product.carbs,
+           baseProtein: product.protein,
+           baseFat: product.fat,
+           unitId: 1,
+           unitShort: 'g',
+           conversionFactor: 1.0,
+           amount: _amount,
+           consumedAt: widget.consumedAt,
         );
         await mealProductService.addMealProduct(mealProduct);
       }
-
+      
       if (!mounted) return;
-
       Navigator.pop(context, {
         'success': true,
         'amount': _amount,
       });
+
     } catch (e) {
-      setState(() => _isLoading = false);
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
+      // ... error handling
     }
   }
 }

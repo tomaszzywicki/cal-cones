@@ -7,10 +7,12 @@ import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ShowMenuBottomSheet extends StatelessWidget {
-  const ShowMenuBottomSheet({super.key});
+  final VoidCallback? onProductAdded;
 
-  static void show(BuildContext context) {
-    showModalBottomSheet(context: context, builder: (context) => const ShowMenuBottomSheet());
+  const ShowMenuBottomSheet({super.key, this.onProductAdded});
+
+  static void show(BuildContext context, {VoidCallback? onProductAdded}) {
+    showModalBottomSheet(context: context, builder: (context) => ShowMenuBottomSheet(onProductAdded: onProductAdded));
   }
 
   @override
@@ -36,13 +38,13 @@ class ShowMenuBottomSheet extends StatelessWidget {
                   icon: Icons.search,
                   title: 'Search',
                   color: Colors.blue,
-                  onTap: () => _handleSearchProduct(context),
+                  onTap: () => _handleSearchProduct(context, onProductAdded),
                 ),
                 _OptionCard(
                   icon: Icons.camera_alt,
                   title: 'AI Detect',
                   color: Colors.green,
-                  onTap: () => _handleAIDetect(context),
+                  onTap: () => _handleAIDetect(context, onProductAdded),
                 ),
               ],
             ),
@@ -55,31 +57,33 @@ class ShowMenuBottomSheet extends StatelessWidget {
   // ============================== Handlowanie opcji w bottom sheecie ==============================
 
   // Handlowanie dodawania produktu
-  static Future<void> _handleSearchProduct(BuildContext context) async {
+  static Future<void> _handleSearchProduct(BuildContext context, VoidCallback? onSuccess) async {
     final navigator = Navigator.of(context);
 
-    // 1. Zamykamy bottom sheet
+    // Zamykamy bottom sheet
     navigator.pop();
 
-    // 2. Otwieramy ProductSearchPage z DateTime.now()
-    AppLogger.info('Opening ProductSearchPage from bottom sheet. Date: ${DateTime.now().toUtc()}');
+    AppLogger.info('Opening ProductSearchPage from bottom sheet.');
+    
+    // Czekamy na wynik z ProductSearchPage
     final result = await navigator.push<Map<String, dynamic>?>(
-      MaterialPageRoute(builder: (context) => ProductSearchPage(consumedAt: DateTime.now().toUtc())),
+      MaterialPageRoute(builder: (context) => ProductSearchPage(consumedAt: DateTime.now())),
     );
 
-    // 3. Jeśli produkt został dodany, idziemy do MealLogScreen
-    if (result != null && result['success'] == true) {}
+    // 3. Wywołujemy callback jeśli sukces
+    if (result != null && result['success'] == true) {
+      onSuccess?.call();
+    }
   }
 
   // Handlowanie AI Detect
   // TODO dodać sprawdzenie czy jest połączenie z netem
   // a jeśli jest to i tak dać jakiś timeout max 20 sekund bo jak się wywali serwer to za długo to trwa
-  static Future<void> _handleAIDetect(BuildContext context) async {
+  static Future<void> _handleAIDetect(BuildContext context, VoidCallback? onSuccess) async {
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final aiService = Provider.of<AIService>(context, listen: false);
 
-    // 1. Ask user for source (Camera or Gallery)
     final ImageSource? source = await showModalBottomSheet<ImageSource>(
       context: context,
       backgroundColor: Colors.white,
@@ -106,18 +110,13 @@ class ShowMenuBottomSheet extends StatelessWidget {
       },
     );
 
-    // If user cancelled selection (clicked outside), return
     if (source == null) return;
 
     try {
       final ImagePicker picker = ImagePicker();
-      // Use the selected source here
       final XFile? image = await picker.pickImage(source: source, imageQuality: 80);
 
-      // User cancelled camera/gallery picker
-      if (image == null) {
-        return;
-      }
+      if (image == null) return;
 
       if (context.mounted) {
         showDialog(
@@ -139,27 +138,32 @@ class ShowMenuBottomSheet extends StatelessWidget {
 
       final results = await aiService.detectProducts(image);
 
-      // Close loading dialog
       if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-      }
-
-      // Close the main menu bottom sheet
-      if (context.mounted) {
-        navigator.pop();
+        Navigator.of(context, rootNavigator: true).pop(); // Zamknij loader
       }
 
       if (context.mounted) {
-        navigator.push(
+        navigator.pop(); // Zamknij menu bottom sheet
+      }
+
+      if (context.mounted) {
+        // Czekamy na wynik z AiDetectedProductsPage
+        // Zwraca 'true' (bool) jeśli potwierdzono, lub listę map (dla trybu przepisu)
+        final result = await navigator.push(
           MaterialPageRoute(
             builder: (context) => AiDetectedProductsPage(image: image, detectedProducts: results),
           ),
         );
+        
+        // 4. Wywołujemy callback jeśli sukces
+        // Sprawdzamy czy wynik to true (dodano do logu)
+        if (result == true) {
+           onSuccess?.call();
+        }
       }
     } catch (e) {
-      // Close loading dialog if error occurs
       if (context.mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
+        Navigator.of(context, rootNavigator: true).pop(); // Zamknij loader w razie błędu
       }
       AppLogger.error("AI Detect Error: $e");
       scaffoldMessenger.showSnackBar(

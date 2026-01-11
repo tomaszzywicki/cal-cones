@@ -9,6 +9,7 @@ import 'package:frontend/features/meal_log/presentation/widgets/meal_card.dart';
 import 'package:frontend/features/product/presentation/screens/product_search_page.dart';
 import 'package:frontend/features/product/data/product_model.dart';
 import 'package:frontend/features/product/presentation/screens/product_details_page.dart';
+import 'package:frontend/show_menu_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 
 class MealLogScreen extends StatefulWidget {
@@ -191,12 +192,20 @@ class _MealLogScreenState extends State<MealLogScreen> {
       ),
 
       // TODO adjust style of button
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () async {
-          await _handleAddProduct();
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          ShowMenuBottomSheet.show(
+            context,
+            // Przekazujemy funkcję odświeżającą listę
+            onProductAdded: () {
+              _loadMealProducts(); 
+              // Opcjonalnie można dodać SnackBar z potwierdzeniem
+              // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Meal log updated!")));
+            },
+          );
         },
-        label: const Text('Add Product for this day', style: TextStyle(fontSize: 13)),
-        icon: const Icon(Icons.add, size: 20),
+        backgroundColor: Colors.black,
+        child: const Icon(Icons.add, color: Colors.white),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
@@ -300,12 +309,12 @@ class _MealLogScreenState extends State<MealLogScreen> {
   }
 
   Future<void> _showDeleteConfirmation(MealProductModel mealProduct) async {
-    // 1. Show the dialog and wait for a Yes/No result
     final bool? shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Delete Entry'), 
+          backgroundColor: Colors.white,
           content: const Text('Are you sure you want to remove this product from your log?'),
           actions: [
             TextButton(
@@ -321,7 +330,6 @@ class _MealLogScreenState extends State<MealLogScreen> {
       },
     );
 
-    // 2. Perform the delete only if the user confirmed
     if (shouldDelete == true) {
       await _handleDeleteProduct(mealProduct);
     }
