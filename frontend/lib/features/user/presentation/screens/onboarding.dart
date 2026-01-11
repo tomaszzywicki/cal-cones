@@ -29,6 +29,10 @@ class _Onboarding extends State<Onboarding> {
   bool onFirstPage = true;
   bool onLastPage = false;
 
+  // Change page animation
+  final Duration _animDuration = const Duration(milliseconds: 300);
+  final Curve _animCurve = Curves.easeInOut;
+
   // Onboarding data
   String? _name;
   DateTime? _birthday;
@@ -45,33 +49,33 @@ class _Onboarding extends State<Onboarding> {
 
   void _updateName(String username) {
     setState(() => _name = username);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _pageController.nextPage(duration: _animDuration, curve: _animCurve);
   }
 
   void _updateBirthday(int day, int month, int year) {
     setState(() => _birthday = DateTime(year, month, day));
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _pageController.nextPage(duration: _animDuration, curve: _animCurve);
   }
 
   void _updateSex(String sex) {
     setState(() => _sex = sex);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _pageController.nextPage(duration: _animDuration, curve: _animCurve);
   }
 
   void _updateHeight(int height) {
     setState(() => _height = height);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _pageController.nextPage(duration: _animDuration, curve: _animCurve);
   }
 
   void _updateWeight(double weight) {
     setState(() => _startWeight = weight);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _pageController.nextPage(duration: _animDuration, curve: _animCurve);
     AppLogger.debug("setting weight: $weight");
   }
 
   void _updateActivityLevel(String activityLevel) {
     setState(() => _activityLevel = activityLevel);
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _pageController.nextPage(duration: _animDuration, curve: _animCurve);
   }
 
   void _updateDietAndMacro(String dietType, Map<String, int> macroSplit) {
@@ -79,7 +83,7 @@ class _Onboarding extends State<Onboarding> {
       _dietType = dietType;
       _macroSplit = macroSplit;
     });
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _pageController.nextPage(duration: _animDuration, curve: _animCurve);
   }
 
   void _updateGoalData(DateTime startDate, DateTime targetDate, double targetWeight, double tempo) {
@@ -89,7 +93,7 @@ class _Onboarding extends State<Onboarding> {
       _targetWeight = targetWeight;
       _tempo = tempo;
     });
-    _pageController.nextPage(duration: Duration(microseconds: 200), curve: Curves.easeInOut);
+    _pageController.nextPage(duration: _animDuration, curve: _animCurve);
   }
 
   Future<void> _saveOnboardingInfo() async {
@@ -166,7 +170,7 @@ class _Onboarding extends State<Onboarding> {
         initialMacroSplit: _macroSplit,
       ),
 
-      // 9.
+      // 8.
       OnbboardingGoalData(
         setGoalData: (startDate, targetDate, targetWeight, tempo) =>
             _updateGoalData(startDate, targetDate, targetWeight, tempo),
@@ -176,6 +180,7 @@ class _Onboarding extends State<Onboarding> {
         initialTempo: _tempo,
         currentWeight: _startWeight,
       ),
+      // 9.
       OnboardingFinal(
         finishOnboarding: () => _saveOnboardingInfo(),
         name: _name,
@@ -189,37 +194,64 @@ class _Onboarding extends State<Onboarding> {
         targetDate: _targetDate,
       ),
     ];
+    
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: Column(
-        children: [
-          SizedBox(height: 50),
-          SmoothPageIndicator(
-            controller: _pageController,
-            count: pages.length,
-            effect: WormEffect(
-              dotWidth: 30,
-              dotHeight: 4,
-              activeDotColor: Color(0xFF0C1C24),
-              dotColor: Colors.grey[300]!,
-              spacing: 6,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header: Back Button + Indicator
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 8.0),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Back Button (Left)
+                  if (!onFirstPage)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: Colors.black87),
+                        onPressed: () {
+                          _pageController.previousPage(
+                            duration: _animDuration,
+                            curve: _animCurve,
+                          );
+                        },
+                      ),
+                    ),
+                  
+                  // Page Indicator (Center)
+                  SmoothPageIndicator(
+                    controller: _pageController,
+                    count: pages.length,
+                    effect: WormEffect(
+                      dotWidth: 30,
+                      dotHeight: 4,
+                      activeDotColor: const Color(0xFF0C1C24),
+                      dotColor: Colors.grey[300]!,
+                      spacing: 6,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
 
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  onFirstPage = (index == 0);
-                  onLastPage = (index == pages.length - 1);
-                });
-              },
-
-              children: pages,
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(), // DISABLED SWIPING
+                onPageChanged: (index) {
+                  setState(() {
+                    onFirstPage = (index == 0);
+                    onLastPage = (index == pages.length - 1);
+                  });
+                },
+                children: pages,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

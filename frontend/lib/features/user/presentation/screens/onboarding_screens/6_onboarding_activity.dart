@@ -20,8 +20,10 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialActivityLevel != null) {
-      _selectedActivityLevel = widget.initialActivityLevel;
+    
+    final initial = widget.initialActivityLevel;
+    if (initial != null) {
+      _selectedActivityLevel = initial.toLowerCase();
       _isFirstSelected = _selectedActivityLevel == 'sedentary';
       _isSecondSelected = _selectedActivityLevel == 'moderately_active';
       _isThirdSelected = _selectedActivityLevel == 'very_active';

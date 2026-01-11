@@ -37,6 +37,9 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
     // Pre-fill amount if in Edit mode
     if (widget.mode == ProductPageMode.edit && widget.mealProductToEdit != null) {
       _amount = widget.mealProductToEdit!.amount;
+    } else {
+      _amount = widget.product.averagePortion ?? 100.0;
+      if (_amount <= 0) _amount = 100.0;
     }
     _amountController = TextEditingController(text: _amount.toStringAsFixed(0));
   }
@@ -81,9 +84,17 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          widget.mode == ProductPageMode.edit ? 'Edit Entry' : widget.product.name,
+          widget.mode == ProductPageMode.edit ? "Edit Product" : "Add Product",
           style: const TextStyle(color: Colors.black, fontSize: 17, fontWeight: FontWeight.w600),
         ),
+        actions: [
+          if (widget.mode == ProductPageMode.edit)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              onPressed: _showDeleteConfirmation,
+              tooltip: 'Delete Entry',
+            ),
+        ],
       ),
       body: Column(
         children: [
@@ -93,11 +104,11 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ===== MANUFACTURER =====
-                  if (widget.product.manufacturer != null) ...[
+                  // ===== Name =====
+                  if (widget.product.name != null) ...[
                     Text(
-                      widget.product.manufacturer!,
-                      style: TextStyle(fontSize: 15, color: Colors.grey[600], fontWeight: FontWeight.w400),
+                      widget.product.name!,
+                      style: TextStyle(fontSize: 20, color: Colors.black, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 24),
                   ],
@@ -177,78 +188,113 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                     const SizedBox(height: 12),
 
                     // Amount input
-                    Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey[300]!, width: 1),
-                      ),
-                      child: Row(
-                        children: [
-                          // Decrease button
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline, color: Colors.black),
-                            onPressed: () {
-                              setState(() {
-                                _amount = (_amount - 10).clamp(10, 10000);
-                                _amountController.text = _amount.toStringAsFixed(0);
-                              });
-                            },
-                          ),
+                    Center(
+                      child: Container(
+                        width: 300, // Fixed total width of the pill
+                        height: 60,
+                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(30),
+                          border: Border.all(color: Colors.grey[300]!, width: 1),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.03),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Decrease button
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.grey[200]!),
+                              ),
+                              child: IconButton(
+                                icon: const Icon(Icons.remove, size: 20, color: Colors.black),
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  setState(() {
+                                    _amount = (_amount - 10).clamp(10, 10000);
+                                    _amountController.text = _amount.toStringAsFixed(0);
+                                  });
+                                },
+                              ),
+                            ),
 
-                          // Amount text field
-                          Expanded(
-                            child: TextField(
-                              controller: _amountController,
-                              keyboardType: TextInputType.number,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
+                            // Amount text field area
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                textBaseline: TextBaseline.alphabetic,
+                                children: [
+                                  // CHANGED: SizedBox with fixed width instead of IntrinsicWidth
+                                  SizedBox(
+                                    width: 90, // Fixed width prevents expansion
+                                    child: TextField(
+                                      controller: _amountController,
+                                      keyboardType: TextInputType.number,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                      decoration: const InputDecoration(
+                                        border: InputBorder.none,
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                      onChanged: (value) {
+                                        setState(() {
+                                          final parsed = double.tryParse(value) ?? 100.0;
+                                          _amount = parsed.clamp(1, 10000);
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _selectedUnit,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[500],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            // Increase button
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: const BoxDecoration(
                                 color: Colors.black,
-                                letterSpacing: -1,
+                                shape: BoxShape.circle,
                               ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.digitsOnly,
-                                LengthLimitingTextInputFormatter(4), // max 9999
-                              ],
-                              decoration: const InputDecoration(
-                                border: InputBorder.none,
-                                hintText: '100',
-                                hintStyle: TextStyle(color: Colors.grey),
-                              ),
-                              onChanged: (value) {
-                                setState(() {
-                                  final parsed = double.tryParse(value) ?? 100.0;
-                                  _amount = parsed.clamp(1, 10000);
-                                });
-                              },
-                            ),
-                          ),
-
-                          // Unit
-                          Padding(
-                            padding: const EdgeInsets.only(right: 16),
-                            child: Text(
-                              _selectedUnit,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[600],
+                              child: IconButton(
+                                icon: const Icon(Icons.add, size: 20, color: Colors.white),
+                                padding: EdgeInsets.zero,
+                                onPressed: () {
+                                  setState(() {
+                                    _amount = (_amount + 10).clamp(10, 10000);
+                                    _amountController.text = _amount.toStringAsFixed(0);
+                                  });
+                                },
                               ),
                             ),
-                          ),
-
-                          // Increase button
-                          IconButton(
-                            icon: const Icon(Icons.add_circle_outline, color: Colors.black),
-                            onPressed: () {
-                              setState(() {
-                                _amount = (_amount + 10).clamp(10, 10000);
-                                _amountController.text = _amount.toStringAsFixed(0);
-                              });
-                            },
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -292,7 +338,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                             ),
                           )
                         : Text(
-                            widget.mode == ProductPageMode.edit ? 'Save Changes' : 'Add to Meal',
+                            widget.mode == ProductPageMode.edit ? 'Save Changes' : 'Add to log',
                             style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                           ),
                   ),
@@ -335,6 +381,56 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         ),
       ],
     );
+  }
+
+  Future<void> _showDeleteConfirmation() async {
+    final bool? shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Entry'),
+          content: const Text('Are you sure you want to remove this product from your log?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete == true) {
+      await _deleteEntry();
+    }
+  }
+
+  Future<void> _deleteEntry() async {
+    setState(() => _isLoading = true);
+
+    try {
+      final mealService = Provider.of<MealService>(context, listen: false);
+      
+      if (widget.mealProductToEdit != null) {
+        await mealService.deleteMealProduct(widget.mealProductToEdit!);
+      }
+
+      if (!mounted) return;
+
+      // Pop the screen. The MealLogScreen will detect the return and refresh the list.
+      Navigator.pop(context, {'deleted': true}); 
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting entry: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Future<void> _handleConfirm() async {

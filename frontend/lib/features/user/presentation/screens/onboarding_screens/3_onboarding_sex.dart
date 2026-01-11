@@ -19,11 +19,15 @@ class _OnboardingSexState extends State<OnboardingSex> {
   @override
   void initState() {
     super.initState();
-    _selectedSex = widget.initialSex;
-    if (_selectedSex == 'male') {
-      _isMaleSelected = true;
-    } else if (_selectedSex == 'female') {
-      _isFemaleSelected = true;
+    
+    final initial = widget.initialSex;
+    if (initial != null) {
+      _selectedSex = initial.toLowerCase();
+      if (_selectedSex == 'male') {
+        _isMaleSelected = true;
+      } else if (_selectedSex == 'female') {
+        _isFemaleSelected = true;
+      }
     }
   }
 

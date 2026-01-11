@@ -12,12 +12,8 @@ def initialize_firebase():
     """Init Firebase Admin SDK"""
     if not firebase_admin._apps:
         if not os.path.exists(FIREBASE_KEY_PATH):
-            logger.error(
-                f"Firebase admin SDK json file not found at {FIREBASE_KEY_PATH}"
-            )
-            raise FileNotFoundError(
-                f"Firebase admin SDK json file not found at {FIREBASE_KEY_PATH}"
-            )
+            logger.error(f"Firebase admin SDK json file not found at {FIREBASE_KEY_PATH}")
+            raise FileNotFoundError(f"Firebase admin SDK json file not found at {FIREBASE_KEY_PATH}")
         try:
             credential = credentials.Certificate(FIREBASE_KEY_PATH)
             firebase_admin.initialize_app(credential)

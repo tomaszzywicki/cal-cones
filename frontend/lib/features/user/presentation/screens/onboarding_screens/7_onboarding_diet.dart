@@ -18,7 +18,7 @@ class OnboardingDiet extends StatefulWidget {
 }
 
 class _OnboardingDietState extends State<OnboardingDiet> {
-  String? _selectedActivityLevel;
+  String? _selectedDietType;
   Map<String, int>? _macroSplit;
   bool _isFirstSelected = false;
   bool _isSecondSelected = false;
@@ -27,12 +27,15 @@ class _OnboardingDietState extends State<OnboardingDiet> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialDietType != null) {
-      _selectedActivityLevel = widget.initialDietType;
+    
+    final initial = widget.initialDietType;
+    if (initial != null) {
+      _selectedDietType = initial.toLowerCase();
       _macroSplit = widget.initialMacroSplit;
-      _isFirstSelected = _selectedActivityLevel == 'balanced';
-      _isSecondSelected = _selectedActivityLevel == 'low_carb';
-      _isThirdSelected = _selectedActivityLevel == 'low_fat';
+      
+      _isFirstSelected = _selectedDietType == 'balanced';
+      _isSecondSelected = _selectedDietType == 'low_carb';
+      _isThirdSelected = _selectedDietType == 'low_fat';
     }
   }
 
@@ -54,7 +57,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
                 _isFirstSelected = true;
                 _isSecondSelected = false;
                 _isThirdSelected = false;
-                _selectedActivityLevel = 'balanced';
+                _selectedDietType = 'balanced';
                 _macroSplit = {"Carbs": 40, "Protein": 30, "Fat": 30};
               });
             }, _isFirstSelected ? Colors.grey[400] : Colors.white),
@@ -64,7 +67,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
                 _isFirstSelected = false;
                 _isSecondSelected = true;
                 _isThirdSelected = false;
-                _selectedActivityLevel = 'low_carb';
+                _selectedDietType = 'low_carb';
                 _macroSplit = {"Carbs": 10, "Protein": 30, "Fat": 60};
               });
             }, _isSecondSelected ? Colors.grey[400] : Colors.white),
@@ -74,7 +77,7 @@ class _OnboardingDietState extends State<OnboardingDiet> {
                 _isFirstSelected = false;
                 _isSecondSelected = false;
                 _isThirdSelected = true;
-                _selectedActivityLevel = 'low_fat';
+                _selectedDietType = 'low_fat';
                 _macroSplit = {"Carbs": 60, "Protein": 30, "Fat": 10};
               });
             }, _isThirdSelected ? Colors.grey[400] : Colors.white),
@@ -84,10 +87,10 @@ class _OnboardingDietState extends State<OnboardingDiet> {
             Spacer(),
             OnboardingButton(
               text: 'Next',
-              onPressed: _selectedActivityLevel == null || _macroSplit == null
+              onPressed: _selectedDietType == null || _macroSplit == null
                   ? () {}
                   : () {
-                      widget.setDietAndMacro(_selectedActivityLevel!.toUpperCase(), _macroSplit!);
+                      widget.setDietAndMacro(_selectedDietType!.toUpperCase(), _macroSplit!);
                     },
             ),
           ],

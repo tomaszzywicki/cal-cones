@@ -30,4 +30,23 @@ class FirebaseAuthService {
     }
     return currentUser.getIdToken();
   }
+
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null || user.email == null) {
+      throw Exception('No authenticated user found');
+    }
+
+    // Re-authenticate the user
+    final credential = EmailAuthProvider.credential(email: user.email!, password: currentPassword);
+
+    await user.reauthenticateWithCredential(credential);
+
+    // Update the password
+    await user.updatePassword(newPassword);
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    await _firebaseAuth.sendPasswordResetEmail(email: email);
+  }
 }

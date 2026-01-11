@@ -121,6 +121,28 @@ class AuthService {
     }
   }
 
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    try {
+      await _firebaseAuthService.changePassword(currentPassword, newPassword);
+      AppLogger.info('[$_tag] Password changed successfully');
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
+    } catch (e) {
+      throw AuthException('Failed to change password: $e');
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _firebaseAuthService.sendPasswordResetEmail(email);
+      AppLogger.info('[$_tag] Password reset email sent to: $email');
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
+    } catch (e) {
+      throw AuthException('Failed to send reset email: $e');
+    }
+  }
+
   AuthException _handleFirebaseAuthException(FirebaseAuthException e) {
     switch (e.code) {
       case 'user-not-found':

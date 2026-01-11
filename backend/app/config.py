@@ -15,4 +15,4 @@ FIREBASE_KEY_PATH = Path("/app/app/cal-cones-firebase-adminsdk-fbsvc-c2ea5e8376.
 
 # Model
 CONF_THRESHOLD = 0.3
-DET_IMGSZ = 1800
+DET_IMGSZ = 1824

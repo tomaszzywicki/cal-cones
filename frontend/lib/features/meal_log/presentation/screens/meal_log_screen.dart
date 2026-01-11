@@ -147,28 +147,43 @@ class _MealLogScreenState extends State<MealLogScreen> {
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : _mealProducts.isEmpty
-                  ? const Center(
-                      child: Text('No products for this day', style: TextStyle(color: Colors.grey)),
-                    )
                   : RefreshIndicator(
                       onRefresh: _loadMealProducts,
-                      child: ListView.builder(
-                        itemCount: _mealProducts.length,
-                        // Product Cards
-                        itemBuilder: (context, index) => ProductCard(
-                          mealProduct: _mealProducts[index],
-                          onTap: () async {
-                            _handleEditProduct(_mealProducts[index]);
-                          },
-                          onLongPress: () async {
-                            _showDeleteDialog(_mealProducts[index]);
-                          },
-                          onEditAmount: () {
-                            _showEditDialog(_mealProducts[index]);
-                          },
-                        ),
-                      ),
+                      child: _mealProducts.isEmpty
+                          ? LayoutBuilder(
+                              builder: (context, constraints) {
+                                return SingleChildScrollView(
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                        minHeight: constraints.maxHeight),
+                                    child: const Center(
+                                      child: Text(
+                                        'No products for this day',
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            )
+                          : ListView.builder(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              itemCount: _mealProducts.length,
+                              // Product Cards
+                              itemBuilder: (context, index) => ProductCard(
+                                mealProduct: _mealProducts[index],
+                                onTap: () async {
+                                  _handleEditProduct(_mealProducts[index]);
+                                },
+                                onLongPress: () async {
+                                  _showDeleteConfirmation(_mealProducts[index]);
+                                },
+                                onEditAmount: () {
+                                  _showEditDialog(_mealProducts[index]);
+                                },
+                              ),
+                            ),
                     ),
             ),
           ],
@@ -180,7 +195,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
         onPressed: () async {
           await _handleAddProduct();
         },
-        label: const Text('Add Product for today', style: TextStyle(fontSize: 13)),
+        label: const Text('Add Product for this day', style: TextStyle(fontSize: 13)),
         icon: const Icon(Icons.add, size: 20),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -238,9 +253,33 @@ class _MealLogScreenState extends State<MealLogScreen> {
   }
 
   Future<void> _handleDeleteProduct(MealProductModel mealProduct) async {
-    final mealService = Provider.of<MealService>(context, listen: false);
-    await mealService.deleteMealProduct(mealProduct);
-    await _loadMealProducts();
+    // 1. Create a backup of the item and its index
+    final int backupIndex = _mealProducts.indexOf(mealProduct);
+    final MealProductModel backupItem = mealProduct;
+
+    // 2. Immediately remove from UI
+    setState(() {
+      _mealProducts.remove(mealProduct);
+      _calculateTotals(); // Refresh calorie/macro bars immediately
+    });
+
+    try {
+      // 3. Send delete request in the background (server/database)
+      final mealService = Provider.of<MealService>(context, listen: false);
+      await mealService.deleteMealProduct(mealProduct);
+      
+    } catch (e) {
+      // 4. If an error occurs, we restore the item to the list (Rollback)
+      if (mounted) {
+        setState(() {
+          _mealProducts.insert(backupIndex, backupItem);
+          _calculateTotals();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to delete: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Future<void> _handleEditAmount(MealProductModel mealProduct, double amount) async {
@@ -260,34 +299,32 @@ class _MealLogScreenState extends State<MealLogScreen> {
     }
   }
 
-  Future<void> _showDeleteDialog(MealProductModel mealProduct) async {
-    return showDialog(
+  Future<void> _showDeleteConfirmation(MealProductModel mealProduct) async {
+    // 1. Show the dialog and wait for a Yes/No result
+    final bool? shouldDelete = await showDialog<bool>(
       context: context,
-      barrierDismissible: true,
       builder: (context) {
         return AlertDialog(
-          title: Text('Delete Product'),
-          content: const SingleChildScrollView(
-            child: ListBody(children: [Text('Do you want to delete this product from log?')]),
-          ),
+          title: const Text('Delete Entry'), 
+          content: const Text('Are you sure you want to remove this product from your log?'),
           actions: [
             TextButton(
+              onPressed: () => Navigator.pop(context, false), 
               child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
             ),
             TextButton(
+              onPressed: () => Navigator.pop(context, true), 
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
-              onPressed: () async {
-                _handleDeleteProduct(mealProduct);
-                Navigator.of(context).pop();
-              },
             ),
           ],
         );
       },
     );
+
+    // 2. Perform the delete only if the user confirmed
+    if (shouldDelete == true) {
+      await _handleDeleteProduct(mealProduct);
+    }
   }
 
   Future<void> _showEditDialog(MealProductModel mealProduct) async {
