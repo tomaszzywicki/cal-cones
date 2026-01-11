@@ -45,8 +45,8 @@ class CurrentWeightCard extends StatelessWidget {
                   },
                   style: ElevatedButton.styleFrom(
                     padding: EdgeInsets.zero,
-                    textStyle: const TextStyle(fontSize: 60, fontWeight: FontWeight.w900),
-                    fixedSize: const Size(80, 80),
+                    textStyle: const TextStyle(fontSize: 50, fontWeight: FontWeight.w900),
+                    fixedSize: const Size(60, 60),
                     backgroundColor: const Color(0xff44638b),
                   ),
                   child: Text("+"),

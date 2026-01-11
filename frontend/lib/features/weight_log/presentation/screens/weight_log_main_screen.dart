@@ -20,7 +20,7 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
 
   // Konfiguracja wysokości
   final double _expandedHeight = 450.0; // Waga + Wykres
-  final double _collapsedHeight = 180.0; // Tylko ściśnięta Waga
+  final double _collapsedHeight = 170.0; // Tylko ściśnięta Waga
 
   @override
   void initState() {
@@ -53,39 +53,43 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
     if (!_scrollController.hasClients) return;
 
     final currentOffset = _scrollController.offset;
-    // Punkt, w którym nagłówek jest całkowicie zwinięty
 
+    // Punkt, w którym nagłówek jest całkowicie zwinięty
     final double appBarHeight = kToolbarHeight;
-    final snapThreshold = (_expandedHeight - _collapsedHeight) + appBarHeight;
+    final double snapTarget = (_expandedHeight - _collapsedHeight) + appBarHeight;
+    final double snapThreshold = 50.0;
 
     // Działamy tylko wtedy, gdy jesteśmy w strefie nagłówka (pomiędzy 0 a zwinięciem)
-    if (currentOffset > 0 && currentOffset < snapThreshold) {
+    if (currentOffset > 0 && currentOffset < snapTarget) {
       double? targetOffset;
 
       // Czułość gestu (jak szybki musi być ruch, by uznać go za "rzut")
       const double velocityThreshold = 1.0;
-
+      const double velocityThreshold2 = 20.0;
+      if (_lastScrollDelta > velocityThreshold2) {
+        // Bardzo szybki ruch w DÓŁ (zwijanie) -> Zwiń do końca
+        return;
+      }
       if (_lastScrollDelta > velocityThreshold) {
         // 1. Szybki ruch w DÓŁ (zwijanie) -> Zwiń do końca
-        targetOffset = snapThreshold;
+        targetOffset = snapTarget;
       } else if (_lastScrollDelta < -velocityThreshold) {
         // 2. Szybki ruch w GÓRĘ (rozwijanie) -> Rozwiń do zera
         targetOffset = 0.0;
       } else {
-        // 3. Ruch powolny/zatrzymany -> Decyduje pozycja (bliżej której krawędzi?)
-        if (currentOffset > snapThreshold / 2) {
-          targetOffset = snapThreshold; // Bliżej zwinięcia
+        // 3. Ruch powolny/zatrzymany -> Decyduje pozycja
+        if (currentOffset > snapThreshold) {
+          targetOffset = snapTarget;
         } else {
-          targetOffset = 0.0; // Bliżej rozwinięcia
+          targetOffset = 0.0;
         }
       }
 
-      // Wykonaj animację (to przerywa naturalne momentum scrolla)
       if (targetOffset != null) {
         _scrollController.animateTo(
           targetOffset,
-          duration: const Duration(milliseconds: 400),
-          curve: Curves.easeOutCubic, // Płynne hamowanie
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
         );
       }
     }
