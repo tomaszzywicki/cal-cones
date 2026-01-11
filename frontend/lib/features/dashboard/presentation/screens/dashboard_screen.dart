@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/dashboard/presentation/screens/b_m_icard.dart';
+import 'package:frontend/features/dashboard/presentation/screens/bmi_card.dart';
+import 'package:frontend/features/dashboard/presentation/screens/bmi_screen.dart';
 import 'package:frontend/features/dashboard/presentation/screens/current_goal_card.dart';
 import 'package:frontend/features/dashboard/presentation/screens/macro_intake_chart.dart';
 import 'package:frontend/features/dashboard/presentation/screens/weigh_in_calendar_card.dart';
@@ -36,7 +37,12 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ],
             ),
-            AspectRatio(aspectRatio: 4.5, child: BMIcard()),
+            GestureDetector(
+              onTap: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => BmiScreen()));
+              },
+              child: BMIcard(isExpanded: false),
+            ),
             AspectRatio(aspectRatio: 16 / 14, child: WeightHistoryChart()),
             AspectRatio(aspectRatio: 16 / 11, child: MacroIntakeChart()),
           ],
