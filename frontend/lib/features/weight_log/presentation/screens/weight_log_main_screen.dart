@@ -15,6 +15,9 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
   late ScrollController _scrollController;
   bool _showAddButton = true;
 
+  // Zmienna do śledzenia ostatniego ruchu (kierunku i prędkości)
+  double _lastScrollDelta = 0.0;
+
   // Konfiguracja wysokości
   final double _expandedHeight = 450.0; // Waga + Wykres
   final double _collapsedHeight = 180.0; // Tylko ściśnięta Waga
@@ -34,7 +37,9 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
   }
 
   void _scrollListener() {
-    // Logika zmiany przycisku
+    // Logika zmiany przycisku (zależna od pozycji scrolla)
+    if (!_scrollController.hasClients) return;
+
     final threshold = _expandedHeight - _collapsedHeight;
     if (_scrollController.offset > threshold && _showAddButton) {
       setState(() => _showAddButton = false);
@@ -43,37 +48,53 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
     }
   }
 
-  // Funkcja "Magnetycznego" dociągania
-  void _handleScrollEnd(ScrollNotification notification) {
-    if (notification is UserScrollNotification && notification.direction == ScrollDirection.idle) {
-      final currentOffset = _scrollController.offset;
+  // LOGIKA MAGNETYCZNA (Wywoływana przy puszczeniu palca)
+  void _onPointerUp(PointerUpEvent event) {
+    if (!_scrollController.hasClients) return;
 
-      final double appBarOffset = kToolbarHeight;
-      final snapPoint = (_expandedHeight - _collapsedHeight) + appBarOffset;
-      final snapThreshold = 20.0; // Próg czułości
+    final currentOffset = _scrollController.offset;
+    // Punkt, w którym nagłówek jest całkowicie zwinięty
 
-      // Jeśli jesteśmy w "strefie pomiędzy" (nagłówek częściowo zwinięty)
-      if (currentOffset > 0 && currentOffset < snapPoint) {
-        final double targetOffset;
-        if (currentOffset > snapThreshold) {
-          // Bliżej do zwinięcia -> zwiń
-          targetOffset = snapPoint;
+    final double appBarHeight = kToolbarHeight;
+    final snapThreshold = (_expandedHeight - _collapsedHeight) + appBarHeight;
+
+    // Działamy tylko wtedy, gdy jesteśmy w strefie nagłówka (pomiędzy 0 a zwinięciem)
+    if (currentOffset > 0 && currentOffset < snapThreshold) {
+      double? targetOffset;
+
+      // Czułość gestu (jak szybki musi być ruch, by uznać go za "rzut")
+      const double velocityThreshold = 1.0;
+
+      if (_lastScrollDelta > velocityThreshold) {
+        // 1. Szybki ruch w DÓŁ (zwijanie) -> Zwiń do końca
+        targetOffset = snapThreshold;
+      } else if (_lastScrollDelta < -velocityThreshold) {
+        // 2. Szybki ruch w GÓRĘ (rozwijanie) -> Rozwiń do zera
+        targetOffset = 0.0;
+      } else {
+        // 3. Ruch powolny/zatrzymany -> Decyduje pozycja (bliżej której krawędzi?)
+        if (currentOffset > snapThreshold / 2) {
+          targetOffset = snapThreshold; // Bliżej zwinięcia
         } else {
-          // Bliżej do góry -> rozwiń
-          targetOffset = 0.0;
+          targetOffset = 0.0; // Bliżej rozwinięcia
         }
+      }
 
+      // Wykonaj animację (to przerywa naturalne momentum scrolla)
+      if (targetOffset != null) {
         _scrollController.animateTo(
           targetOffset,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
+          duration: const Duration(milliseconds: 400),
+          curve: Curves.easeOutCubic, // Płynne hamowanie
         );
       }
     }
   }
 
   void _scrollToTop() {
-    _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(0, duration: const Duration(milliseconds: 600), curve: Curves.easeOut);
+    }
   }
 
   Future<void> _showAddWeightModal() async {
@@ -89,38 +110,49 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      // NotificationListener pozwala nam wykryć moment puszczenia palca (do efektu magnetycznego)
       body: SafeArea(
-        child: NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            _handleScrollEnd(notification);
-            return false;
-          },
-          child: CustomScrollView(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverAppBar(
-                backgroundColor: Colors.grey[50],
-                title: const Text(
-                  "Weight Log",
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+        // LISTENER: Wykrywa surowe zdarzenia dotyku (w tym podniesienie palca)
+        child: Listener(
+          onPointerUp: _onPointerUp,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: (notification) {
+              // Śledzimy kierunek ruchu (delta > 0 to ruch w dół listy/zwijanie)
+              if (notification is ScrollUpdateNotification) {
+                _lastScrollDelta = notification.scrollDelta ?? 0.0;
+              }
+              return false;
+            },
+            child: CustomScrollView(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                SliverAppBar(
+                  backgroundColor: Colors.grey[50],
+                  title: const Text(
+                    "Weight Log",
+                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                  ),
                 ),
-              ),
-              // 1. NAGŁÓWEK (Waga + Wykres)
-              SliverPersistentHeader(
-                pinned: true, // To sprawia, że waga zostaje na górze ("przykleja się")
-                delegate: WeightLogHeaderDelegate(
-                  expandedHeight: _expandedHeight,
-                  collapsedHeight: _collapsedHeight,
+                // 1. NAGŁÓWEK (Waga + Wykres)
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: WeightLogHeaderDelegate(
+                    expandedHeight: _expandedHeight,
+                    collapsedHeight: _collapsedHeight,
+                  ),
                 ),
-              ),
 
-              // 2. LISTA WPISÓW
-              SliverToBoxAdapter(
-                child: Padding(padding: const EdgeInsets.only(bottom: 500.0), child: const WeightEntryList()),
-              ),
-            ],
+                // 2. LISTA WPISÓW
+                SliverToBoxAdapter(
+                  // Zachowałem Twoje 500 paddingu, jeśli potrzebujesz tego do testów,
+                  // ale docelowo pewnie wystarczy ok. 100 na FABa.
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 500.0),
+                    child: const WeightEntryList(),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

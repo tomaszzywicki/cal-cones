@@ -191,11 +191,7 @@ class _BmiScreenState extends State<BmiScreen> {
                   turns: _isAtBottom ? 0.5 : 0.0,
                   duration: const Duration(milliseconds: 300),
                   curve: Curves.easeInOutBack,
-                  child: Icon(
-                    Icons.keyboard_arrow_down,
-                    color: Colors.grey[700],
-                    size: 30,
-                  ),
+                  child: Icon(Icons.keyboard_arrow_down, color: Colors.grey[700], size: 30),
                 ),
               ),
             ),
@@ -222,7 +218,7 @@ class _BmiScreenState extends State<BmiScreen> {
           _buildLegendRow(context, "Underweight", "less than 18.5", Colors.blue),
           _buildLegendRow(context, "Normal weight", "18.5 – 25", Colors.green),
           _buildLegendRow(context, "Overweight", "25 – 30", Colors.orange),
-          _buildLegendRow(context, "Obesity", "30 or more", Colors.red),
+          _buildLegendRow(context, "Obese", "30 or more", Colors.red),
 
           const SizedBox(height: 40),
           const Divider(),
