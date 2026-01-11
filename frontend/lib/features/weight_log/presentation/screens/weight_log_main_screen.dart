@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/core/logger/app_logger.dart';
-import 'package:frontend/features/dashboard/presentation/screens/weight_history_chart.dart';
+import 'package:flutter/rendering.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/weight_entry_list.dart';
-import 'package:frontend/features/weight_log/presentation/widgets/current_weight_card.dart';
+import 'package:frontend/features/weight_log/presentation/screens/weight_log_header_delegate.dart';
 
 class WeightLogMainScreen extends StatefulWidget {
   const WeightLogMainScreen({super.key});
@@ -13,15 +12,17 @@ class WeightLogMainScreen extends StatefulWidget {
 }
 
 class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
-  // Kontroler do śledzenia pozycji przewinięcia
-  final ScrollController _scrollController = ScrollController();
-
-  // Flaga określająca, który przycisk pokazać (true = Dodaj, false = W górę)
+  late ScrollController _scrollController;
   bool _showAddButton = true;
+
+  // Konfiguracja wysokości
+  final double _expandedHeight = 450.0; // Waga + Wykres
+  final double _collapsedHeight = 180.0; // Tylko ściśnięta Waga
 
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
   }
 
@@ -33,16 +34,46 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
   }
 
   void _scrollListener() {
-    // Jeśli przewinęliśmy więcej niż 150 pikseli (mniej więcej wysokość wykresu), zmień przycisk
-    if (_scrollController.offset > 150 && _showAddButton) {
+    // Logika zmiany przycisku
+    final threshold = _expandedHeight - _collapsedHeight;
+    if (_scrollController.offset > threshold && _showAddButton) {
       setState(() => _showAddButton = false);
-    } else if (_scrollController.offset <= 150 && !_showAddButton) {
+    } else if (_scrollController.offset <= threshold && !_showAddButton) {
       setState(() => _showAddButton = true);
     }
   }
 
+  // Funkcja "Magnetycznego" dociągania
+  void _handleScrollEnd(ScrollNotification notification) {
+    if (notification is UserScrollNotification && notification.direction == ScrollDirection.idle) {
+      final currentOffset = _scrollController.offset;
+
+      final double appBarOffset = kToolbarHeight;
+      final snapPoint = (_expandedHeight - _collapsedHeight) + appBarOffset;
+      final snapThreshold = 20.0; // Próg czułości
+
+      // Jeśli jesteśmy w "strefie pomiędzy" (nagłówek częściowo zwinięty)
+      if (currentOffset > 0 && currentOffset < snapPoint) {
+        final double targetOffset;
+        if (currentOffset > snapThreshold) {
+          // Bliżej do zwinięcia -> zwiń
+          targetOffset = snapPoint;
+        } else {
+          // Bliżej do góry -> rozwiń
+          targetOffset = 0.0;
+        }
+
+        _scrollController.animateTo(
+          targetOffset,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    }
+  }
+
   void _scrollToTop() {
-    _scrollController.animateTo(0, duration: const Duration(milliseconds: 500), curve: Curves.easeInOut);
+    _scrollController.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
   }
 
   Future<void> _showAddWeightModal() async {
@@ -57,70 +88,49 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50], // Tło zgodne z resztą aplikacji
+      backgroundColor: Colors.grey[50],
+      // NotificationListener pozwala nam wykryć moment puszczenia palca (do efektu magnetycznego)
       body: SafeArea(
-        bottom: false,
-        child: CustomScrollView(
-          controller: _scrollController,
-          // Usunęliśmy reverse: true, aby układ był naturalny (góra -> dół)
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              title: const Text('Weight Log'),
-              centerTitle: true,
-              elevation: 0,
-              backgroundColor: Colors.grey[50],
-            ),
-            // 1. WYKRES (Na samej górze)
-            // Umieszczony w SliverToBoxAdapter, więc przy scrollowaniu "ucieknie" do góry.
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                child: AspectRatio(
-                  aspectRatio: 16 / 10, // Nieco niższy wykres, żeby szybciej znikał
-                  child: const WeightHistoryChart(),
+        child: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            _handleScrollEnd(notification);
+            return false;
+          },
+          child: CustomScrollView(
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              SliverAppBar(
+                backgroundColor: Colors.grey[50],
+                title: const Text(
+                  "Weight Log",
+                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
                 ),
               ),
-            ),
-
-            // 2. AKTUALNA WAGA (Przyklejona)
-            // Używamy SliverAppBar z pinned: true.
-            // Gdy wykres wyjedzie poza ekran, ten element przyklei się do góry.
-            SliverAppBar(
-              automaticallyImplyLeading: false,
-              backgroundColor: Colors.grey[50],
-              elevation: 0,
-              pinned: true, // Kluczowe dla efektu przyklejania
-              toolbarHeight: 200, // Wysokość karty wagi
-              flexibleSpace: FlexibleSpaceBar(
-                background: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-                  child: const CurrentWeightCard(),
+              // 1. NAGŁÓWEK (Waga + Wykres)
+              SliverPersistentHeader(
+                pinned: true, // To sprawia, że waga zostaje na górze ("przykleja się")
+                delegate: WeightLogHeaderDelegate(
+                  expandedHeight: _expandedHeight,
+                  collapsedHeight: _collapsedHeight,
                 ),
               ),
-            ),
 
-            // 3. LISTA WPISÓW (Na dole)
-            // SliverToBoxAdapter otaczający listę.
-            // Lista wewnątrz musi mieć physics: NeverScrollableScrollPhysics,
-            // bo scrollowaniem zarządza główny CustomScrollView.
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 80.0), // Padding na dole dla FABa
-                child: const WeightEntryList(),
+              // 2. LISTA WPISÓW
+              SliverToBoxAdapter(
+                child: Padding(padding: const EdgeInsets.only(bottom: 500.0), child: const WeightEntryList()),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
 
-      // Przycisk na dole
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showAddButton ? _showAddWeightModal : _scrollToTop,
         backgroundColor: Colors.black,
         icon: Icon(_showAddButton ? Icons.add : Icons.arrow_upward, color: Colors.white),
         label: Text(
-          _showAddButton ? "New Entry" : "Top",
+          _showAddButton ? "Add Weight" : "Top",
           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),

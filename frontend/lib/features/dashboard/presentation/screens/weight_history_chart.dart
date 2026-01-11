@@ -69,118 +69,120 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
 
     final spots = _getFilteredSpots(weightEntries);
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
-        child: Column(
-          children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: ChartPeriod.values.map((period) {
-                  final isSelected = _selectedPeriod == period;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                    child: ChoiceChip(
-                      label: Text(period.label),
-                      selected: isSelected,
-                      onSelected: (bool selected) {
-                        if (selected) {
-                          setState(() {
-                            _selectedPeriod = period;
-                          });
-                        }
-                      },
-                      selectedColor: Colors.indigo,
-                      labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 12,
-                      ),
-                      backgroundColor: Colors.grey[100],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(color: isSelected ? Colors.indigo : Colors.transparent),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: LineChart(
-                LineChartData(
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: spots,
-                      isCurved: true,
-                      preventCurveOverShooting: true,
-                      preventCurveOvershootingThreshold: 8,
-                      curveSmoothness: 0.6,
-                      barWidth: 3,
-                      color: Colors.indigo,
-                      // dotData: FlDotData(show: false),
-                    ),
-                  ],
+    return Container(height: 270, color: Colors.green);
 
-                  extraLinesData: ExtraLinesData(
-                    horizontalLines: [
-                      HorizontalLine(
-                        y: 75.8,
-                        color: Colors.red,
-                        strokeWidth: 2,
-                        dashArray: [5, 5],
-                        label: HorizontalLineLabel(
-                          show: true,
-                          alignment: Alignment.topRight,
-                          style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold),
-                          labelResolver: (line) => 'Starting Weight',
-                        ),
-                      ),
-                      HorizontalLine(
-                        y: 74,
-                        color: Colors.green,
-                        strokeWidth: 2,
-                        dashArray: [5, 5],
-                        label: HorizontalLineLabel(
-                          show: true,
-                          alignment: Alignment.bottomLeft,
-                          style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold),
-                          labelResolver: (line) => 'Target Weight',
-                        ),
-                      ),
-                    ],
-                  ),
+    // return Card(
+    //   child: Padding(
+    //     padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
+    //     child: Column(
+    //       children: [
+    //         SingleChildScrollView(
+    //           scrollDirection: Axis.horizontal,
+    //           child: Row(
+    //             mainAxisAlignment: MainAxisAlignment.center,
+    //             children: ChartPeriod.values.map((period) {
+    //               final isSelected = _selectedPeriod == period;
+    //               return Padding(
+    //                 padding: const EdgeInsets.symmetric(horizontal: 3.0),
+    //                 child: ChoiceChip(
+    //                   label: Text(period.label),
+    //                   selected: isSelected,
+    //                   onSelected: (bool selected) {
+    //                     if (selected) {
+    //                       setState(() {
+    //                         _selectedPeriod = period;
+    //                       });
+    //                     }
+    //                   },
+    //                   selectedColor: Colors.indigo,
+    //                   labelStyle: TextStyle(
+    //                     color: isSelected ? Colors.white : Colors.black,
+    //                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+    //                     fontSize: 12,
+    //                   ),
+    //                   backgroundColor: Colors.grey[100],
+    //                   shape: RoundedRectangleBorder(
+    //                     borderRadius: BorderRadius.circular(20),
+    //                     side: BorderSide(color: isSelected ? Colors.indigo : Colors.transparent),
+    //                   ),
+    //                 ),
+    //               );
+    //             }).toList(),
+    //           ),
+    //         ),
+    //         const SizedBox(height: 20),
+    //         Expanded(
+    //           child: LineChart(
+    //             LineChartData(
+    //               lineBarsData: [
+    //                 LineChartBarData(
+    //                   spots: spots,
+    //                   isCurved: true,
+    //                   preventCurveOverShooting: true,
+    //                   preventCurveOvershootingThreshold: 8,
+    //                   curveSmoothness: 0.6,
+    //                   barWidth: 3,
+    //                   color: Colors.indigo,
+    //                   // dotData: FlDotData(show: false),
+    //                 ),
+    //               ],
 
-                  // : HorizontalLine(y: 75, color: Colors.red, strokeWidth: 2),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        interval: _getYInterval(spots),
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            '${value.toStringAsFixed(1)}',
-                            style: TextStyle(color: Colors.indigo, fontSize: 12, fontWeight: FontWeight.w600),
-                          );
-                        },
-                      ),
-                    ),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  gridData: FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    //               extraLinesData: ExtraLinesData(
+    //                 horizontalLines: [
+    //                   HorizontalLine(
+    //                     y: 75.8,
+    //                     color: Colors.red,
+    //                     strokeWidth: 2,
+    //                     dashArray: [5, 5],
+    //                     label: HorizontalLineLabel(
+    //                       show: true,
+    //                       alignment: Alignment.topRight,
+    //                       style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold),
+    //                       labelResolver: (line) => 'Starting Weight',
+    //                     ),
+    //                   ),
+    //                   HorizontalLine(
+    //                     y: 74,
+    //                     color: Colors.green,
+    //                     strokeWidth: 2,
+    //                     dashArray: [5, 5],
+    //                     label: HorizontalLineLabel(
+    //                       show: true,
+    //                       alignment: Alignment.bottomLeft,
+    //                       style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold),
+    //                       labelResolver: (line) => 'Target Weight',
+    //                     ),
+    //                   ),
+    //                 ],
+    //               ),
+
+    //               // : HorizontalLine(y: 75, color: Colors.red, strokeWidth: 2),
+    //               titlesData: FlTitlesData(
+    //                 leftTitles: AxisTitles(
+    //                   sideTitles: SideTitles(
+    //                     showTitles: true,
+    //                     reservedSize: 40,
+    //                     interval: _getYInterval(spots),
+    //                     getTitlesWidget: (value, meta) {
+    //                       return Text(
+    //                         '${value.toStringAsFixed(1)}',
+    //                         style: TextStyle(color: Colors.indigo, fontSize: 12, fontWeight: FontWeight.w600),
+    //                       );
+    //                     },
+    //                   ),
+    //                 ),
+    //                 topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    //                 rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    //                 bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+    //               ),
+    //               gridData: FlGridData(show: false),
+    //               borderData: FlBorderData(show: false),
+    //             ),
+    //           ),
+    //         ),
+    //       ],
+    //     ),
+    //   ),
+    // );
   }
 }

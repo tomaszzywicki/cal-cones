@@ -46,34 +46,36 @@ class WeightEntryList extends StatelessWidget {
   Widget build(BuildContext context) {
     final weightLogService = context.watch<WeightLogService>();
     final weightEntries = weightLogService.entries;
-    final isLoading = false;
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: weightEntries.length,
-            itemBuilder: (context, index) {
-              final entry = weightEntries[index];
-              return ListTile(
-                title: Text('${entry.weight} kg'),
-                subtitle: Text(
-                  '${entry.date.toLocal().toString().split(' ')[0]} ${entry.date.toLocal().toIso8601String().split('T')[1].split('.')[0]}',
-                ),
-                onLongPress: () {
-                  _deleteEntry(context, entry);
-                },
-                onTap: () async {
-                  await handleEditWeightEntry(context, entry);
-                },
-              );
-            },
-          ),
-        ],
+    return Container(
+      color: Colors.red,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: weightEntries.length,
+              itemBuilder: (context, index) {
+                final entry = weightEntries[index];
+                return ListTile(
+                  title: Text('${entry.weight} kg'),
+                  subtitle: Text(
+                    '${entry.date.toLocal().toString().split(' ')[0]} ${entry.date.toLocal().toIso8601String().split('T')[1].split('.')[0]}',
+                  ),
+                  onLongPress: () {
+                    _deleteEntry(context, entry);
+                  },
+                  onTap: () async {
+                    await handleEditWeightEntry(context, entry);
+                  },
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -21,42 +21,43 @@ class CurrentWeightCard extends StatelessWidget {
     final weightLogService = context.watch<WeightLogService>();
     final latestEntry = weightLogService.latestEntry;
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text("Your current weight", style: Theme.of(context).textTheme.headlineMedium),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "${latestEntry?.weight ?? 'N/A'} kg",
-                  style: Theme.of(context).textTheme.headlineLarge!.copyWith(
-                    fontSize: 60,
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xff44638b),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    await handleAddWeightEntry(context);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    textStyle: const TextStyle(fontSize: 60, fontWeight: FontWeight.w900),
-                    fixedSize: const Size(80, 80),
-                    backgroundColor: const Color(0xff44638b),
-                  ),
-                  child: Text("+"),
-                ),
-              ],
-            ),
-            TimeSinceLatestMeasurementText(latestEntry),
-          ],
-        ),
-      ),
-    );
+    return Container(height: 180, color: Colors.blue);
+    // return Card(
+    //   child: Padding(
+    //     padding: const EdgeInsets.all(16.0),
+    //     child: Column(
+    //       crossAxisAlignment: CrossAxisAlignment.start,
+    //       children: [
+    //         Text("Your current weight", style: Theme.of(context).textTheme.headlineMedium),
+    //         Row(
+    //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    //           children: [
+    //             Text(
+    //               "${latestEntry?.weight ?? 'N/A'} kg",
+    //               style: Theme.of(context).textTheme.headlineLarge!.copyWith(
+    //                 fontSize: 60,
+    //                 fontWeight: FontWeight.w900,
+    //                 color: const Color(0xff44638b),
+    //               ),
+    //             ),
+    //             ElevatedButton(
+    //               onPressed: () async {
+    //                 await handleAddWeightEntry(context);
+    //               },
+    //               style: ElevatedButton.styleFrom(
+    //                 padding: EdgeInsets.zero,
+    //                 textStyle: const TextStyle(fontSize: 60, fontWeight: FontWeight.w900),
+    //                 fixedSize: const Size(80, 80),
+    //                 backgroundColor: const Color(0xff44638b),
+    //               ),
+    //               child: Text("+"),
+    //             ),
+    //           ],
+    //         ),
+    //         TimeSinceLatestMeasurementText(latestEntry),
+    //       ],
+    //     ),
+    //   ),
+    // );
   }
 }
