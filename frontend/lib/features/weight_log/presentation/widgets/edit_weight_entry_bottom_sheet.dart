@@ -39,44 +39,20 @@ class _EditWeightEntryBottomSheetState extends State<EditWeightEntryBottomSheet>
       final double? weight = rawWeight != null ? (rawWeight * 10).roundToDouble() / 10 : null;
 
       if (weight != null) {
-        // Sprawdź czy użytkownik zmienił datę na taką, gdzie już jest inny wpis (i to nie ten sam)
         final normalizedDate = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
         final weightLogService = context.read<WeightLogService>();
 
-        // Logika aktualizacji
-        WeightEntryModel updatedEntry = widget.entry;
-
-        // Jeśli zmieniła się waga
-        if (weight != widget.entry.weight) {
-          updatedEntry.weight = weight;
-        }
-
-        // Jeśli zmieniła się data (tutaj uproszczone, normalnie service powinien to obsłużyć)
-        // W obecnym serwisie changeWeightForEntry aktualizuje tylko wagę.
-        // Jeśli zmieniamy datę, zazwyczaj lepiej usunąć stary i dodać nowy lub zaktualizować oba pola.
-        // Zakładamy tutaj, że UI pozwala edytować datę, więc musimy to obsłużyć.
-
-        // Szybki fix: Jeśli data się zmieniła, aktualizujemy obiekt.
-        // Uwaga: Twoja implementacja WeightEntryModel ma metody changeDate i changeWeight
-        // ale musimy to zapisać w bazie/serwisie.
-
         if (!DateUtils.isSameDay(widget.entry.date, _selectedDate)) {
-          // Jeśli data się zmieniła, sprawdźmy kolizję
           if (weightLogService.entryExistsWithDate(normalizedDate)) {
-            // Kolizja - wpis już jest. Możemy zapytać czy nadpisać.
-            // Tutaj: pokaż snackbar i nie rób nic
             ScaffoldMessenger.of(
               context,
-            ).showSnackBar(const SnackBar(content: Text('Wpis z tą datą już istnieje!')));
+            ).showSnackBar(const SnackBar(content: Text('An entry for this date already exists!')));
             return;
           }
-          // Aktualizacja w bazie (zakładamy, że delete + add lub update obsłuży to)
-          // Tutaj użyjemy delete + add jako bezpiecznej metody, chyba że service ma updateEntry
           await weightLogService.deleteWeightEntry(widget.entry);
           final newEntry = WeightEntryModel.create(weight: weight, date: _selectedDate);
           await weightLogService.addWeightEntry(newEntry);
         } else {
-          // Tylko waga się zmieniła
           await weightLogService.changeWeightForEntry(widget.entry, weight);
         }
 
@@ -86,17 +62,16 @@ class _EditWeightEntryBottomSheetState extends State<EditWeightEntryBottomSheet>
   }
 
   Future<void> _handleDelete() async {
-    // Potwierdzenie usunięcia
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("Usuń pomiar"),
-        content: const Text("Czy na pewno chcesz usunąć ten wpis?"),
+        title: const Text("Delete Entry"),
+        content: const Text("Are you sure you want to delete this entry?"),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Anuluj")),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text("Cancel")),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text("Usuń", style: TextStyle(color: Colors.red)),
+            child: const Text("Delete", style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -110,7 +85,7 @@ class _EditWeightEntryBottomSheetState extends State<EditWeightEntryBottomSheet>
 
   @override
   Widget build(BuildContext context) {
-    String formattedDate = DateFormat('d MMMM yyyy').format(_selectedDate);
+    String formattedDate = DateFormat('MMMM d, yyyy').format(_selectedDate);
 
     return Container(
       padding: const EdgeInsets.only(top: 12, left: 24, right: 24, bottom: 24),
@@ -124,7 +99,7 @@ class _EditWeightEntryBottomSheetState extends State<EditWeightEntryBottomSheet>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Uchwyt
+              // Drag Handle
               Container(
                 width: 40,
                 height: 4,
@@ -138,24 +113,22 @@ class _EditWeightEntryBottomSheetState extends State<EditWeightEntryBottomSheet>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  // Pusty widget dla symetrii lub przycisk anuluj
                   const SizedBox(width: 48),
                   Text(
-                    "Edytuj pomiar",
+                    "Edit Weight",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.grey.shade600),
                   ),
-                  // Przycisk kosza
                   IconButton(
                     onPressed: _handleDelete,
                     icon: const Icon(Icons.delete_outline, color: Colors.red),
-                    tooltip: "Usuń wpis",
+                    tooltip: "Delete entry",
                   ),
                 ],
               ),
 
               const SizedBox(height: 24),
 
-              // INPUT WAGI
+              // Huge Weight Input
               Form(
                 key: _formKey,
                 child: Row(
@@ -204,7 +177,7 @@ class _EditWeightEntryBottomSheetState extends State<EditWeightEntryBottomSheet>
 
               const SizedBox(height: 32),
 
-              // Wybór daty
+              // Date Selection
               Container(
                 decoration: BoxDecoration(
                   color: Colors.grey.shade50,
@@ -225,7 +198,7 @@ class _EditWeightEntryBottomSheetState extends State<EditWeightEntryBottomSheet>
                           ),
                           const Spacer(),
                           Text(
-                            "Zmień",
+                            "Change",
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -260,7 +233,7 @@ class _EditWeightEntryBottomSheetState extends State<EditWeightEntryBottomSheet>
 
               const SizedBox(height: 32),
 
-              // Przycisk Aktualizuj
+              // Update Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -273,7 +246,7 @@ class _EditWeightEntryBottomSheetState extends State<EditWeightEntryBottomSheet>
                     elevation: 0,
                   ),
                   child: const Text(
-                    "Zaktualizuj",
+                    "Update Entry",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
