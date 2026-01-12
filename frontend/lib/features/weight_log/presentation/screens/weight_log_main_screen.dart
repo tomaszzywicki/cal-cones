@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
+import 'package:frontend/features/weight_log/presentation/widgets/weight_entry_container.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/weight_entry_list.dart';
 import 'package:frontend/features/weight_log/presentation/screens/weight_log_header_delegate.dart';
 
@@ -65,7 +66,7 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
 
       // Czułość gestu (jak szybki musi być ruch, by uznać go za "rzut")
       const double velocityThreshold = 1.0;
-      const double velocityThreshold2 = 20.0;
+      const double velocityThreshold2 = 1000000.0;
       if (_lastScrollDelta > velocityThreshold2) {
         // Bardzo szybki ruch w DÓŁ (zwijanie) -> Zwiń do końca
         return;
@@ -139,22 +140,27 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
                 ),
                 // 1. NAGŁÓWEK (Waga + Wykres)
                 SliverPersistentHeader(
-                  pinned: true,
+                  pinned: false,
                   delegate: WeightLogHeaderDelegate(
                     expandedHeight: _expandedHeight,
                     collapsedHeight: _collapsedHeight,
                   ),
                 ),
 
+                SliverToBoxAdapter(child: const SizedBox(height: 16)),
+
                 // 2. LISTA WPISÓW
-                SliverToBoxAdapter(
-                  // Zachowałem Twoje 500 paddingu, jeśli potrzebujesz tego do testów,
-                  // ale docelowo pewnie wystarczy ok. 100 na FABa.
+                SliverFillRemaining(
+                  hasScrollBody: false,
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 500.0),
-                    child: const WeightEntryList(),
+                    padding: const EdgeInsets.only(bottom: 100),
+                    child: const WeightEntryContainer(),
                   ),
                 ),
+                // SliverPadding(
+                //   padding: const EdgeInsets.only(bottom: 100),
+                //   sliver: SliverToBoxAdapter(child: const WeightEntryContainer()),
+                // ),
               ],
             ),
           ),

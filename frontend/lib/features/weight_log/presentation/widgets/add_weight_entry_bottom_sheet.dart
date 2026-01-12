@@ -5,7 +5,8 @@ import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
 
 class AddWeightEntryBottomSheet extends StatefulWidget {
-  const AddWeightEntryBottomSheet({super.key});
+  final DateTime? initialDate;
+  const AddWeightEntryBottomSheet({super.key, this.initialDate});
 
   @override
   State<AddWeightEntryBottomSheet> createState() => _AddWeightEntryBottomSheetState();
@@ -19,7 +20,7 @@ class _AddWeightEntryBottomSheetState extends State<AddWeightEntryBottomSheet> {
   @override
   void initState() {
     super.initState();
-    _selectedDate = DateTime.now();
+    _selectedDate = widget.initialDate ?? DateTime.now();
   }
 
   @override
