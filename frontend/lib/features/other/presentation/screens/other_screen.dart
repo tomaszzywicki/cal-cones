@@ -40,6 +40,7 @@ class _OtherScreenState extends State<OtherScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text(
           'Profile',
           style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold),
@@ -116,9 +117,9 @@ class _OtherScreenState extends State<OtherScreen> {
                   title: 'Meal Recommender',
                   subtitle: 'AI-powered meal suggestions',
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const MealRecommenderScreen()),
-                    );
+                    Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute(builder: (_) => const MealRecommenderScreen()));
                   },
                 ),
               ],

@@ -13,6 +13,15 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: const Text(
+          'Dashboard',
+          style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold),
+        ),
+      ),
       backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(8.0),

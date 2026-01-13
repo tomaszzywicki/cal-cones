@@ -18,14 +18,14 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 2;
+  int _currentIndex = 0;
 
   // 2. Assign Key to HomeScreen
   final List<Widget> _screens = [
     HomeScreen(key: homeScreenKey),
     MealLogScreen(),
     DashboardScreen(),
-    OtherScreen()
+    OtherScreen(),
   ];
 
   @override
