@@ -21,16 +21,16 @@ class WeighInCalendarCard extends StatelessWidget {
     return Card(
       color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 26.0, vertical: 12.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text("Your Weigh-Ins", style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             GridView.count(
               crossAxisCount: 7,
-              crossAxisSpacing: 3.0, // Mniejsze odstępy
-              mainAxisSpacing: 3.0, // Mniejsze odstępy
+              crossAxisSpacing: 2.0, // Mniejsze odstępy
+              mainAxisSpacing: 2.0, // Mniejsze odstępy
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               childAspectRatio: 1.0,
