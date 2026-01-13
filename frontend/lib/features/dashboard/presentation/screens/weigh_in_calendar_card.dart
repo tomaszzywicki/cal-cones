@@ -19,6 +19,7 @@ class WeighInCalendarCard extends StatelessWidget {
     });
 
     return Card(
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
         child: Column(

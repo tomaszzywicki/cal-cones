@@ -70,6 +70,7 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
     final spots = _getFilteredSpots(weightEntries);
 
     return Card(
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
         child: Column(
@@ -92,7 +93,7 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                           });
                         }
                       },
-                      selectedColor: Colors.indigo,
+                      selectedColor: Colors.grey[600],
                       labelStyle: TextStyle(
                         color: isSelected ? Colors.white : Colors.black,
                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
@@ -120,7 +121,7 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                       preventCurveOvershootingThreshold: 8,
                       curveSmoothness: 0.6,
                       barWidth: 3,
-                      color: Colors.indigo,
+                      color: Colors.black,
                       // dotData: FlDotData(show: false),
                     ),
                   ],
@@ -164,7 +165,7 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                         getTitlesWidget: (value, meta) {
                           return Text(
                             '${value.toStringAsFixed(1)}',
-                            style: TextStyle(color: Colors.indigo, fontSize: 12, fontWeight: FontWeight.w600),
+                            style: TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.w600),
                           );
                         },
                       ),

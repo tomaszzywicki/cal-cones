@@ -6,6 +6,7 @@ class CurrentGoalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Colors.white,
       child: SizedBox(
         width: MediaQuery.of(context).size.width / 2 - 16,
         height: 100,

@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/app_widget.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding.dart';
-import 'package:frontend/main_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:provider/provider.dart';
 

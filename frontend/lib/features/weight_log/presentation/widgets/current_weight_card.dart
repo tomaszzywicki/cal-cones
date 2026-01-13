@@ -22,6 +22,7 @@ class CurrentWeightCard extends StatelessWidget {
     final latestEntry = weightLogService.latestEntry;
 
     return Card(
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -36,7 +37,7 @@ class CurrentWeightCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.headlineLarge!.copyWith(
                     fontSize: 60,
                     fontWeight: FontWeight.w900,
-                    color: const Color(0xff44638b),
+                    color: Colors.black,
                   ),
                 ),
                 ElevatedButton(
@@ -47,7 +48,7 @@ class CurrentWeightCard extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     textStyle: const TextStyle(fontSize: 50, fontWeight: FontWeight.w900),
                     fixedSize: const Size(60, 60),
-                    backgroundColor: const Color(0xff44638b),
+                    backgroundColor: Colors.black,
                   ),
                   child: Text("+"),
                 ),
