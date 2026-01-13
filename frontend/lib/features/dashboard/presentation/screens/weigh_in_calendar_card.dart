@@ -21,9 +21,9 @@ class WeighInCalendarCard extends StatelessWidget {
     return Card(
       color: Colors.white,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 26.0, vertical: 12.0),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Text("Your Weigh-Ins", style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: 8),
@@ -44,7 +44,7 @@ class WeighInCalendarCard extends StatelessWidget {
                 return _DayTile(isFilled: isFilled, isToday: isToday, isFuture: isFuture);
               }).toList(),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             // Dni tygodnia
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -100,13 +100,17 @@ class _DayTile extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(4.0), border: border),
       child: isToday
-          ? Center(
-              child: Container(
-                width: 6,
-                height: 6,
-                decoration: const BoxDecoration(
-                  color: Colors.blue, // Niebieska kropka dla dzisiaj
-                  shape: BoxShape.circle,
+          ? Transform.translate(
+              offset: const Offset(0, 8),
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Container(
+                  width: 6,
+                  height: 6,
+                  decoration: const BoxDecoration(
+                    color: Colors.blue, // Niebieska kropka dla dzisiaj
+                    shape: BoxShape.circle,
+                  ),
                 ),
               ),
             )
