@@ -65,6 +65,23 @@ class MealRepository {
     }
   }
 
+  Future<List<MealProductModel>> getLastAddedMealProducts(int limit, int userId) async {
+    try {
+      final db = await _databaseService.database;
+      List<Map<String, dynamic>> result = await db.query(
+        'meal_products',
+        where: 'user_id = ?',
+        whereArgs: [userId],
+        orderBy: 'created_at DESC',
+        limit: limit,
+      );
+      return result.map((mealProductMap) => MealProductModel.fromMap(mealProductMap)).toList();
+    } catch (e) {
+      AppLogger.error('MealRepository.getLastAddedMealProducts error: $e');
+      throw Exception('Failed to get last added meal products: $e');
+    }
+  }
+
   Future<void> markAsSynced(String uuid) async {
     try {
       final db = await _databaseService.database;
