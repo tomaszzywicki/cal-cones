@@ -29,6 +29,7 @@ class UserService {
       // 2. Update current user data locally after a backend success
       _updateUserData(currentUser, userOnboardingModel);
       await currentUserService.updateUser(currentUser);
+      // TODO: Create user's first weight goal
 
       AppLogger.info("Onboarding info saved and user data updated locally.");
     } catch (e) {
