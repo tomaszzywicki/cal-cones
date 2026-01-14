@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'dart:math';
+import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/goal/data/daily_target_model.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';
 import 'package:frontend/features/user/data/user_model.dart';
@@ -9,13 +10,6 @@ class DailyTargetCalculatorService {
     if (user.id == null) {
       throw Exception('User ID is null. Cannot calculate daily target.');
     }
-    if (goal.id == null) {
-      throw Exception('Goal ID is null. Cannot calculate daily target.');
-    }
-    if (user.dietType == null) {
-      throw Exception('User diet type is null. Cannot calculate daily target macro split.');
-    }
-
     if (user.height == null || user.ageYears == null || user.sex == null) {
       throw Exception('User data incomplete for BMR calculation. Cannot calculate daily target.');
     }
@@ -62,7 +56,7 @@ class DailyTargetCalculatorService {
       proteinG: macroTargets['proteinG']!,
       carbsG: macroTargets['carbsG']!,
       fatG: macroTargets['fatG']!,
-      dietType: user.dietType!,
+      dietType: user.dietType ?? 'balanced',
       lastModifiedAt: DateTime.now().toUtc(),
     );
   }

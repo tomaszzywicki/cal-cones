@@ -74,65 +74,70 @@ class HomeScreenState extends State<HomeScreen> {
           style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold),
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: loadTodayMacros,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              // Macro Card
-              DayMacroCard(
-                consumedKcal: _consumedKcal,
-                consumedCarbs: _consumedCarbs,
-                consumedProtein: _consumedProtein,
-                consumedFat: _consumedFat,
-                targetKcal: _targetKcal,
-                targetCarbs: _targetCarbs,
-                targetProtein: _targetProtein,
-                targetFat: _targetFat,
-              ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: loadTodayMacros,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    // Macro Card
+                    DayMacroCard(
+                      consumedKcal: _consumedKcal,
+                      consumedCarbs: _consumedCarbs,
+                      consumedProtein: _consumedProtein,
+                      consumedFat: _consumedFat,
+                      targetKcal: _targetKcal,
+                      targetCarbs: _targetCarbs,
+                      targetProtein: _targetProtein,
+                      targetFat: _targetFat,
+                    ),
 
-              const SizedBox(height: 16),
+                    const SizedBox(height: 16),
 
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Quick Stats',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildStatRow(
+                              'Total Products',
+                              _todayProducts.length.toString(),
+                              Icons.restaurant_menu,
+                            ),
+                            const Divider(height: 24),
+                            _buildStatRow(
+                              'Calories Left',
+                              '${(_targetKcal - _consumedKcal).round()}',
+                              Icons.local_fire_department,
+                            ),
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Quick Stats', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 16),
-                      _buildStatRow(
-                        'Total Products',
-                        _todayProducts.length.toString(),
-                        Icons.restaurant_menu,
-                      ),
-                      const Divider(height: 24),
-                      _buildStatRow(
-                        'Calories Left',
-                        '${(_targetKcal - _consumedKcal).round()}',
-                        Icons.local_fire_department,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 

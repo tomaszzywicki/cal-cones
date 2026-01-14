@@ -2,6 +2,7 @@ import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/goal/data/daily_target_model.dart';
+import 'package:frontend/features/goal/data/goal_model.dart';
 import 'package:frontend/features/goal/services/daily_target_calculator_service.dart';
 import 'package:frontend/features/goal/services/daily_target_repository.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
@@ -79,24 +80,31 @@ class DailyTargetService {
   }
 
   Future<void> refreshTargetForToday() async {
-    await ensureHistoryIsPopulated();
+    // await ensureHistoryIsPopulated();
     final userId = _currentUserService.currentUser?.id;
-    if (userId == null) {
-      throw Exception('No authenticated user found.');
-    }
+    if (userId == null) throw Exception('No authenticated user found.');
 
     final today = DateTime.now().toUtc();
-    final goal = await _goalService.getActiveGoal();
+
     final currentWeightEntry = await _weightLogService.getLatestWeightEntry(userId);
-    if (currentWeightEntry == null) {
-      throw Exception('No weight entries found for user ID: $userId');
+    final fallbackWeight = _currentUserService.currentUser!.sex == 'female' ? 60.0 : 75.0;
+    final currentWeight = currentWeightEntry?.weight ?? fallbackWeight;
+
+    GoalModel? goal = await _goalService.getActiveGoal();
+
+    if (goal == null) {
+      AppLogger.warning(
+        'DailyTargetService: No active goal found for user ID: $userId. Calculating maintenance target.',
+      );
+      goal = await _goalService.createGenericMaintenanceGoal(currentWeight);
     }
-    final currentWeight = currentWeightEntry.weight;
+
     final todaysTarget = _calculatorService.calculateDailyTarget(
       _currentUserService.currentUser!,
       goal!,
       currentWeight,
     );
+
     DailyTargetModel dailyTargetModel = todaysTarget.copyWith(date: _dateToString(today));
     await _dailyTargetRepository.saveDailyTarget(dailyTargetModel);
     AppLogger.info('DailyTargetService: Refreshed daily target for today for user ID: $userId');
