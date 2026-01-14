@@ -106,4 +106,14 @@ class GoalService {
       rethrow;
     }
   }
+
+  Future<bool> hasActiveGoal(int userId) async {
+    try {
+      final activeGoal = await _goalRepository.getActiveGoal(userId);
+      return activeGoal != null;
+    } catch (e) {
+      AppLogger.error('GoalService: Failed to check for active goal.', e);
+      return false;
+    }
+  }
 }

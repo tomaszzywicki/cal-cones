@@ -28,11 +28,12 @@ class WeightLogService extends ChangeNotifier {
   WeightEntryModel? get latestEntry => _entries.isNotEmpty ? _entries.first : null;
 
   Future<void> addWeightEntry(WeightEntryModel weightEntry) async {
+    final int newId = await _weightLogRepository.addWeightEntry(weightEntry, _userId!);
+
+    weightEntry.id = newId;
     _entries.add(weightEntry);
     _entries.sort((a, b) => b.date.compareTo(a.date));
     notifyListeners();
-
-    await _weightLogRepository.addWeightEntry(weightEntry, _userId!);
   }
 
   Future<void> deleteWeightEntry(WeightEntryModel weightEntry) async {
@@ -74,5 +75,15 @@ class WeightLogService extends ChangeNotifier {
     notifyListeners();
 
     await _weightLogRepository.updateWeightEntry(oldEntry);
+  }
+
+  Future<bool> hasWeightData(int userId) async {
+    try {
+      final entries = await _weightLogRepository.getWeightEntries(userId);
+      return entries.isNotEmpty;
+    } catch (e) {
+      AppLogger.error('WeightLogService: Failed to check for weight data.', e);
+      return false;
+    }
   }
 }

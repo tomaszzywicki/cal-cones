@@ -3,9 +3,13 @@ import 'package:frontend/core/enums/app_enums.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/goal/data/daily_target_model.dart';
 import 'package:frontend/features/goal/services/daily_target_service.dart';
+import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/home/presentation/widgets/day_macro_card.dart';
+import 'package:frontend/features/home/presentation/widgets/warning_card.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
+import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
+import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,6 +25,9 @@ class HomeScreenState extends State<HomeScreen> {
   DailyTargetModel? _todayTargets;
   bool _isLoading = true;
 
+  bool _hasActiveGoal = true;
+  bool _hasWeightData = true;
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +41,18 @@ class HomeScreenState extends State<HomeScreen> {
     try {
       final mealService = Provider.of<MealService>(context, listen: false);
       final dailyTargetService = context.read<DailyTargetService>();
+      final goalService = context.read<GoalService>();
+      final weightLogService = context.read<WeightLogService>();
+      final currentUserService = context.read<CurrentUserService>();
+
       final today = DateTime.now();
+      final userId = currentUserService.currentUser!.id;
+
+      if (userId != null) {
+        _hasActiveGoal = await goalService.hasActiveGoal(userId);
+        _hasWeightData = await weightLogService.hasWeightData(userId);
+      }
+
       await dailyTargetService.refreshTargetForToday();
 
       // Fetches from LOCAL DATABASE
@@ -93,6 +111,38 @@ class HomeScreenState extends State<HomeScreen> {
                       targetProtein: _targetProtein,
                       targetFat: _targetFat,
                     ),
+
+                    if (!_hasWeightData)
+                      WarningCard(
+                        title: 'Missing Weight Data',
+                        subtitle: 'Log your weight to get accurate calorie targets.',
+                        icon: Icons.monitor_weight_outlined,
+                        color: Colors.red,
+                        buttonText: 'Log Weight',
+                        onAction: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const AddWeightEntryBottomSheet(),
+                          ).then((_) => loadTodayMacros());
+                        },
+                      ),
+
+                    if (!_hasActiveGoal)
+                      WarningCard(
+                        title: 'You have not set a goal',
+                        subtitle: 'Current calorie targets are calculated to help maintain your weight.',
+                        icon: Icons.warning_amber_rounded,
+                        color: Colors.orange,
+                        buttonText: 'Set Goal',
+                        onAction: () {
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(builder: (context) => const GoalSetup()),
+                          // ).then((_) => loadTodayMacros());
+                        },
+                      ),
 
                     const SizedBox(height: 16),
 
