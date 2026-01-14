@@ -27,7 +27,7 @@ class GoalModel extends GoalEntity {
       targetWeight: (json['target_weight'] as num).toDouble(),
       endWeight: json['end_weight'] != null ? (json['end_weight'] as num).toDouble() : null,
       tempo: (json['tempo'] as num).toDouble(),
-      isCurrent: json['is_current'] as bool,
+      isCurrent: (json['is_current'] as int) == 1 || (json['is_current'] == true),
     );
   }
 
@@ -43,7 +43,7 @@ class GoalModel extends GoalEntity {
       'target_weight': targetWeight,
       'end_weight': endWeight,
       'tempo': tempo,
-      'is_current': isCurrent,
+      'is_current': isCurrent ? 1 : 0,
     };
   }
 }

@@ -1,5 +1,7 @@
 import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/goal/data/goal_model.dart';
+import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/user/data/user_model.dart';
 import 'package:frontend/features/user/data/user_onboarding_model.dart';
 import 'package:frontend/features/user/services/user_api_service.dart';
@@ -7,7 +9,8 @@ import 'package:frontend/features/user/services/user_api_service.dart';
 class UserService {
   final UserApiService _userApiService;
   final CurrentUserService currentUserService;
-  UserService(this._userApiService, this.currentUserService);
+  final GoalService goalService;
+  UserService(this._userApiService, this.currentUserService, this.goalService);
 
   Future<void> saveOnboardingInfo(UserOnboardingModel userOnboardingModel) async {
     final currentUser = currentUserService.currentUser;
@@ -28,9 +31,8 @@ class UserService {
 
       // 2. Update current user data locally after a backend success
       _updateUserData(currentUser, userOnboardingModel);
-      _createUserGoal(currentUser, userOnboardingModel);
+      await _createUserGoal(currentUser, userOnboardingModel);
       await currentUserService.updateUser(currentUser);
-      // TODO: Create user's first weight goal
 
       AppLogger.info("Onboarding info saved and user data updated locally.");
     } catch (e) {
@@ -78,9 +80,22 @@ class UserService {
     user.setupCompleted = true;
   }
 
-  void _createUserGoal(UserModel user, UserOnboardingModel onboardingModel) {
-    // Placeholder for creating user's first weight goal based on onboarding data
-    // This could involve setting initial weight, target weight, and timeline
+  Future<void> _createUserGoal(UserModel user, UserOnboardingModel onboardingModel) async {
+    final userGoal = GoalModel(
+      userId: user.id!,
+      startDate: onboardingModel.startDate,
+      targetDate: onboardingModel.targetDate,
+      endDate: null,
+      startWeight: onboardingModel.startWeight,
+      targetWeight: onboardingModel.targetWeight,
+      endWeight: null,
+      tempo: onboardingModel.tempo,
+      isCurrent: true,
+    );
+
+    await goalService.clearGoals();
+    await goalService.createGoal(userGoal);
+
     AppLogger.info("User goal created for ${user.username} based on onboarding data.");
   }
 }

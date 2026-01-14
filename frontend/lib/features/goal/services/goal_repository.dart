@@ -39,7 +39,7 @@ class GoalRepository {
   }
 
   /// Pobiera historię celów (opcjonalne, do wykresów)
-  Future<List<GoalModel>> getGoalHistory(String userId) async {
+  Future<List<GoalModel>> getGoalHistory(int userId) async {
     final db = await _db;
     final result = await db.query(
       tableName,
@@ -49,5 +49,10 @@ class GoalRepository {
     );
 
     return result.map((e) => GoalModel.fromJson(e)).toList();
+  }
+
+  Future<void> clearGoals(int userId) async {
+    final db = await _db;
+    await db.delete(tableName, where: 'user_id = ?', whereArgs: [userId]);
   }
 }

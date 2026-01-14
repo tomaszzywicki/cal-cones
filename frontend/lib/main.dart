@@ -56,8 +56,10 @@ void main() async {
   final currentUserService = CurrentUserService();
 
   // user
+  final goalRepository = GoalRepository(localDatabaseService);
+  final goalService = GoalService(goalRepository, currentUserService);
   final userApiService = UserApiService(firebaseAuthService);
-  final userService = UserService(userApiService, currentUserService);
+  final userService = UserService(userApiService, currentUserService, goalService);
   // product
   final productRepository = ProductRepository(localDatabaseService);
   final productApiService = ProductApiService(firebaseAuthService);
@@ -84,8 +86,6 @@ void main() async {
   );
   final mealService = MealService(mealRepository, mealSyncService, currentUserService, connectivityService);
 
-  final goalRepository = GoalRepository(localDatabaseService);
-  final goalService = GoalService(goalRepository, currentUserService);
   final dailyTargetCalculatorService = DailyTargetCalculatorService();
   final dailyTargetRepository = DailyTargetRepository(localDatabaseService);
   // final dayMacroProvider = DayMacroProvider();

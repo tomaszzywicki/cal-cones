@@ -1,3 +1,4 @@
+import 'package:sqflite/sqflite.dart';
 import 'package:frontend/core/database/local_database_service.dart';
 import 'package:frontend/features/goal/data/daily_target_model.dart';
 
@@ -29,7 +30,7 @@ class DailyTargetRepository {
   Future<void> saveDailyTarget(DailyTargetModel targetModel) async {
     try {
       final db = await _databaseService.database;
-      await db.insert('daily_targets', targetModel.toMap());
+      await db.insert('daily_targets', targetModel.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
     } catch (e) {
       throw Exception('Failed to save daily target: $e');
     }

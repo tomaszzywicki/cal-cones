@@ -9,6 +9,27 @@ class GoalService {
 
   GoalService(this._goalRepository, this._currentUserService);
 
+  Future<void> clearGoals() async {
+    try {
+      final userId = _currentUserService.getUserId();
+      await _goalRepository.clearGoals(userId);
+      AppLogger.info('GoalService: All goals cleared successfully.');
+    } catch (e) {
+      AppLogger.error('GoalService: Failed to clear goals.', e);
+      rethrow;
+    }
+  }
+
+  Future<void> createGoal(GoalModel goal) async {
+    try {
+      await _goalRepository.createGoal(goal);
+      AppLogger.info('GoalService: Goal created successfully.');
+    } catch (e) {
+      AppLogger.error('GoalService: Failed to create goal.', e);
+      rethrow;
+    }
+  }
+
   /// Ustawia nowy cel, automatycznie zamykając poprzedni
   Future<void> setNewGoal(GoalModel newGoal) async {
     try {
@@ -51,5 +72,15 @@ class GoalService {
   Future<GoalModel?> getActiveGoal() {
     final userId = _currentUserService.getUserId();
     return _goalRepository.getActiveGoal(userId);
+  }
+
+  Future<List<GoalModel>> getGoalHistory() async {
+    try {
+      final userId = _currentUserService.getUserId();
+      return await _goalRepository.getGoalHistory(userId);
+    } catch (e) {
+      AppLogger.error('GoalService: Failed to fetch goal history.', e);
+      rethrow;
+    }
   }
 }

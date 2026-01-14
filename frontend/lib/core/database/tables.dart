@@ -144,11 +144,10 @@ Future<void> initTables(Database db, int version) async {
       diet_type TEXT,
       calories INTEGER NOT NULL,
       protein_g INTEGER NOT NULL,
-      carbs_g REAL NOT NULL,
-      fat_g REAL NOT NULL,
+      carbs_g INTEGER NOT NULL,
+      fat_g INTEGER NOT NULL,
       last_modified_at TEXT NOT NULL,
       is_synced INTEGER NOT NULL DEFAULT 0
     )
   ''');
-
 }

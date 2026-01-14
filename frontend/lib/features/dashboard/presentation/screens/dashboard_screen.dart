@@ -5,6 +5,7 @@ import 'package:frontend/features/dashboard/presentation/screens/current_goal_ca
 import 'package:frontend/features/dashboard/presentation/screens/macro_intake_chart.dart';
 import 'package:frontend/features/dashboard/presentation/screens/weigh_in_calendar_card.dart';
 import 'package:frontend/features/dashboard/presentation/screens/weight_history_chart.dart';
+import 'package:frontend/features/goal/presentation/screens/goal_list_screen.dart';
 import 'package:frontend/features/weight_log/presentation/screens/weight_log_main_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -35,7 +36,12 @@ class DashboardScreen extends StatelessWidget {
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               children: [
-                CurrentGoalCard(),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => GoalListScreen()));
+                  },
+                  child: CurrentGoalCard(),
+                ),
                 GestureDetector(
                   onTap: () {
                     Navigator.of(
