@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/enums/app_enums.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/goal/data/daily_target_model.dart';
+import 'package:frontend/features/goal/services/daily_target_service.dart';
 import 'package:frontend/features/home/presentation/widgets/day_macro_card.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
@@ -16,58 +18,13 @@ class HomeScreen extends StatefulWidget {
 // Removed underscore to make it public for GlobalKey
 class HomeScreenState extends State<HomeScreen> {
   List<MealProductModel> _todayProducts = [];
+  DailyTargetModel? _todayTargets;
   bool _isLoading = true;
-
-  // Default fallback values
-  double _targetKcal = 2000;
-  double _targetCarbs = 250;
-  double _targetProtein = 150;
-  double _targetFat = 70;
 
   @override
   void initState() {
     super.initState();
-    _calculateLocalTargets();
     loadTodayMacros();
-  }
-
-  /// Calculates BMR and Targets based on LOCAL User Data
-  void _calculateLocalTargets() {
-    final user = Provider.of<CurrentUserService>(context, listen: false).currentUser;
-    if (user == null) return;
-
-    // 1. Get basic stats (use defaults if missing)
-    final double weight = 75.0; // TODO: Fetch latest weight from WeightLogs
-    final double height = (user.height ?? 175).toDouble();
-    final int age = user.birthday != null 
-        ? DateTime.now().year - user.birthday!.year 
-        : 25;
-    
-    // 2. Calculate BMR (Mifflin-St Jeor Equation)
-    double bmr;
-    if (user.sex == 'Female') {
-      bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
-    } else {
-      bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
-    }
-
-    // 3. Apply Activity Multiplier
-    double activityMultiplier = 1.2; // Sedentary default
-    if (user.activityLevel == 'light') activityMultiplier = 1.375;
-    if (user.activityLevel == 'moderate') activityMultiplier = 1.55;
-    if (user.activityLevel == 'active') activityMultiplier = 1.725;
-    if (user.activityLevel == 'very_active') activityMultiplier = 1.9;
-
-    final double tdee = bmr * activityMultiplier;
-
-    // 4. Set Targets (e.g. Maintenance)
-    setState(() {
-      _targetKcal = tdee;
-      // Example Split: 50% Carbs, 30% Protein, 20% Fat
-      _targetCarbs = (_targetKcal * 0.50) / 4;
-      _targetProtein = (_targetKcal * 0.30) / 4;
-      _targetFat = (_targetKcal * 0.20) / 9;
-    });
   }
 
   Future<void> loadTodayMacros() async {
@@ -76,13 +33,17 @@ class HomeScreenState extends State<HomeScreen> {
 
     try {
       final mealService = Provider.of<MealService>(context, listen: false);
+      final dailyTargetService = context.read<DailyTargetService>();
       final today = DateTime.now();
+      await dailyTargetService.refreshTargetForToday();
 
       // Fetches from LOCAL DATABASE
       final products = await mealService.getMealProductsForDate(today);
+      final targets = await dailyTargetService.getDailyTargetForDate(today);
 
       setState(() {
         _todayProducts = products;
+        _todayTargets = targets;
         _isLoading = false;
       });
     } catch (e) {
@@ -96,6 +57,10 @@ class HomeScreenState extends State<HomeScreen> {
   double get _consumedCarbs => _todayProducts.fold(0, (sum, p) => sum + p.carbs);
   double get _consumedProtein => _todayProducts.fold(0, (sum, p) => sum + p.protein);
   double get _consumedFat => _todayProducts.fold(0, (sum, p) => sum + p.fat);
+  double get _targetKcal => _todayTargets?.calories.toDouble() ?? 0;
+  double get _targetCarbs => _todayTargets != null ? (_todayTargets!.carbsG.toDouble()) : 0;
+  double get _targetProtein => _todayTargets != null ? (_todayTargets!.proteinG.toDouble()) : 0;
+  double get _targetFat => _todayTargets != null ? (_todayTargets!.fatG.toDouble()) : 0;
 
   @override
   Widget build(BuildContext context) {
@@ -147,10 +112,7 @@ class HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Quick Stats',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
+                      const Text('Quick Stats', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 16),
                       _buildStatRow(
                         'Total Products',

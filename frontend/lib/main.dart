@@ -13,6 +13,11 @@ import 'package:frontend/features/auth/services/auth_api_service.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/auth/services/firebase_auth_service.dart';
+import 'package:frontend/features/goal/services/daily_target_calculator_service.dart';
+import 'package:frontend/features/goal/services/daily_target_repository.dart';
+import 'package:frontend/features/goal/services/daily_target_service.dart';
+import 'package:frontend/features/goal/services/goal_repository.dart';
+import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/meal/services/day_macro_provider.dart';
 import 'package:frontend/features/meal/services/meal_api_service.dart';
 import 'package:frontend/features/meal/services/meal_repository.dart';
@@ -78,7 +83,12 @@ void main() async {
     syncQueueRepository: syncQueueRepository,
   );
   final mealService = MealService(mealRepository, mealSyncService, currentUserService, connectivityService);
-  final dayMacroProvider = DayMacroProvider();
+
+  final goalRepository = GoalRepository(localDatabaseService);
+  final goalService = GoalService(goalRepository, currentUserService);
+  final dailyTargetCalculatorService = DailyTargetCalculatorService();
+  final dailyTargetRepository = DailyTargetRepository(localDatabaseService);
+  // final dayMacroProvider = DayMacroProvider();
 
   // ai
   final aiApiService = AIApiService(firebaseAuthService);
@@ -115,17 +125,27 @@ void main() async {
         Provider<UserService>.value(value: userService),
         Provider<ProductService>.value(value: productService),
         Provider<MealService>.value(value: mealService),
+        Provider<GoalService>.value(value: goalService),
         Provider<AIService>.value(value: aiService),
         Provider<RecipeService>.value(value: recipeService),
         ChangeNotifierProvider<CurrentUserService>.value(value: currentUserService),
         ChangeNotifierProvider<ConnectivityService>.value(value: connectivityService),
-        ChangeNotifierProvider<DayMacroProvider>.value(value: dayMacroProvider),
+        // ChangeNotifierProvider<DayMacroProvider>.value(value: dayMacroProvider),
         ChangeNotifierProxyProvider<CurrentUserService, WeightLogService>(
           create: (_) => WeightLogService(currentUserService.getUserId(), weightLogRepository),
           update: (_, currentUserService, previousService) {
             final int? currentUserId = currentUserService.isLoggedIn ? currentUserService.getUserId() : null;
             return WeightLogService(currentUserId, weightLogRepository);
           },
+        ),
+        ProxyProvider<WeightLogService, DailyTargetService>(
+          update: (context, weightLogService, previous) => DailyTargetService(
+            dailyTargetRepository,
+            currentUserService,
+            goalService,
+            weightLogService,
+            dailyTargetCalculatorService,
+          ),
         ),
       ],
       child: MainApp(),

@@ -139,13 +139,16 @@ Future<void> initTables(Database db, int version) async {
     CREATE TABLE daily_targets (
       date TEXT PRIMARY KEY,
       user_id INTEGER NOT NULL,
+      goal_id INTEGER NOT NULL,
+      weight_used DOUBLE NOT NULL,
+      diet_type TEXT,
       calories INTEGER NOT NULL,
       protein_g INTEGER NOT NULL,
       carbs_g REAL NOT NULL,
       fat_g REAL NOT NULL,
-      diet_type, TEXT,
       last_modified_at TEXT NOT NULL,
       is_synced INTEGER NOT NULL DEFAULT 0
     )
   ''');
+
 }

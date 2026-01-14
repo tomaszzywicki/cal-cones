@@ -1,0 +1,55 @@
+import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/goal/data/goal_model.dart';
+import 'package:frontend/features/goal/services/goal_repository.dart';
+import 'package:frontend/core/logger/app_logger.dart';
+
+class GoalService {
+  final GoalRepository _goalRepository;
+  final CurrentUserService _currentUserService;
+
+  GoalService(this._goalRepository, this._currentUserService);
+
+  /// Ustawia nowy cel, automatycznie zamykając poprzedni
+  Future<void> setNewGoal(GoalModel newGoal) async {
+    try {
+      // 1. Pobierz aktualny cel
+      final userId = _currentUserService.getUserId();
+      final currentGoal = await _goalRepository.getActiveGoal(userId);
+
+      if (currentGoal != null) {
+        // 2. Zamknij stary cel (ustaw datę końca i flagę is_current)
+        // Zakładamy, że GoalModel ma metodę copyWith
+        // lub tworzymy nowy obiekt ręcznie, jeśli copyWith nie obsługuje nulli w specyficzny sposób
+        final closedGoal = GoalModel(
+          id: currentGoal.id,
+          uuid: currentGoal.uuid,
+          userId: currentGoal.userId,
+          startDate: currentGoal.startDate,
+          targetDate: currentGoal.targetDate,
+          endDate: DateTime.now(), // Zamykamy dzisiaj
+          startWeight: currentGoal.startWeight,
+          targetWeight: currentGoal.targetWeight,
+          endWeight: currentGoal.endWeight, // Tu można wstawić aktualną wagę jeśli mamy pod ręką
+          tempo: currentGoal.tempo,
+          isCurrent: false, // Już nie jest aktualny
+        );
+
+        await _goalRepository.updateGoal(closedGoal);
+      }
+
+      // 3. Zapisz nowy cel (jako aktualny)
+      // Upewnij się, że newGoal ma isCurrent = true i endDate = null
+      await _goalRepository.createGoal(newGoal);
+
+      AppLogger.info('GoalService: New goal set successfully.');
+    } catch (e) {
+      AppLogger.error('GoalService: Failed to set new goal.', e);
+      rethrow;
+    }
+  }
+
+  Future<GoalModel?> getActiveGoal() {
+    final userId = _currentUserService.getUserId();
+    return _goalRepository.getActiveGoal(userId);
+  }
+}

@@ -59,6 +59,15 @@ class WeightLogService extends ChangeNotifier {
     }
   }
 
+  Future<WeightEntryModel?> getLatestWeightEntry(int userId) async {
+    try {
+      return _entries.isNotEmpty ? _entries.first : null;
+    } catch (e) {
+      AppLogger.error('WeightLogService.getLatestWeightEntry error: $e');
+      throw Exception('Failed to get latest weight entry: $e');
+    }
+  }
+
   Future<void> changeWeightForEntry(WeightEntryModel? oldEntry, double weight) async {
     if (oldEntry == null) return;
     oldEntry.changeWeight(weight);
