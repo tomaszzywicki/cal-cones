@@ -19,10 +19,11 @@ class MealLogScreen extends StatefulWidget {
   const MealLogScreen({super.key});
 
   @override
-  State<MealLogScreen> createState() => _MealLogScreenState();
+  State<MealLogScreen> createState() => MealLogScreenState();
 }
 
-class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserver, DayRefreshMixin {
+// CHANGED: Removed underscore to make class public
+class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserver, DayRefreshMixin {
   late MealService _mealService;
 
   DateTime selectedDate = DateTime.now().toUtc();
@@ -41,7 +42,7 @@ class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserv
   void initState() {
     super.initState();
     _mealService = Provider.of<MealService>(context, listen: false);
-    _loadMealProducts();
+    loadMealProducts();
   }
 
   @override
@@ -52,7 +53,8 @@ class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserv
     });
   }
 
-  Future<void> _loadMealProducts() async {
+  // CHANGED: Removed underscore to make method public
+  Future<void> loadMealProducts() async {
     setState(() => _isLoading = true);
 
     try {
@@ -92,7 +94,7 @@ class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserv
       selectedDate = selectedDate.subtract(const Duration(days: 1));
       _updateDateString();
     });
-    await _loadMealProducts();
+    await loadMealProducts();
   }
 
   void _goToNextDay() async {
@@ -100,7 +102,7 @@ class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserv
       selectedDate = selectedDate.add(const Duration(days: 1));
       _updateDateString();
     });
-    await _loadMealProducts();
+    await loadMealProducts();
   }
 
   void _updateDateString() {
@@ -122,105 +124,120 @@ class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserv
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 36.0),
-        child: Column(
-          children: [
-            // Date selector
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(icon: const Icon(Icons.arrow_back_ios), onPressed: _goToPreviousDay),
-                DateWidget(text: _dateString),
-                IconButton(icon: const Icon(Icons.arrow_forward_ios), onPressed: _goToNextDay),
-              ],
-            ),
-            const SizedBox(height: 10),
+      body: GestureDetector(
+        // Allow touches to pass through to children (crucial for empty areas)
+        behavior: HitTestBehavior.translucent,
+        onHorizontalDragEnd: (DragEndDetails details) {
+          if (details.primaryVelocity == null) return;
 
-            // Macro summary
-            Row(
-              children: [
-                Expanded(
-                  child: MacroLine(
-                    name: 'Kcal',
-                    color: Colors.blue,
-                    value: _totalKcal,
-                    endValue: _targetKcal, // TODO: Get from user goals
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: MacroLine(
-                    name: 'Carbs',
-                    color: Colors.green,
-                    value: _totalCarbs,
-                    endValue: _targetCarbs,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: MacroLine(
-                    name: 'Protein',
-                    color: Colors.red,
-                    value: _totalProtein,
-                    endValue: _targetProtein,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: MacroLine(name: 'Fat', color: Colors.yellow, value: _totalFat, endValue: _targetFat),
-                ),
-              ],
-            ),
+          // Velocity > 0 : Swipe Right (Back to previous day)
+          if (details.primaryVelocity! > 0) {
+            _goToPreviousDay();
+          }
+          // Velocity < 0 : Swipe Left (Forward to next day)
+          else if (details.primaryVelocity! < 0) {
+            _goToNextDay();
+          }
+        },
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 36.0),
+          child: Column(
+            children: [
+              // Date selector
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(icon: const Icon(Icons.arrow_back_ios), onPressed: _goToPreviousDay),
+                  DateWidget(text: _dateString),
+                  IconButton(icon: const Icon(Icons.arrow_forward_ios), onPressed: _goToNextDay),
+                ],
+              ),
+              const SizedBox(height: 10),
 
-            // Products list
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : RefreshIndicator(
-                      onRefresh: _loadMealProducts,
-                      child: _mealProducts.isEmpty
-                          ? LayoutBuilder(
-                              builder: (context, constraints) {
-                                return SingleChildScrollView(
-                                  physics: const AlwaysScrollableScrollPhysics(),
-                                  child: ConstrainedBox(
-                                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                                    child: const Center(
-                                      child: Text(
-                                        'No products for this day',
-                                        style: TextStyle(color: Colors.grey),
+              // Macro summary
+              Row(
+                children: [
+                  Expanded(
+                    child: MacroLine(
+                      name: 'Kcal',
+                      color: Colors.blue,
+                      value: _totalKcal,
+                      endValue: _targetKcal,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: MacroLine(
+                      name: 'Carbs',
+                      color: Colors.green,
+                      value: _totalCarbs,
+                      endValue: _targetCarbs,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: MacroLine(
+                      name: 'Protein',
+                      color: Colors.red,
+                      value: _totalProtein,
+                      endValue: _targetProtein,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: MacroLine(name: 'Fat', color: Colors.yellow, value: _totalFat, endValue: _targetFat),
+                  ),
+                ],
+              ),
+
+              // Products list
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : RefreshIndicator(
+                        onRefresh: loadMealProducts,
+                        child: _mealProducts.isEmpty
+                            ? LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return SingleChildScrollView(
+                                    physics: const AlwaysScrollableScrollPhysics(),
+                                    child: ConstrainedBox(
+                                      constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                                      child: const Center(
+                                        child: Text(
+                                          'No products for this day',
+                                          style: TextStyle(color: Colors.grey),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
-                            )
-                          : ListView.builder(
-                              physics: const AlwaysScrollableScrollPhysics(),
-                              itemCount: _mealProducts.length,
-                              // Product Cards
-                              itemBuilder: (context, index) => ProductCard(
-                                mealProduct: _mealProducts[index],
-                                onTap: () async {
-                                  _handleEditProduct(_mealProducts[index]);
+                                  );
                                 },
-                                onLongPress: () async {
-                                  _showDeleteConfirmation(_mealProducts[index]);
-                                },
-                                onEditAmount: () {
-                                  _showEditDialog(_mealProducts[index]);
-                                },
+                              )
+                            : ListView.builder(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                itemCount: _mealProducts.length,
+                                // Product Cards
+                                itemBuilder: (context, index) => ProductCard(
+                                  mealProduct: _mealProducts[index],
+                                  onTap: () async {
+                                    _handleEditProduct(_mealProducts[index]);
+                                  },
+                                  onLongPress: () async {
+                                    _showDeleteConfirmation(_mealProducts[index]);
+                                  },
+                                  onEditAmount: () {
+                                    _showEditDialog(_mealProducts[index]);
+                                  },
+                                ),
                               ),
-                            ),
-                    ),
-            ),
-          ],
+                      ),
+              ),
+            ],
+          ),
         ),
       ),
 
-      // TODO adjust style of button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           _handleAddProduct();
@@ -238,7 +255,7 @@ class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserv
     );
 
     if (result != null && result['success'] == true) {
-      await _loadMealProducts();
+      await loadMealProducts();
     }
   }
 
@@ -279,7 +296,7 @@ class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserv
     );
 
     // 4. Refresh the list when we return
-    await _loadMealProducts();
+    await loadMealProducts();
   }
 
   Future<void> _handleDeleteProduct(MealProductModel mealProduct) async {
@@ -318,7 +335,7 @@ class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserv
       final updatedProduct = mealProduct.updateAmount(amount);
 
       await mealService.updateMealProduct(updatedProduct);
-      await _loadMealProducts();
+      await loadMealProducts();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(

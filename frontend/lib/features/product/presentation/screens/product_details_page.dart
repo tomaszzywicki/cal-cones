@@ -4,6 +4,7 @@ import 'package:frontend/core/enums/app_enums.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
 import 'package:frontend/features/product/data/product_model.dart';
+import 'package:frontend/main_screen.dart';
 import 'package:provider/provider.dart';
 
 class ProductDetailsPage extends StatefulWidget {
@@ -487,12 +488,17 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         Navigator.pop(context, {'success': true, 'mealProduct': tempMealProduct});
         return;
       }
-
+      
+      // HANDLE EDIT OR ADD TO LOG
       final mealProductService = Provider.of<MealService>(context, listen: false);
 
       if (widget.mode == ProductPageMode.edit && widget.mealProductToEdit != null) {
         final updatedProduct = widget.mealProductToEdit!.updateAmount(_amount);
         await mealProductService.updateMealProduct(updatedProduct);
+
+        if (mounted) {
+          Navigator.pop(context, {'success': true, 'amount': _amount});
+        }
       } else {
         final product = widget.product;
         final mealProduct = MealProductModel.fromProductWithAmount(
@@ -511,12 +517,20 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
           consumedAt: widget.consumedAt,
         );
         await mealProductService.addMealProduct(mealProduct);
-      }
 
-      if (!mounted) return;
-      Navigator.pop(context, {'success': true, 'amount': _amount});
+        if (!mounted) return;
+
+        // === REDIRECT LOGIC ===
+        // 1. Pop everything until we hit the MainScreen (the root)
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        // 2. Programmatically switch to Meal Log tab and refresh
+        mainScreenKey.currentState?.navigateToMealLog();
+      }
     } catch (e) {
-      // ... error handling
+      if (mounted) {
+        setState(() => _isLoading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      }
     }
   }
 }

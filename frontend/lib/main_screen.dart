@@ -5,18 +5,19 @@ import 'package:frontend/features/meal_log/presentation/screens/meal_log_screen.
 import 'package:frontend/features/other/presentation/screens/other_screen.dart';
 import 'package:frontend/show_menu_bottom_sheet.dart';
 
-final GlobalKey<_MainScreenState> mainScreenKey = GlobalKey<_MainScreenState>();
+final GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
 
 // 1. Key to access HomeScreen state
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen> {
   final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
+  final GlobalKey<MealLogScreenState> mealLogScreenKey = GlobalKey<MealLogScreenState>();
 
   int _currentIndex = 2;
   late final List<Widget> _screens;
@@ -24,7 +25,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    _screens = [HomeScreen(key: homeScreenKey), MealLogScreen(), DashboardScreen(), OtherScreen()];
+    _screens = [HomeScreen(key: homeScreenKey), MealLogScreen(key: mealLogScreenKey), DashboardScreen(), OtherScreen()];
   }
 
   @override
@@ -76,6 +77,9 @@ class _MainScreenState extends State<MainScreen> {
     if (pageIndex == 0) {
       // Refresh Home Screen Macros
       homeScreenKey.currentState?.loadTodayMacros();
+    } else if (pageIndex == 1) {
+      // Refresh Meal Log Screen Data
+      mealLogScreenKey.currentState?.loadMealProducts();
     }
   }
 
@@ -83,5 +87,8 @@ class _MainScreenState extends State<MainScreen> {
     setState(() {
       _currentIndex = 1;
     });
+
+    // Refresh Meal Log Screen Data
+    mealLogScreenKey.currentState?.loadMealProducts();
   }
 }

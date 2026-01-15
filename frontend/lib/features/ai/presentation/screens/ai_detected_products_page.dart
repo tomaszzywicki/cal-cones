@@ -5,6 +5,7 @@ import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/ai/data/ai_response.dart';
 import 'package:frontend/features/ai/presentation/widgets/ai_product_card.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
+import 'package:frontend/main_screen.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -225,15 +226,13 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
 
       await mealService.addMealProductsFromAI(productsToSave, DateTime.now());
 
-      if (mounted) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   SnackBar(
-        //     content: Text('Added ${_acceptedProducts.length} products to meal log'),
-        //     backgroundColor: Colors.green,
-        //   ),
-        // );
-        Navigator.of(context).pop(true);
-      }
+      if (!mounted) return;
+
+      // REDIRECT LOGIC
+      // Pop everything until we reach the MainScreen (removing this screen and the camera screen)
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      // Switch to Meal Log tab and refresh the list
+      mainScreenKey.currentState?.navigateToMealLog();
     } catch (e) {
       AppLogger.error('Failed to save meal products: $e');
       if (mounted) {
