@@ -54,7 +54,7 @@ class DailyTargetService {
     }
 
     // Figure out daily targets from startDate to today (they will be the same as nothing was changing in between)
-    final currentWeightEntry = await _weightLogService.getLatestWeightEntry(userId);
+    final currentWeightEntry = await _weightLogService.getLatestWeightEntry();
     if (currentWeightEntry == null) {
       throw Exception('No weight entries found for user ID: $userId');
     }
@@ -86,7 +86,7 @@ class DailyTargetService {
 
     final today = DateTime.now().toUtc();
 
-    final currentWeightEntry = await _weightLogService.getLatestWeightEntry(userId);
+    final currentWeightEntry = await _weightLogService.getLatestWeightEntry();
     final fallbackWeight = _currentUserService.currentUser!.sex == 'female' ? 60.0 : 75.0;
     final currentWeight = currentWeightEntry?.weight ?? fallbackWeight;
 

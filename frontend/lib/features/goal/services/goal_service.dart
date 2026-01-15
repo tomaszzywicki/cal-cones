@@ -69,7 +69,7 @@ class GoalService {
     }
   }
 
-  Future<GoalModel?> getActiveGoal() {
+  Future<GoalModel?> getActiveGoal() async {
     final userId = _currentUserService.getUserId();
     return _goalRepository.getActiveGoal(userId);
   }

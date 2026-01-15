@@ -46,4 +46,7 @@ class GoalModel extends GoalEntity {
       'is_current': isCurrent ? 1 : 0,
     };
   }
+
+  double get totalWeightChange => targetWeight - startWeight;
+  bool get isWeightLoss => totalWeightChange < 0;
 }

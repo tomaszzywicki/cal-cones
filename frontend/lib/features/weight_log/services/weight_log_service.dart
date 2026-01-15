@@ -61,7 +61,7 @@ class WeightLogService extends ChangeNotifier {
     }
   }
 
-  Future<WeightEntryModel?> getLatestWeightEntry(int userId) async {
+  Future<WeightEntryModel?> getLatestWeightEntry() async {
     try {
       return _entries.isNotEmpty ? _entries.first : null;
     } catch (e) {
@@ -89,7 +89,7 @@ class WeightLogService extends ChangeNotifier {
   }
 
   Future<bool> isLatestEntryOutdated() async {
-    final latestEntry = await getLatestWeightEntry(_userId!);
+    final latestEntry = await getLatestWeightEntry();
     if (latestEntry == null) return true;
 
     final now = DateTime.now();

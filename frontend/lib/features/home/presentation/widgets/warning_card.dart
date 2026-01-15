@@ -60,7 +60,7 @@ class WarningCard extends StatelessWidget {
                 backgroundColor: color, // Pełny kolor przycisku
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                minimumSize: const Size(120, 32),
+                minimumSize: const Size(80, 32),
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 elevation: 0,
               ),
