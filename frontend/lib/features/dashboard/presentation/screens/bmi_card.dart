@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
+// Dodano import ekranu wagi
+import 'package:frontend/features/weight_log/presentation/screens/weight_log_main_screen.dart';
 import 'package:provider/provider.dart';
 import 'dart:math' as math;
 
@@ -39,6 +41,46 @@ class BMIcard extends StatelessWidget {
     }
   }
 
+  // Funkcja do zmiany wzrostu
+  void _showEditHeightDialog(BuildContext context, int? currentHeight) {
+    final TextEditingController controller = TextEditingController(text: currentHeight?.toString() ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Update Height"),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: "Height",
+              suffixText: "cm",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+            FilledButton(
+              onPressed: () {
+                final newHeight = int.tryParse(controller.text);
+                if (newHeight != null && newHeight > 50 && newHeight < 300) {
+                  // TODO: Tutaj wywołaj swój serwis do aktualizacji użytkownika
+                  // np. context.read<UserApiService>().updateHeight(newHeight);
+
+                  // Na razie tylko logujemy dla sprawdzenia
+                  AppLogger.info("New height entered: $newHeight");
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text("Save"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = context.watch<CurrentUserService>().currentUser;
@@ -55,12 +97,14 @@ class BMIcard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: isExpanded ? _buildexpandedview(context, bmi) : _buildcompactview(context, bmi),
+        child: isExpanded
+            ? _buildexpandedview(context, bmi, user?.height, weightLogService.latestEntry?.weight)
+            : _buildcompactview(context, bmi),
       ),
     );
   }
 
-  Widget _buildexpandedview(BuildContext context, double? bmi) {
+  Widget _buildexpandedview(BuildContext context, double? bmi, int? height, double? weight) {
     final hasData = bmi != null;
     final displayBmi = hasData ? bmi.toStringAsFixed(1) : "?";
     final categoryText = hasData ? _getBMICategory(bmi) : "Track your weight to see BMI";
@@ -69,7 +113,7 @@ class BMIcard extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const SizedBox(height: 32),
+        const SizedBox(height: 24),
         Text(
           "Your BMI Score",
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -91,7 +135,75 @@ class BMIcard extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         _buildBMIGauge(context, bmi),
+
+        const SizedBox(height: 16),
+        const Divider(),
+        const SizedBox(height: 8),
+
+        // --- NOWE PRZYCISKI ---
+        _buildInfoButton(
+          context: context,
+          title: "Weight",
+          value: weight != null ? "${weight.toStringAsFixed(1)} kg" : "-- kg",
+          icon: Icons.monitor_weight_outlined,
+          onTap: () {
+            // Przekierowanie do ekranu wagi
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const WeightLogMainScreen()));
+          },
+        ),
+        const SizedBox(height: 8),
+        _buildInfoButton(
+          context: context,
+          title: "Height",
+          value: height != null ? "$height cm" : "-- cm",
+          icon: Icons.height,
+          onTap: () {
+            // Edycja wzrostu
+            _showEditHeightDialog(context, height);
+          },
+        ),
+        const SizedBox(height: 8),
       ],
+    );
+  }
+
+  // Pomocniczy widget do budowania przycisków
+  Widget _buildInfoButton({
+    required BuildContext context,
+    required String title,
+    required String value,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.grey[600], size: 20),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[800]),
+            ),
+            const Spacer(),
+            Text(
+              value,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            const SizedBox(width: 8),
+            Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
+          ],
+        ),
+      ),
     );
   }
 
@@ -160,7 +272,6 @@ class BMIcard extends StatelessWidget {
     final double posNormal = normalize(normalLimit);
     final double posOverweight = normalize(overweightLimit);
 
-    // Jeśli BMI jest null, nie pokazujemy strzałki, ale zachowujemy miejsce (SizedBox)
     Widget indicatorWidget;
     if (bmi != null) {
       final double posBMI = normalize(bmi);
@@ -179,7 +290,6 @@ class BMIcard extends StatelessWidget {
         ),
       );
     } else {
-      // Pusty widget o tej samej wysokości, żeby układ "nie skakał"
       indicatorWidget = const SizedBox.shrink();
     }
 
@@ -217,13 +327,12 @@ class BMIcard extends StatelessWidget {
   }
 
   Widget _buildLegend() {
-    // Lista punktów granicznych
     final points = [15.0, 18.5, 25.0, 30.0, 40.0];
     const double minBMI = 15.0;
     const double maxBMI = 40.0;
 
     return SizedBox(
-      height: 15, // Wysokość kontenera na tekst
+      height: 15,
       child: Stack(
         children: points.map((val) {
           double normalized = (val - minBMI) / (maxBMI - minBMI);
