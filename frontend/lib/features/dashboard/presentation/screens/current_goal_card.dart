@@ -41,7 +41,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Card(
             color: Colors.white,
-            child: SizedBox(height: 160, child: Center(child: CircularProgressIndicator())),
+            child: SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
           );
         }
 
@@ -65,8 +65,6 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
 
   Widget _buildSeparatedContent(GoalModel goal, double currentWeight) {
     final now = DateTime.now();
-    // Use MediaQuery to make sizes relative to screen width
-    // Assuming 480.0 is a standard "base" design width (e.g. iPhone 12/13/14)
     final double screenWidth = MediaQuery.of(context).size.width;
     double rel(double size) => screenWidth * (size / 480.0);
 
@@ -84,20 +82,10 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
     final double start = goal.startWeight;
     final double target = goal.targetWeight;
 
-    // double weightProgress = 0.0;
-    // final totalDist = (start - target).abs();
-    // final coveredDist = (start - currentWeight).abs();
-
-    // bool isMovingRightWay = goal.isWeightLoss ? currentWeight <= start : currentWeight >= start;
-
-    // if (totalDist > 0 && isMovingRightWay) {
-    //   weightProgress = (coveredDist / totalDist);
-    // }
     double weightProgress = (start - currentWeight) / (start - target);
 
     // Kolory
     bool isGoalReached = weightProgress >= 1.0;
-    // Color weightColor = isMovingRightWay ? const Color(0xFF4CAF50) : const Color(0xFFE57373);
     Color weightColor = const Color(0xFF4CAF50);
     if (isGoalReached) weightColor = const Color(0xFF43A047);
 
@@ -109,12 +97,29 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
       color: Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Padding(
-        padding: EdgeInsets.all(rel(20)),
+        padding: EdgeInsets.only(left: rel(20), right: rel(20), top: rel(8), bottom: rel(20)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- HEADER ---
+            // --- HEADER WITH TITLE ---
+            Column(
+              children: [
+                Text(
+                  "Current Goal",
+                  style: TextStyle(
+                    fontSize: rel(18),
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87, // Almost black
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Divider(thickness: 1, height: 1, color: Color(0xFFEEEEEE)),
+                const SizedBox(height: 8),
+              ],
+            ),
+
+            // --- INFO SECTION ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,7 +136,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                           Text(
                             "CURRENTLY",
                             style: TextStyle(
-                              fontSize: rel(10), // Relative size
+                              fontSize: rel(10),
                               color: Colors.grey,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 1.0,
@@ -147,7 +152,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                             child: Text(
                               daysRemaining > 0 ? "$daysRemaining days left" : "Time's up",
                               style: TextStyle(
-                                fontSize: rel(11), // Relative size
+                                fontSize: rel(11),
                                 fontWeight: FontWeight.bold,
                                 color: Colors.blue.shade800,
                               ),
@@ -168,7 +173,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                               Text(
                                 currentWeight.toStringAsFixed(1),
                                 style: TextStyle(
-                                  fontSize: rel(42), // Relative size
+                                  fontSize: rel(42),
                                   fontWeight: FontWeight.w900,
                                   color: Colors.black87,
                                   letterSpacing: -1.5,
@@ -178,7 +183,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                               Text(
                                 "kg",
                                 style: TextStyle(
-                                  fontSize: rel(18), // Relative size
+                                  fontSize: rel(18),
                                   fontWeight: FontWeight.bold,
                                   color: Colors.grey,
                                 ),
@@ -192,6 +197,8 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                 ),
               ],
             ),
+
+            // const SizedBox(height: 12),
 
             // --- 1. PASEK CZASU (OCEAN WAVE) - GÓRNY ---
             Column(
@@ -235,7 +242,6 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          // color: Colors.grey.shade200,
                           color: timeProgress > weightProgress ? Colors.red.shade100 : Colors.grey.shade200,
                           borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(3),
@@ -290,7 +296,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                           },
                         ),
                       ),
-                      // Weights on bar (wrapped in FittedBox to prevent overflow)
+                      // Weights on bar
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
@@ -308,15 +314,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                           ),
                         ),
                       ),
-                      Center(
-                        child: Icon(
-                          Icons.double_arrow_outlined,
-                          size: 20,
-                          color: Colors.black54,
-                          // color: timeProgress > weightProgress ? Colors.red : Colors.black54,
-                          // Removed fontWeight (not valid for Icon)
-                        ),
-                      ),
+                      Center(child: Icon(Icons.double_arrow_outlined, size: 20, color: Colors.black54)),
                       Align(
                         alignment: Alignment.centerRight,
                         child: Padding(
