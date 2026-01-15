@@ -77,26 +77,28 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
 
     double timeProgress = 0.0;
     if (totalDays > 0) {
-      timeProgress = (daysElapsed / totalDays).clamp(0.0, 1.0);
+      timeProgress = (daysElapsed / totalDays);
     }
 
     // --- 2. OBLICZENIA WAGI ---
     final double start = goal.startWeight;
     final double target = goal.targetWeight;
 
-    double weightProgress = 0.0;
-    final totalDist = (start - target).abs();
-    final coveredDist = (start - currentWeight).abs();
+    // double weightProgress = 0.0;
+    // final totalDist = (start - target).abs();
+    // final coveredDist = (start - currentWeight).abs();
 
-    bool isMovingRightWay = goal.isWeightLoss ? currentWeight <= start : currentWeight >= start;
+    // bool isMovingRightWay = goal.isWeightLoss ? currentWeight <= start : currentWeight >= start;
 
-    if (totalDist > 0 && isMovingRightWay) {
-      weightProgress = (coveredDist / totalDist).clamp(0.0, 1.0);
-    }
+    // if (totalDist > 0 && isMovingRightWay) {
+    //   weightProgress = (coveredDist / totalDist);
+    // }
+    double weightProgress = (start - currentWeight) / (start - target);
 
     // Kolory
     bool isGoalReached = weightProgress >= 1.0;
-    Color weightColor = isMovingRightWay ? const Color(0xFF4CAF50) : const Color(0xFFE57373);
+    // Color weightColor = isMovingRightWay ? const Color(0xFF4CAF50) : const Color(0xFFE57373);
+    Color weightColor = const Color(0xFF4CAF50);
     if (isGoalReached) weightColor = const Color(0xFF43A047);
 
     Color waveColor = const Color(0xFF1976D2).withOpacity(0.7);
@@ -215,7 +217,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                         child: CustomPaint(
                           size: Size.infinite,
                           painter: OceanWavePainter(
-                            progress: timeProgress,
+                            progress: timeProgress.clamp(0.1, 1.0),
                             animationValue: _waveController,
                             color: waveColor,
                           ),
@@ -233,7 +235,8 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                     children: [
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
+                          // color: Colors.grey.shade200,
+                          color: timeProgress > weightProgress ? Colors.red.shade100 : Colors.grey.shade200,
                           borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(3),
                             bottomRight: Radius.circular(3),
@@ -250,7 +253,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                             return Stack(
                               children: [
                                 FractionallySizedBox(
-                                  widthFactor: weightProgress,
+                                  widthFactor: weightProgress.clamp(0.1, 1.0),
                                   child: Container(color: weightColor),
                                 ),
                                 if (weightProgress > 0)
@@ -305,11 +308,12 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                           ),
                         ),
                       ),
-                      const Center(
+                      Center(
                         child: Icon(
-                          Icons.arrow_forward,
-                          size: 14,
+                          Icons.double_arrow_outlined,
+                          size: 20,
                           color: Colors.black54,
+                          // color: timeProgress > weightProgress ? Colors.red : Colors.black54,
                           // Removed fontWeight (not valid for Icon)
                         ),
                       ),
