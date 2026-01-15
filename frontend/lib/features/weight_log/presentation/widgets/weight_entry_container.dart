@@ -87,7 +87,7 @@ class _WeightEntryContainerState extends State<WeightEntryContainer> {
     // Lista stron
     // WAŻNE: ListView wewnątrz tych widgetów MUSI mieć:
     // shrinkWrap: true oraz physics: NeverScrollableScrollPhysics()
-    final List<Widget> pagesContent = [const WeightEntryList(), const WeightEntryCalendar()];
+    final List<Widget> pagesContent = [const WeightEntryCalendar(), const WeightEntryList()];
 
     return Column(
       mainAxisSize: MainAxisSize.min,
