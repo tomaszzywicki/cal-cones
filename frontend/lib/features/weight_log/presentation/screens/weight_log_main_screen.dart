@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:frontend/core/mixins/day_refresh_mixin.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/weight_entry_container.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/weight_entry_list.dart';
@@ -12,7 +13,8 @@ class WeightLogMainScreen extends StatefulWidget {
   State<WeightLogMainScreen> createState() => _WeightLogMainScreenState();
 }
 
-class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
+class _WeightLogMainScreenState extends State<WeightLogMainScreen>
+    with WidgetsBindingObserver, DayRefreshMixin {
   late ScrollController _scrollController;
   bool _showAddButton = true;
 
@@ -35,6 +37,13 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  @override
+  void onDayChanged() {
+    setState(() {
+      // Rebuilds the UI with the new date
+    });
   }
 
   void _scrollListener() {
@@ -144,6 +153,7 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
                   delegate: WeightLogHeaderDelegate(
                     expandedHeight: _expandedHeight,
                     collapsedHeight: _collapsedHeight,
+                    rebuildKey: DateTime.now().toString().split(' ')[0],
                   ),
                 ),
 
@@ -152,10 +162,7 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen> {
                 // 2. LISTA WPISÓW
                 SliverFillRemaining(
                   hasScrollBody: false,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 100),
-                    child: const WeightEntryContainer(),
-                  ),
+                  child: Padding(padding: const EdgeInsets.only(bottom: 100), child: WeightEntryContainer()),
                 ),
                 // SliverPadding(
                 //   padding: const EdgeInsets.only(bottom: 100),

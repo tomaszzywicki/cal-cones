@@ -112,17 +112,17 @@ Future<void> initTables(Database db, int version) async {
   ''');
 
   await db.execute('''
-  CREATE TABLE IF NOT EXISTS sync_queue (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    feature TEXT NOT NULL,
-    operation TEXT NOT NULL,
-    entity_uuid TEXT NOT NULL,
-    payload TEXT,
-    created_at TEXT NOT NULL
-  )
-''');
+    CREATE TABLE IF NOT EXISTS sync_queue (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      feature TEXT NOT NULL,
+      operation TEXT NOT NULL,
+      entity_uuid TEXT NOT NULL,
+      payload TEXT,
+      created_at TEXT NOT NULL
+    )
+  ''');
 
-// Recipe table
+  // Recipe table
   await db.execute('''
     CREATE TABLE recipes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -132,6 +132,22 @@ Future<void> initTables(Database db, int version) async {
       ingredients TEXT, -- JSON encoded list of strings
       instructions TEXT, -- JSON encoded list of strings
       created_at TEXT NOT NULL
+    )
+  ''');
+
+  await db.execute('''
+    CREATE TABLE daily_targets (
+      date TEXT PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      goal_id INTEGER NOT NULL,
+      weight_used DOUBLE NOT NULL,
+      diet_type TEXT,
+      calories INTEGER NOT NULL,
+      protein_g INTEGER NOT NULL,
+      carbs_g INTEGER NOT NULL,
+      fat_g INTEGER NOT NULL,
+      last_modified_at TEXT NOT NULL,
+      is_synced INTEGER NOT NULL DEFAULT 0
     )
   ''');
 }

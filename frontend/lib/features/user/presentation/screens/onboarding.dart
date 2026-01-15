@@ -194,7 +194,7 @@ class _Onboarding extends State<Onboarding> {
         targetDate: _targetDate,
       ),
     ];
-    
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: SafeArea(
@@ -213,14 +213,11 @@ class _Onboarding extends State<Onboarding> {
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: Colors.black87),
                         onPressed: () {
-                          _pageController.previousPage(
-                            duration: _animDuration,
-                            curve: _animCurve,
-                          );
+                          _pageController.previousPage(duration: _animDuration, curve: _animCurve);
                         },
                       ),
                     ),
-                  
+
                   // Page Indicator (Center)
                   SmoothPageIndicator(
                     controller: _pageController,

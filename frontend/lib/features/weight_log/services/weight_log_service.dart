@@ -7,6 +7,7 @@ import 'package:frontend/features/weight_log/services/weight_log_repository.dart
 class WeightLogService extends ChangeNotifier {
   final WeightLogRepository _weightLogRepository;
   final int? _userId;
+  static const int OUTDATED_THRESHOLD_DAYS = 30;
 
   late List<WeightEntryModel> _entries = [];
 
@@ -28,11 +29,12 @@ class WeightLogService extends ChangeNotifier {
   WeightEntryModel? get latestEntry => _entries.isNotEmpty ? _entries.first : null;
 
   Future<void> addWeightEntry(WeightEntryModel weightEntry) async {
+    final int newId = await _weightLogRepository.addWeightEntry(weightEntry, _userId!);
+
+    weightEntry.id = newId;
     _entries.add(weightEntry);
     _entries.sort((a, b) => b.date.compareTo(a.date));
     notifyListeners();
-
-    await _weightLogRepository.addWeightEntry(weightEntry, _userId!);
   }
 
   Future<void> deleteWeightEntry(WeightEntryModel weightEntry) async {
@@ -59,11 +61,39 @@ class WeightLogService extends ChangeNotifier {
     }
   }
 
+  Future<WeightEntryModel?> getLatestWeightEntry() async {
+    try {
+      return _entries.isNotEmpty ? _entries.first : null;
+    } catch (e) {
+      AppLogger.error('WeightLogService.getLatestWeightEntry error: $e');
+      throw Exception('Failed to get latest weight entry: $e');
+    }
+  }
+
   Future<void> changeWeightForEntry(WeightEntryModel? oldEntry, double weight) async {
     if (oldEntry == null) return;
     oldEntry.changeWeight(weight);
     notifyListeners();
 
     await _weightLogRepository.updateWeightEntry(oldEntry);
+  }
+
+  Future<bool> hasWeightData(int userId) async {
+    try {
+      final entries = await _weightLogRepository.getWeightEntries(userId);
+      return entries.isNotEmpty;
+    } catch (e) {
+      AppLogger.error('WeightLogService: Failed to check for weight data.', e);
+      return false;
+    }
+  }
+
+  Future<bool> isLatestEntryOutdated() async {
+    final latestEntry = await getLatestWeightEntry();
+    if (latestEntry == null) return true;
+
+    final now = DateTime.now();
+    final difference = now.difference(latestEntry.date).inDays;
+    return difference > OUTDATED_THRESHOLD_DAYS;
   }
 }

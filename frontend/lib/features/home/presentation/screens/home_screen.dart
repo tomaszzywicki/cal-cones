@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/enums/app_enums.dart';
+import 'package:frontend/core/mixins/day_refresh_mixin.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/goal/data/daily_target_model.dart';
+import 'package:frontend/features/goal/services/daily_target_service.dart';
+import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/home/presentation/widgets/day_macro_card.dart';
+import 'package:frontend/features/home/presentation/widgets/warning_card.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
+import 'package:frontend/features/weight_log/presentation/screens/weight_log_main_screen.dart';
+import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
+import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,60 +22,24 @@ class HomeScreen extends StatefulWidget {
 }
 
 // Removed underscore to make it public for GlobalKey
-class HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, DayRefreshMixin {
   List<MealProductModel> _todayProducts = [];
+  DailyTargetModel? _todayTargets;
   bool _isLoading = true;
 
-  // Default fallback values
-  double _targetKcal = 2000;
-  double _targetCarbs = 250;
-  double _targetProtein = 150;
-  double _targetFat = 70;
+  bool _hasActiveGoal = true;
+  bool _hasWeightData = true;
+  bool _isWeightOutdated = false;
 
   @override
   void initState() {
     super.initState();
-    _calculateLocalTargets();
     loadTodayMacros();
   }
 
-  /// Calculates BMR and Targets based on LOCAL User Data
-  void _calculateLocalTargets() {
-    final user = Provider.of<CurrentUserService>(context, listen: false).currentUser;
-    if (user == null) return;
-
-    // 1. Get basic stats (use defaults if missing)
-    final double weight = 75.0; // TODO: Fetch latest weight from WeightLogs
-    final double height = (user.height ?? 175).toDouble();
-    final int age = user.birthday != null 
-        ? DateTime.now().year - user.birthday!.year 
-        : 25;
-    
-    // 2. Calculate BMR (Mifflin-St Jeor Equation)
-    double bmr;
-    if (user.sex == 'Female') {
-      bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
-    } else {
-      bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
-    }
-
-    // 3. Apply Activity Multiplier
-    double activityMultiplier = 1.2; // Sedentary default
-    if (user.activityLevel == 'light') activityMultiplier = 1.375;
-    if (user.activityLevel == 'moderate') activityMultiplier = 1.55;
-    if (user.activityLevel == 'active') activityMultiplier = 1.725;
-    if (user.activityLevel == 'very_active') activityMultiplier = 1.9;
-
-    final double tdee = bmr * activityMultiplier;
-
-    // 4. Set Targets (e.g. Maintenance)
-    setState(() {
-      _targetKcal = tdee;
-      // Example Split: 50% Carbs, 30% Protein, 20% Fat
-      _targetCarbs = (_targetKcal * 0.50) / 4;
-      _targetProtein = (_targetKcal * 0.30) / 4;
-      _targetFat = (_targetKcal * 0.20) / 9;
-    });
+  @override
+  void onDayChanged() {
+    loadTodayMacros();
   }
 
   Future<void> loadTodayMacros() async {
@@ -76,13 +48,29 @@ class HomeScreenState extends State<HomeScreen> {
 
     try {
       final mealService = Provider.of<MealService>(context, listen: false);
+      final dailyTargetService = context.read<DailyTargetService>();
+      final goalService = context.read<GoalService>();
+      final weightLogService = context.read<WeightLogService>();
+      final currentUserService = context.read<CurrentUserService>();
+
       final today = DateTime.now();
+      final userId = currentUserService.currentUser!.id;
+
+      if (userId != null) {
+        _hasActiveGoal = await goalService.hasActiveGoal(userId);
+        _hasWeightData = await weightLogService.hasWeightData(userId);
+        _isWeightOutdated = await weightLogService.isLatestEntryOutdated();
+      }
+
+      await dailyTargetService.refreshTargetForToday();
 
       // Fetches from LOCAL DATABASE
       final products = await mealService.getMealProductsForDate(today);
+      final targets = await dailyTargetService.getDailyTargetForDate(today);
 
       setState(() {
         _todayProducts = products;
+        _todayTargets = targets;
         _isLoading = false;
       });
     } catch (e) {
@@ -96,6 +84,10 @@ class HomeScreenState extends State<HomeScreen> {
   double get _consumedCarbs => _todayProducts.fold(0, (sum, p) => sum + p.carbs);
   double get _consumedProtein => _todayProducts.fold(0, (sum, p) => sum + p.protein);
   double get _consumedFat => _todayProducts.fold(0, (sum, p) => sum + p.fat);
+  double get _targetKcal => _todayTargets?.calories.toDouble() ?? 0;
+  double get _targetCarbs => _todayTargets != null ? (_todayTargets!.carbsG.toDouble()) : 0;
+  double get _targetProtein => _todayTargets != null ? (_todayTargets!.proteinG.toDouble()) : 0;
+  double get _targetFat => _todayTargets != null ? (_todayTargets!.fatG.toDouble()) : 0;
 
   @override
   Widget build(BuildContext context) {
@@ -109,68 +101,125 @@ class HomeScreenState extends State<HomeScreen> {
           style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold),
         ),
       ),
-      body: RefreshIndicator(
-        onRefresh: loadTodayMacros,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            children: [
-              // Macro Card
-              DayMacroCard(
-                consumedKcal: _consumedKcal,
-                consumedCarbs: _consumedCarbs,
-                consumedProtein: _consumedProtein,
-                consumedFat: _consumedFat,
-                targetKcal: _targetKcal,
-                targetCarbs: _targetCarbs,
-                targetProtein: _targetProtein,
-                targetFat: _targetFat,
-              ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : RefreshIndicator(
+              onRefresh: loadTodayMacros,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: [
+                    // Macro Card
+                    DayMacroCard(
+                      consumedKcal: _consumedKcal,
+                      consumedCarbs: _consumedCarbs,
+                      consumedProtein: _consumedProtein,
+                      consumedFat: _consumedFat,
+                      targetKcal: _targetKcal,
+                      targetCarbs: _targetCarbs,
+                      targetProtein: _targetProtein,
+                      targetFat: _targetFat,
+                    ),
 
-              const SizedBox(height: 16),
+                    if (!_hasWeightData)
+                      WarningCard(
+                        title: 'Missing Weight Data',
+                        subtitle: 'Log your weight to get accurate calorie targets.',
+                        icon: Icons.monitor_weight_outlined,
+                        color: Colors.red,
+                        buttonText: 'Log Weight',
+                        buttonAction: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const AddWeightEntryBottomSheet(),
+                          ).then((_) => loadTodayMacros());
+                        },
+                      ),
 
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 10,
-                        offset: const Offset(0, 2),
+                    if (_isWeightOutdated && _hasWeightData)
+                      WarningCard(
+                        title: 'Outdated weight information',
+                        subtitle:
+                            'Your latest weight entry is older than ${WeightLogService.OUTDATED_THRESHOLD_DAYS} days. Please update it for accurate target calculations.',
+                        icon: Icons.warning_amber_rounded,
+                        color: Colors.lightBlue,
+                        buttonText: 'Update Weight',
+                        buttonAction: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const AddWeightEntryBottomSheet(),
+                          ).then((_) => loadTodayMacros());
+                        },
+                        onAction: () {
+                          Navigator.of(
+                            context,
+                          ).push(MaterialPageRoute(builder: (context) => WeightLogMainScreen()));
+                        },
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Quick Stats',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+
+                    if (!_hasActiveGoal)
+                      WarningCard(
+                        title: 'You have not set a goal',
+                        subtitle: 'Current calorie targets are calculated to help maintain your weight.',
+                        icon: Icons.warning_amber_rounded,
+                        color: Colors.orange,
+                        buttonText: 'Set Goal',
+                        buttonAction: () {
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(builder: (context) => const GoalSetup()),
+                          // ).then((_) => loadTodayMacros());
+                        },
                       ),
-                      const SizedBox(height: 16),
-                      _buildStatRow(
-                        'Total Products',
-                        _todayProducts.length.toString(),
-                        Icons.restaurant_menu,
+
+                    const SizedBox(height: 16),
+
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Quick Stats',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildStatRow(
+                              'Total Products',
+                              _todayProducts.length.toString(),
+                              Icons.restaurant_menu,
+                            ),
+                            const Divider(height: 24),
+                            _buildStatRow(
+                              'Calories Left',
+                              '${(_targetKcal - _consumedKcal).round()}',
+                              Icons.local_fire_department,
+                            ),
+                          ],
+                        ),
                       ),
-                      const Divider(height: 24),
-                      _buildStatRow(
-                        'Calories Left',
-                        '${(_targetKcal - _consumedKcal).round()}',
-                        Icons.local_fire_department,
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 

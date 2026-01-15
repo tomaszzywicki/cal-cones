@@ -64,6 +64,9 @@ class WeightEntryModel extends WeightEntryEntity {
   }
 
   int daysSinceToday() {
-    return date.difference(DateTime.now().toUtc()).inDays;
+    final now = DateTime.now().toUtc();
+    final dateMidnight = DateTime.utc(date.year, date.month, date.day);
+    final nowMidnight = DateTime.utc(now.year, now.month, now.day);
+    return nowMidnight.difference(dateMidnight).inDays;
   }
 }
