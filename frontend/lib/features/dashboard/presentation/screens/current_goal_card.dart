@@ -146,15 +146,19 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
+                              color: isGoalReached ? Colors.green.shade50 : Colors.blue.shade50,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              daysRemaining > 0 ? "$daysRemaining days left" : "Time's up",
+                              isGoalReached
+                                  ? "Completed"
+                                  : daysRemaining > 0
+                                  ? "$daysRemaining days left"
+                                  : "Time's up",
                               style: TextStyle(
                                 fontSize: rel(11),
                                 fontWeight: FontWeight.bold,
-                                color: Colors.blue.shade800,
+                                color: isGoalReached ? Colors.green.shade800 : Colors.blue.shade800,
                               ),
                             ),
                           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/mixins/day_refresh_mixin.dart';
 import 'package:frontend/features/goal/presentation/screens/goal_setup.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
@@ -6,7 +7,6 @@ import 'package:frontend/features/goal/data/goal_model.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/goal/presentation/widgets/active_goal_card.dart';
 import 'package:frontend/features/goal/presentation/widgets/past_goal_card.dart';
-// import 'package:frontend/features/user/presentation/screens/onboarding_screens/goal_setup.dart';
 
 class GoalListScreen extends StatefulWidget {
   const GoalListScreen({super.key});
@@ -15,12 +15,17 @@ class GoalListScreen extends StatefulWidget {
   State<GoalListScreen> createState() => _GoalListScreenState();
 }
 
-class _GoalListScreenState extends State<GoalListScreen> {
+class _GoalListScreenState extends State<GoalListScreen> with WidgetsBindingObserver, DayRefreshMixin {
   late Future<List<GoalModel>> _goalsFuture;
 
   @override
   void initState() {
     super.initState();
+    _refreshGoals();
+  }
+
+  @override
+  void onDayChanged() {
     _refreshGoals();
   }
 
@@ -33,6 +38,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
   @override
   Widget build(BuildContext context) {
     final weightLogService = context.read<WeightLogService>();
+
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -43,7 +49,6 @@ class _GoalListScreenState extends State<GoalListScreen> {
         titleTextStyle: const TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      // Usunęliśmy FloatingActionButton stąd
       body: FutureBuilder<List<GoalModel>>(
         future: _goalsFuture,
         builder: (context, snapshot) {
@@ -64,6 +69,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
           }
 
           // 2. Znajdź i posortuj stare cele
+          // Sortujemy malejąco po dacie startu (najnowsze na górze listy historii)
           final pastGoals = allGoals.where((g) => !g.isCurrent).toList()
             ..sort((a, b) => b.startDate.compareTo(a.startDate));
 
@@ -87,12 +93,10 @@ class _GoalListScreenState extends State<GoalListScreen> {
                 const SizedBox(height: 24),
               ],
 
-              // --- PRZYCISK EDYCJI / NOWEGO CELU ---
-              // Umieszczony pomiędzy sekcjami
+              // --- PRZYCISK ---
               Container(
                 margin: const EdgeInsets.only(bottom: 32.0),
                 width: double.infinity,
-                // USUNIĘTO: height: 56, -> to powodowało ucinanie na telefonie
                 child: ElevatedButton.icon(
                   onPressed: () async {
                     final double currentWeight =
@@ -115,7 +119,6 @@ class _GoalListScreenState extends State<GoalListScreen> {
                     foregroundColor: Colors.white,
                     elevation: 4,
                     shadowColor: Colors.black45,
-                    // DODANO: Padding pionowy, który nada przyciskowi wysokość "naturalnie"
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
@@ -131,22 +134,23 @@ class _GoalListScreenState extends State<GoalListScreen> {
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
                       color: Colors.white,
-                      height: 1.2, // Opcjonalnie: poprawia centrowanie linii tekstu
+                      height: 1.2,
                     ),
                   ),
                 ),
               ),
 
               // --- SEKCJA HISTORII ---
-              const Padding(
-                padding: EdgeInsets.only(left: 4, bottom: 12),
-                child: Text(
-                  "Goal History",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+              if (pastGoals.isNotEmpty) ...[
+                const Padding(
+                  padding: EdgeInsets.only(left: 4, bottom: 12),
+                  child: Text(
+                    "Goal History",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                  ),
                 ),
-              ),
-
-              if (pastGoals.isEmpty)
+                ...pastGoals.map((goal) => PastGoalCard(goal: goal)),
+              ] else ...[
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
@@ -157,7 +161,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
                   ),
                   child: Column(
                     children: [
-                      Icon(Icons.history_toggle_off, size: 48, color: Colors.grey.shade300),
+                      Icon(Icons.history, size: 48, color: Colors.grey.shade300),
                       const SizedBox(height: 12),
                       Text(
                         "No past goals recorded yet.",
@@ -169,9 +173,8 @@ class _GoalListScreenState extends State<GoalListScreen> {
                       ),
                     ],
                   ),
-                )
-              else
-                ...pastGoals.map((goal) => PastGoalCard(goal: goal)),
+                ),
+              ],
 
               const SizedBox(height: 40),
             ],

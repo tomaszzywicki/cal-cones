@@ -162,10 +162,7 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen>
                 // 2. LISTA WPISÓW
                 SliverFillRemaining(
                   hasScrollBody: false,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 100),
-                    child: const WeightEntryContainer(),
-                  ),
+                  child: Padding(padding: const EdgeInsets.only(bottom: 100), child: WeightEntryContainer()),
                 ),
                 // SliverPadding(
                 //   padding: const EdgeInsets.only(bottom: 100),

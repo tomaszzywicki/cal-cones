@@ -72,7 +72,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     try {
       final userId = context.read<CurrentUserService>().getUserId();
       final newGoal = GoalModel(
-        id: 0,
         userId: userId,
         startDate: DateTime.now(),
         targetDate: _estimatedDate!,
