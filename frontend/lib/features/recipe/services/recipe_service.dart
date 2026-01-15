@@ -3,12 +3,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/core/database/local_database_service.dart';
 import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/recipe/data/recipe_model.dart';
-import 'package:google_generative_ai/google_generative_ai.dart'; 
+import 'package:google_generative_ai/google_generative_ai.dart';
 
 class RecipeService {
   final LocalDatabaseService _dbService;
 
-  final String _apiKey = dotenv.env['GOOGLE_API_KEY'] ?? ''; 
+  final String _apiKey = dotenv.env['GOOGLE_API_KEY'] ?? '';
 
   RecipeService(this._dbService);
 
@@ -43,15 +43,17 @@ class RecipeService {
       final model = GenerativeModel(
         model: 'gemini-2.0-flash',
         apiKey: _apiKey,
-        generationConfig: GenerationConfig(
-          responseMimeType: 'application/json',
-        ),
+        generationConfig: GenerationConfig(responseMimeType: 'application/json'),
       );
 
       final ingredientsStr = ingredients.join(", ");
-      final prompt = '''
+      final prompt =
+          '''
       You are a professional chef.
       Create a $mealType recipe using these ingredients: $ingredientsStr.
+      You do not have to use all of them. You have to use just the ones
+      that will make a "normal" eatable meal, but you can also be a little
+      bit creative and spontaneous.
       Assume basic pantry items (oil, salt, pepper) are available.
       
       Return ONLY JSON format. Do not return a list, just a single object:
@@ -72,7 +74,7 @@ class RecipeService {
       }
 
       String cleanJson = response.text!.replaceAll('```json', '').replaceAll('```', '').trim();
-      
+
       final dynamic decoded = jsonDecode(cleanJson);
       Map<String, dynamic> jsonMap;
 
@@ -85,7 +87,6 @@ class RecipeService {
       }
 
       return RecipeModel.fromJson(jsonMap);
-
     } catch (e) {
       AppLogger.error("Recipe generation failed: $e");
       throw Exception("Failed to generate recipe: $e");
