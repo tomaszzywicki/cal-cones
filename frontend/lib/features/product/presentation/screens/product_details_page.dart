@@ -357,8 +357,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                               ),
                             )
                           : Text(
-                              widget.mode == ProductPageMode.edit ? 'Save Changes' : 'Add to log',
-                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                                widget.mode == ProductPageMode.edit
+                                ? 'Save Changes'
+                                : widget.mode == ProductPageMode.addToRecipe
+                                    ? 'Add to ingredients'
+                                    : 'Add to log',                              
+                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                             ),
                     ),
                   ),
