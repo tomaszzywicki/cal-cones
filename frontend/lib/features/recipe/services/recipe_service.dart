@@ -32,9 +32,21 @@ class RecipeService {
     await db.delete('recipes', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> updateRecipe(RecipeModel recipe) async {
+    if (recipe.id == null) return;
+    final db = await _dbService.database;
+    await db.update(
+      'recipes',
+      recipe.toMap(),
+      where: 'id = ?',
+      whereArgs: [recipe.id],
+    );
+    AppLogger.info('Recipe updated with ID: ${recipe.id}');
+  }
+
   // --- AI Generation ---
 
-  Future<RecipeModel> generateRecipe(List<String> ingredients, String mealType) async {
+  Future<RecipeModel> generateRecipe(List<String> ingredients, String mealType, {String? avoidRecipeName}) async {
     if (_apiKey.isEmpty) {
       throw Exception("GOOGLE_API_KEY not found in .env");
     }
@@ -47,10 +59,16 @@ class RecipeService {
       );
 
       final ingredientsStr = ingredients.join(", ");
+      
+      final avoidInstruction = avoidRecipeName != null 
+          ? 'The user previously had "$avoidRecipeName" but wants something different. Do NOT generate the same dish again. Create a clearly different variation.' 
+          : '';
+
       final prompt =
           '''
       You are a professional chef.
       Create a $mealType recipe using these ingredients: $ingredientsStr.
+      $avoidInstruction
       You do not have to use all of them. You have to use just the ones
       that will make a "normal" eatable meal, but you can also be a little
       bit creative and spontaneous.

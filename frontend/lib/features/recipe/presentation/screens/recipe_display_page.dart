@@ -14,6 +14,65 @@ class RecipeDisplayPage extends StatefulWidget {
 }
 
 class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
+  late RecipeModel _recipe;
+  bool _isRegenerating = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _recipe = widget.recipe;
+  }
+
+  Future<void> _regenerateRecipe() async {
+    setState(() => _isRegenerating = true);
+    final service = Provider.of<RecipeService>(context, listen: false);
+
+    try {
+      // 1. Generate new recipe using existing ingredients
+      // We pass "Meal" as a generic type since we want a variation using the same ingredients
+      final newRecipeData = await service.generateRecipe(
+        _recipe.ingredients, 
+        "Meal",
+        avoidRecipeName: _recipe.name,
+      );
+
+      // 2. Create updated model preserving the ID and creation date
+      final updatedRecipe = RecipeModel(
+        id: _recipe.id,
+        name: newRecipeData.name,
+        time: newRecipeData.time,
+        calories: newRecipeData.calories,
+        ingredients: newRecipeData.ingredients,
+        instructions: newRecipeData.instructions,
+        createdAt: _recipe.createdAt, // Preserve original date
+      );
+
+      // 3. Update in DB
+      if (_recipe.id != null) {
+        await service.updateRecipe(updatedRecipe);
+      }
+
+      // 4. Update UI
+      if (mounted) {
+        setState(() {
+          _recipe = updatedRecipe;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Recipe updated!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to regenerate: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isRegenerating = false);
+      }
+    }
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -24,7 +83,8 @@ class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context), 
+          // Pass result 'true' if we modified the recipe (so previous screen can refresh)
+          onPressed: () => Navigator.pop(context, _recipe != widget.recipe), 
         ),
         actions: [
           IconButton(
@@ -39,7 +99,7 @@ class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              widget.recipe.name,
+              _recipe.name,
               style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, height: 1.2),
             ),
             const SizedBox(height: 12),
@@ -48,13 +108,13 @@ class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
               children: [
                 Chip(
                   avatar: const Icon(Icons.timer, size: 16),
-                  label: Text(widget.recipe.time),
+                  label: Text(_recipe.time),
                   backgroundColor: Colors.grey[100],
                 ),
                 const SizedBox(width: 8),
                 Chip(
                   avatar: const Icon(Icons.local_fire_department, size: 16, color: Colors.orange),
-                  label: Text('${widget.recipe.calories} kcal'),
+                  label: Text('${_recipe.calories} kcal'),
                   backgroundColor: Colors.orange.withOpacity(0.1),
                 ),
               ],
@@ -71,7 +131,7 @@ class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: widget.recipe.ingredients.map((ing) => Padding(
+                children: _recipe.ingredients.map((ing) => Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,7 +147,7 @@ class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
 
             const Text('Instructions', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 12),
-            ...widget.recipe.instructions.asMap().entries.map((entry) {
+            ..._recipe.instructions.asMap().entries.map((entry) {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 20),
                 child: Row(
@@ -97,7 +157,7 @@ class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
                       width: 24,
                       height: 24,
                       alignment: Alignment.center,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: Colors.black,
                         shape: BoxShape.circle,
                       ),
@@ -117,6 +177,45 @@ class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
                 ),
               );
             }),
+
+            const SizedBox(height: 40),
+
+            // REGENERATE BUTTON
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                onPressed: _isRegenerating ? null : _regenerateRecipe,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                ),
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _isRegenerating
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : const Icon(Icons.refresh),
+                      const SizedBox(width: 12), 
+                      Text(
+                        _isRegenerating ? 'Generating...' : 'Regenerate Recipe',
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
@@ -145,12 +244,12 @@ class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
     );
 
     // 2. Perform Delete if confirmed
-    if (confirmed == true && widget.recipe.id != null) {
+    if (confirmed == true && _recipe.id != null) {
        final service = Provider.of<RecipeService>(context, listen: false);
-       await service.deleteRecipe(widget.recipe.id!);
+       await service.deleteRecipe(_recipe.id!);
        
        if (mounted) {
-         // Return 'true' to indicate a change happened
+         // Return 'true' to indicate list refresh needed
          Navigator.pop(context, true);
        }
     }
