@@ -38,7 +38,7 @@ class _AiProductCardState extends State<AiProductCard> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isAccepted ? Colors.green : Colors.grey[200]!, width: isAccepted ? 2 : 1),
+        border: Border.all(color: isAccepted ? Colors.black : Colors.grey[200]!, width: isAccepted ? 2 : 1),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
         ],
@@ -55,15 +55,42 @@ class _AiProductCardState extends State<AiProductCard> {
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
               ),
             ),
-            title: Text(
-              isAccepted ? _selectedProduct!.product.name : topPrediction.product.name,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-            ),
-            subtitle: Text(
-              isAccepted
-                  ? _selectedProduct!.product.manufacturer ?? 'Unknown'
-                  : topPrediction.product.manufacturer ?? 'Unknown',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isAccepted ? _selectedProduct!.product.name : topPrediction.product.name,
+                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+                // ✅ Weight input obok nazwy (gdy zaakceptowano)
+                if (isAccepted) ...[
+                  const SizedBox(width: 12),
+                  SizedBox(
+                    width: 90,
+                    child: TextField(
+                      controller: _weightController,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                      decoration: InputDecoration(
+                        suffix: Text('g', style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                        filled: true,
+                        fillColor: Colors.grey[50],
+                        isDense: true,
+                      ),
+                      onChanged: (_) => _updateAcceptedProduct(),
+                    ),
+                  ),
+                ],
+              ],
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -83,9 +110,6 @@ class _AiProductCardState extends State<AiProductCard> {
 
           // Expanded alternatives (tylko gdy nie zaakceptowano)
           if (_isExpanded && !isAccepted && widget.predictions.length > 1) _buildAlternatives(),
-
-          // Weight input (gdy zaakceptowano)
-          if (isAccepted) _buildWeightInput(),
 
           // Accept button (gdy nie zaakceptowano)
           if (!isAccepted) _buildAcceptButton(topPrediction),
@@ -163,45 +187,6 @@ class _AiProductCardState extends State<AiProductCard> {
             Icon(Icons.check_circle_outline, color: Colors.grey[400], size: 20),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildWeightInput() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.green.withValues(alpha: 0.05),
-        border: Border(top: BorderSide(color: Colors.grey[200]!)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.scale, color: Colors.green, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: TextField(
-              controller: _weightController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Weight (g)',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                filled: true,
-                fillColor: Colors.white,
-              ),
-              onChanged: (_) => _updateAcceptedProduct(),
-            ),
-          ),
-          const SizedBox(width: 12),
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.orange),
-            onPressed: () => setState(() {
-              _selectedProduct = null;
-              _isExpanded = false;
-            }),
-            tooltip: 'Change selection',
-          ),
-        ],
       ),
     );
   }
