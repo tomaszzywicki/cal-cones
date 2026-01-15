@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
-import 'package:provider/provider.dart';
+import 'package:frontend/features/goal/presentation/widgets/active_goal_card.dart';
+import 'package:frontend/features/goal/presentation/widgets/past_goal_card.dart';
+// import 'package:frontend/features/user/presentation/screens/onboarding_screens/goal_setup.dart'; // Odkomentuj, gdy będziesz miał ten ekran
 
 class GoalListScreen extends StatefulWidget {
   const GoalListScreen({super.key});
@@ -17,100 +19,123 @@ class _GoalListScreenState extends State<GoalListScreen> {
   @override
   void initState() {
     super.initState();
-    final goalService = context.read<GoalService>();
-    _goalsFuture = goalService.getGoalHistory();
+    _refreshGoals();
   }
 
-  String _formatDate(DateTime date) {
-    return DateFormat('dd.MM.yyyy').format(date);
+  void _refreshGoals() {
+    setState(() {
+      _goalsFuture = context.read<GoalService>().getGoalHistory();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Historia Celów'), centerTitle: true),
+      backgroundColor: Colors.grey.shade100,
+      appBar: AppBar(
+        title: const Text('My Goals'),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
+        titleTextStyle: const TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
+        iconTheme: const IconThemeData(color: Colors.black),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // TODO: Nawigacja do ekranu edycji lub dodawania celu
+          // Navigator.push(context, MaterialPageRoute(builder: (_) => GoalSetupScreen()));
+        },
+        label: const Text("Edit Goal"),
+        icon: const Icon(Icons.edit),
+        backgroundColor: Colors.black87,
+      ),
       body: FutureBuilder<List<GoalModel>>(
         future: _goalsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Błąd: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('Brak zapisanych celów.'));
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          final goals = snapshot.data!;
+          // Jeśli nie ma danych w ogóle (null), traktujemy to jako pustą listę
+          final allGoals = snapshot.data ?? [];
 
-          return ListView.builder(
+          // 1. Znajdź aktywny cel
+          GoalModel? activeGoal;
+          try {
+            activeGoal = allGoals.firstWhere((g) => g.isCurrent);
+          } catch (e) {
+            activeGoal = null;
+          }
+
+          // 2. Znajdź i posortuj stare cele (od najnowszych)
+          final pastGoals = allGoals.where((g) => !g.isCurrent).toList()
+            ..sort((a, b) => b.startDate.compareTo(a.startDate));
+
+          return ListView(
             padding: const EdgeInsets.all(16.0),
-            itemCount: goals.length,
-            itemBuilder: (context, index) {
-              final goal = goals[index];
-              return _buildGoalCard(goal);
-            },
+            children: [
+              // --- SEKCJA AKTYWNEGO CELU ---
+              if (activeGoal != null) ...[
+                ActiveGoalCard(goal: activeGoal),
+                const SizedBox(height: 24),
+              ] else ...[
+                // Opcjonalnie: Stan, gdy nie ma nawet aktywnego celu
+                const Card(
+                  color: Colors.white,
+                  child: Padding(
+                    padding: EdgeInsets.all(24.0),
+                    child: Center(child: Text("No active goal set.")),
+                  ),
+                ),
+                const SizedBox(height: 24),
+              ],
+
+              // --- SEKCJA HISTORII ---
+              const Padding(
+                padding: EdgeInsets.only(left: 4, bottom: 12),
+                child: Text(
+                  "Goal History",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87),
+                ),
+              ),
+
+              if (pastGoals.isEmpty)
+                // --- PUSTY STAN HISTORII (EMPTY STATE) ---
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Column(
+                    children: [
+                      Icon(Icons.history_toggle_off, size: 48, color: Colors.grey.shade300),
+                      const SizedBox(height: 12),
+                      Text(
+                        "No past goals recorded yet.",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+                // --- LISTA STARYCH CELÓW ---
+                ...pastGoals.map((goal) => PastGoalCard(goal: goal)),
+
+              // Padding pod FAB
+              const SizedBox(height: 80),
+            ],
           );
         },
       ),
-    );
-  }
-
-  Widget _buildGoalCard(GoalModel goal) {
-    final theme = Theme.of(context);
-    final isCurrent = goal.isCurrent;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16.0),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  isCurrent ? 'Aktywny Cel' : 'Zakończony',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: isCurrent ? Colors.green : Colors.grey,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                if (goal.endDate != null)
-                  Text('Koniec: ${_formatDate(goal.endDate!)}', style: theme.textTheme.bodySmall),
-              ],
-            ),
-            const Divider(),
-            const SizedBox(height: 8),
-            _buildInfoRow('Okres:', '${_formatDate(goal.startDate)} - ${_formatDate(goal.targetDate)}'),
-            const SizedBox(height: 4),
-            _buildInfoRow('Waga początkowa:', '${goal.startWeight} kg'),
-            const SizedBox(height: 4),
-            _buildInfoRow('Cel wagi:', '${goal.targetWeight} kg'),
-            const SizedBox(height: 4),
-            _buildInfoRow('Tempo:', '${goal.tempo} kg/tydzień'),
-            if (!isCurrent && goal.endWeight != null) ...[
-              const SizedBox(height: 4),
-              _buildInfoRow('Waga końcowa:', '${goal.endWeight} kg', isBold: true),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value, {bool isBold = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.black54)),
-        Text(
-          value,
-          style: TextStyle(fontWeight: isBold ? FontWeight.bold : FontWeight.normal, color: Colors.black87),
-        ),
-      ],
     );
   }
 }
