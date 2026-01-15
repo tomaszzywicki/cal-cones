@@ -31,32 +31,19 @@ class GoalService {
   }
 
   /// Ustawia nowy cel, automatycznie zamykając poprzedni
-  Future<void> setNewGoal(GoalModel newGoal) async {
+  Future<void> setNewGoal(GoalModel newGoal, {double? closedGoalFinalWeight}) async {
     try {
       // 1. Pobierz aktualny cel
       final userId = _currentUserService.getUserId();
       final currentGoal = await _goalRepository.getActiveGoal(userId);
 
-      if (currentGoal != null) {
-        // 2. Zamknij stary cel (ustaw datę końca i flagę is_current)
-        // Zakładamy, że GoalModel ma metodę copyWith
-        // lub tworzymy nowy obiekt ręcznie, jeśli copyWith nie obsługuje nulli w specyficzny sposób
-        final closedGoal = GoalModel(
-          id: currentGoal.id,
-          uuid: currentGoal.uuid,
-          userId: currentGoal.userId,
-          startDate: currentGoal.startDate,
-          targetDate: currentGoal.targetDate,
-          endDate: DateTime.now(), // Zamykamy dzisiaj
-          startWeight: currentGoal.startWeight,
-          targetWeight: currentGoal.targetWeight,
-          endWeight: currentGoal.endWeight, // Tu można wstawić aktualną wagę jeśli mamy pod ręką
-          tempo: currentGoal.tempo,
-          isCurrent: false, // Już nie jest aktualny
-        );
+      final closedGoal = currentGoal?.copyWith(
+        endDate: DateTime.now(),
+        endWeight: closedGoalFinalWeight ?? currentGoal.endWeight,
+        isCurrent: false,
+      );
 
-        await _goalRepository.updateGoal(closedGoal);
-      }
+      await _goalRepository.updateGoal(closedGoal!);
 
       // 3. Zapisz nowy cel (jako aktualny)
       // Upewnij się, że newGoal ma isCurrent = true i endDate = null

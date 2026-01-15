@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/features/goal/presentation/screens/goal_setup.dart';
+import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
@@ -30,6 +32,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final weightLogService = context.read<WeightLogService>();
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
@@ -91,8 +94,21 @@ class _GoalListScreenState extends State<GoalListScreen> {
                 width: double.infinity,
                 // USUNIĘTO: height: 56, -> to powodowało ucinanie na telefonie
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    // TODO: Tu w przyszłości: Navigator.push(...);
+                  onPressed: () async {
+                    final double currentWeight =
+                        weightLogService.latestEntry?.weight ?? activeGoal?.startWeight ?? 70.0;
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => GoalSetupScreen(
+                          currentWeight: currentWeight,
+                          isReplacingExistingGoal: activeGoal != null,
+                        ),
+                      ),
+                    );
+                    if (result == true) {
+                      _refreshGoals();
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.black,

@@ -47,6 +47,34 @@ class GoalModel extends GoalEntity {
     };
   }
 
+  GoalModel copyWith({
+    int? id,
+    String? uuid,
+    int? userId,
+    DateTime? startDate,
+    DateTime? targetDate,
+    DateTime? endDate,
+    double? startWeight,
+    double? targetWeight,
+    double? endWeight,
+    double? tempo,
+    bool? isCurrent,
+  }) {
+    return GoalModel(
+      id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
+      userId: userId ?? this.userId,
+      startDate: startDate ?? this.startDate,
+      targetDate: targetDate ?? this.targetDate,
+      endDate: endDate ?? this.endDate,
+      startWeight: startWeight ?? this.startWeight,
+      targetWeight: targetWeight ?? this.targetWeight,
+      endWeight: endWeight ?? this.endWeight,
+      tempo: tempo ?? this.tempo,
+      isCurrent: isCurrent ?? this.isCurrent,
+    );
+  }
+
   double get totalWeightChange => targetWeight - startWeight;
   bool get isWeightLoss => totalWeightChange < 0;
 }

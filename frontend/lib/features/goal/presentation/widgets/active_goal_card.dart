@@ -50,31 +50,49 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
     // --- CALCULATIONS ---
     final now = DateTime.now();
 
-    // Time progress
+    // 1. Time progress
     final totalDays = widget.goal.targetDate.difference(widget.goal.startDate).inDays;
     final daysElapsed = now.difference(widget.goal.startDate).inDays;
     final daysRemaining = widget.goal.targetDate.difference(now).inDays;
 
     double timeProgress = 0.0;
     if (totalDays > 0) {
-      timeProgress = (daysElapsed / totalDays).clamp(0.0, 1.0);
+      // Obliczamy surowy postęp czasu
+      timeProgress = (daysElapsed / totalDays);
     }
 
-    // Weight progress
+    // 2. Weight progress
     final double start = widget.goal.startWeight;
     final double target = widget.goal.targetWeight;
-    double weightProgress = 0.0;
+    double rawWeightProgress = 0.0; // Surowa wartość do logiki "czerwonego tła"
+
     if ((start - target).abs() > 0) {
-      weightProgress = ((start - currentWeight) / (start - target)).clamp(0.0, 1.0);
+      rawWeightProgress = (start - currentWeight) / (start - target);
     }
 
+    // 3. Wizualne wartości (Clampowane do min 0.1, max 1.0)
+    // Dzięki temu paski nigdy nie są puste, zawsze widać "początek"
+    final double visualTimeProgress = timeProgress.clamp(0.1, 1.0);
+    final double visualWeightProgress = rawWeightProgress.clamp(0.1, 1.0);
+
+    // 4. Logika kolorów i tła (zapożyczona z CurrentGoalCard)
+    // Jeśli postęp czasu jest większy niż postęp wagi, tło staje się czerwone
+    bool isBehindSchedule = timeProgress > rawWeightProgress;
+
+    // Kolor wypełnienia paska wagi
+    bool isGoalReached = rawWeightProgress >= 1.0;
+    Color weightColor = isGoalReached ? const Color(0xFF43A047) : const Color(0xFF4CAF50);
+
+    // Kolor fali (czasu)
+    Color waveColor = const Color(0xFF1976D2).withOpacity(0.7);
+
+    // Kolor tła paska wagi (Czerwony jeśli jesteśmy w tyle, Szary jeśli ok)
+    Color weightBarBackgroundColor = isBehindSchedule ? Colors.red.shade100 : Colors.grey.shade200;
+
+    // Obliczenia różnicy wagi dla tekstu
     final double difference = currentWeight - start;
     final bool isWeightLossGoal = start > target;
     final bool isGoodProgress = isWeightLossGoal ? difference <= 0 : difference >= 0;
-
-    Color weightColor = weightProgress >= 1.0 ? const Color(0xFF43A047) : const Color(0xFF4CAF50);
-    Color waveColor = const Color(0xFF1976D2).withOpacity(0.7);
-
     String diffSign = difference > 0 ? '+' : '';
     Color diffColor = isGoodProgress ? const Color(0xFF43A047) : const Color(0xFFE53935);
 
@@ -149,7 +167,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                 Transform.translate(
                   offset: const Offset(0, -6),
                   child: Text(
-                    "($diffSign${difference.toStringAsFixed(1)} kg)",
+                    "$diffSign${difference.toStringAsFixed(1)} kg since start",
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: diffColor),
                   ),
                 ),
@@ -158,7 +176,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
 
             const SizedBox(height: 40),
 
-            // --- TEMPO GAUGE (Cleaner Look) ---
+            // --- TEMPO GAUGE ---
             Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -236,7 +254,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                   ),
                 ),
 
-                // Time Bar
+                // Time Bar (Blue / Wave)
                 SizedBox(
                   height: 14,
                   width: double.infinity,
@@ -259,7 +277,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                         child: CustomPaint(
                           size: Size.infinite,
                           painter: OceanWavePainter(
-                            progress: timeProgress,
+                            progress: visualTimeProgress, // Używamy clampowanej wartości (min 0.1)
                             animationValue: _waveController,
                             color: waveColor,
                           ),
@@ -270,15 +288,16 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                 ),
                 const SizedBox(height: 2),
 
-                // Weight Bar
+                // Weight Bar (Green / Red Background)
                 SizedBox(
                   height: 36,
                   width: double.infinity,
                   child: Stack(
                     children: [
+                      // Tło - zmienia się na czerwone, jeśli jesteśmy w tyle
                       Container(
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade200,
+                          color: weightBarBackgroundColor,
                           borderRadius: const BorderRadius.only(
                             bottomLeft: Radius.circular(8),
                             bottomRight: Radius.circular(8),
@@ -294,20 +313,22 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                           builder: (context, constraints) {
                             return Stack(
                               children: [
+                                // Główny pasek postępu (min 0.1 szerokości)
                                 FractionallySizedBox(
-                                  widthFactor: weightProgress > 0 ? weightProgress : 0.001,
+                                  widthFactor: visualWeightProgress,
                                   child: Container(color: weightColor),
                                 ),
-                                if (weightProgress > 0)
+                                // Efekt Shimmer (tylko na wypełnionej części)
+                                if (rawWeightProgress > 0)
                                   FractionallySizedBox(
-                                    widthFactor: weightProgress,
+                                    widthFactor: visualWeightProgress,
                                     child: AnimatedBuilder(
                                       animation: _shimmerController,
                                       builder: (context, child) {
                                         return Transform.translate(
                                           offset: Offset(
                                             constraints.maxWidth *
-                                                weightProgress *
+                                                visualWeightProgress *
                                                 (_shimmerController.value * 2 - 1),
                                             0,
                                           ),
@@ -332,6 +353,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                           },
                         ),
                       ),
+                      // Etykiety Start / Target
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -346,7 +368,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                                   color: Colors.black54,
                                 ),
                               ),
-                              const Icon(Icons.arrow_forward, size: 14, color: Colors.black45),
+                              const Icon(Icons.double_arrow_outlined, size: 20, color: Colors.black54),
                               Text(
                                 "Target: ${target.toStringAsFixed(1)}",
                                 style: const TextStyle(
@@ -387,48 +409,32 @@ class TempoGaugePainter extends CustomPainter {
     final radius = size.width / 2;
     final rect = Rect.fromCircle(center: center, radius: radius);
 
-    // 1. Definiujemy kolory (początek i koniec) do "zaślepek"
-    final Color startColor = const Color(0xFF4CAF50); // Zielony
-    final Color endColor = const Color(0xFFD32F2F); // Czerwony
+    final Color startColor = const Color(0xFF4CAF50);
+    final Color endColor = const Color(0xFFD32F2F);
 
-    // 2. GRADIENT (Tęcza)
     final gradient = SweepGradient(
       startAngle: math.pi,
       endAngle: 2 * math.pi,
-      colors: [
-        startColor, // Green
-        const Color(0xFFFFEB3B), // Yellow
-        const Color(0xFFFF9800), // Orange
-        endColor, // Red
-      ],
+      colors: [startColor, const Color(0xFFFFEB3B), const Color(0xFFFF9800), endColor],
       stops: const [0.0, 0.4, 0.7, 1.0],
     ).createShader(rect);
 
     final arcPaint = Paint()
       ..shader = gradient
       ..style = PaintingStyle.stroke
-      // Używamy .butt (ścięte), bo sami narysujemy idealne kółka na końcach
       ..strokeCap = StrokeCap.butt
       ..strokeWidth = 6;
 
-    // Rysujemy łuk tęczy
     canvas.drawArc(rect, math.pi, math.pi, false, arcPaint);
 
-    // 3. MANUALNE ZAŚLEPKI (Caps)
-    // To naprawia problem "uciętego" lub wyblakłego końca.
-    // Rysujemy kółka w kolorze startowym i końcowym na obu krańcach łuku.
+    final capRadius = 3.0;
 
-    final capRadius = 3.0; // Połowa grubości linii (6 / 2)
-
-    // Lewa zaślepka (Zielona) - na godzinie 9:00 (kąt PI)
     final startCapCenter = Offset(center.dx - radius, center.dy);
     canvas.drawCircle(startCapCenter, capRadius, Paint()..color = startColor);
 
-    // Prawa zaślepka (Czerwona) - na godzinie 3:00 (kąt 0 / 2PI)
     final endCapCenter = Offset(center.dx + radius, center.dy);
     canvas.drawCircle(endCapCenter, capRadius, Paint()..color = endColor);
 
-    // 4. WSKAZÓWKA
     final currentProgress = normalizedTempo * animation.value;
     final needleAngle = math.pi + (currentProgress * math.pi);
 
@@ -451,7 +457,7 @@ class TempoGaugePainter extends CustomPainter {
   }
 }
 
-// --- OCEAN WAVE PAINTER (Bez zmian) ---
+// --- OCEAN WAVE PAINTER ---
 class OceanWavePainter extends CustomPainter {
   final double progress;
   final Animation<double> animationValue;
