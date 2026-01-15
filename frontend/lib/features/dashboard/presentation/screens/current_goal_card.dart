@@ -1,40 +1,59 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';
 
-class CurrentGoalCard extends StatelessWidget {
+class CurrentGoalCard extends StatefulWidget {
   const CurrentGoalCard({super.key});
 
   @override
+  State<CurrentGoalCard> createState() => _CurrentGoalCardState();
+}
+
+class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderStateMixin {
+  late AnimationController _shimmerController;
+  late AnimationController _waveController;
+
+  @override
+  void initState() {
+    super.initState();
+    // Efekt światła (shimmer)
+    _shimmerController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
+
+    // Efekt fali (ocean)
+    _waveController = AnimationController(vsync: this, duration: const Duration(seconds: 10))..repeat();
+  }
+
+  @override
+  void dispose() {
+    _shimmerController.dispose();
+    _waveController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    // 1. Get Weight Synchronously from Provider
     final weightLogService = context.watch<WeightLogService>();
     final double? currentWeight = weightLogService.latestEntry?.weight;
 
-    // 2. Get Goal Asynchronously via FutureBuilder
     return FutureBuilder<GoalModel?>(
       future: context.read<GoalService>().getActiveGoal(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Card(
             color: Colors.white,
-            child: SizedBox(
-              height: 140, // Reduced height for loading state
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            ),
+            child: SizedBox(height: 160, child: Center(child: CircularProgressIndicator())),
           );
         }
 
         final activeGoal = snapshot.data;
-
         if (activeGoal == null) {
           return const Card(
             color: Colors.white,
             child: Padding(
-              padding: EdgeInsets.all(12.0),
+              padding: EdgeInsets.all(24.0),
               child: Center(
                 child: Text("No active goal", style: TextStyle(color: Colors.grey)),
               ),
@@ -42,16 +61,15 @@ class CurrentGoalCard extends StatelessWidget {
           );
         }
 
-        // 3. Render Content
-        return _buildGoalContent(activeGoal, currentWeight ?? activeGoal.startWeight);
+        return _buildSeparatedContent(activeGoal, currentWeight ?? activeGoal.startWeight);
       },
     );
   }
 
-  Widget _buildGoalContent(GoalModel goal, double currentWeight) {
+  Widget _buildSeparatedContent(GoalModel goal, double currentWeight) {
     final now = DateTime.now();
 
-    // --- 1. TIME CALCULATIONS ---
+    // --- 1. OBLICZENIA CZASU ---
     final totalDays = goal.targetDate.difference(goal.startDate).inDays;
     final daysElapsed = now.difference(goal.startDate).inDays;
     final daysRemaining = goal.targetDate.difference(now).inDays;
@@ -61,7 +79,7 @@ class CurrentGoalCard extends StatelessWidget {
       timeProgress = (daysElapsed / totalDays).clamp(0.0, 1.0);
     }
 
-    // --- 2. WEIGHT CALCULATIONS ---
+    // --- 2. OBLICZENIA WAGI ---
     final double start = goal.startWeight;
     final double target = goal.targetWeight;
 
@@ -69,85 +87,250 @@ class CurrentGoalCard extends StatelessWidget {
     final totalDist = (start - target).abs();
     final coveredDist = (start - currentWeight).abs();
 
-    // Check direction
     bool isMovingRightWay = goal.isWeightLoss ? currentWeight <= start : currentWeight >= start;
 
     if (totalDist > 0 && isMovingRightWay) {
       weightProgress = (coveredDist / totalDist).clamp(0.0, 1.0);
     }
 
-    // Statuses
+    // Kolory
     bool isGoalReached = weightProgress >= 1.0;
+    Color weightColor = isMovingRightWay ? const Color(0xFF4CAF50) : const Color(0xFFE57373);
+    if (isGoalReached) weightColor = const Color(0xFF43A047);
 
-    // Logic: Green if weight progress >= time progress, else Red
-    Color weightBarColor = weightProgress >= timeProgress ? Colors.green : Colors.red;
-
-    // Weight change text
-    final change = goal.totalWeightChange;
-    final changeStr = change > 0 ? "+${change.toStringAsFixed(1)}" : change.toStringAsFixed(1);
+    // Kolor fali
+    Color waveColor = const Color(0xFF1976D2).withOpacity(0.7);
 
     return Card(
-      elevation: 1, // Reduced elevation for a cleaner look
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: Colors.white,
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 12.0), // Compact padding
+        padding: const EdgeInsets.all(20.0),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Wrap content height
+          // mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- HEADER: Start -> Target ---
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // --- HEADER ---
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildCompactWeightInfo("Start", start),
-                Column(
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Text(
-                      "$changeStr kg",
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey, fontSize: 10),
+                    const Text(
+                      "CURRENTLY",
+                      style: TextStyle(
+                        fontSize: 8,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.0,
+                      ),
                     ),
-                    const Icon(Icons.arrow_forward, color: Colors.grey, size: 16),
+                    // Days Left
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        daysRemaining > 0 ? "$daysRemaining days left" : "Time's up",
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade800,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
-                _buildCompactWeightInfo("Goal", target),
+                Transform.translate(
+                  offset: const Offset(0, -6),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      Text(
+                        currentWeight.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 42,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black87,
+                          letterSpacing: -1.5,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Text(
+                        "kg",
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
 
-            const SizedBox(height: 12), // Reduced spacing
-            // --- TIME PROGRESS ---
-            _buildCompactProgressRow(
-              label: "Time",
-              statusText: daysRemaining > 0 ? "$daysRemaining days left" : "Time's up",
-              progress: timeProgress,
-              barColor: Colors.blue,
-              textColor: Colors.blue,
-            ),
+            // const SizedBox(height: 8),
 
-            const SizedBox(height: 8), // Reduced spacing
-            // --- WEIGHT PROGRESS ---
-            _buildCompactProgressRow(
-              label: "Progress",
-              statusText: isGoalReached
-                  ? "DONE!"
-                  : (!isMovingRightWay ? "No progress" : "${(weightProgress * 100).toInt()}%"),
-              progress: weightProgress,
-              barColor: isGoalReached ? Colors.green : weightBarColor,
-              textColor: isGoalReached ? Colors.green : (!isMovingRightWay ? Colors.red : weightBarColor),
-            ),
-
-            const SizedBox(height: 8), // Reduced spacing
-            // --- FOOTER: Dates (Very small) ---
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            // --- 1. PASEK CZASU (OCEAN WAVE) - GÓRNY ---
+            Column(
               children: [
-                Text(
-                  DateFormat('dd.MM').format(goal.startDate),
-                  style: TextStyle(color: Colors.grey[400], fontSize: 9),
+                SizedBox(
+                  height: 8, // Wysokość paska czasu
+                  child: Stack(
+                    children: [
+                      // Tło paska
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.blue.shade100.withOpacity(0.5),
+                          // bottom 2 px rounded, top 4 px rounded
+                          // borderRadius: BorderRadius.circular(3),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(3),
+                            topRight: Radius.circular(3),
+                            bottomLeft: Radius.circular(0),
+                            bottomRight: Radius.circular(0),
+                          ),
+                        ),
+                      ),
+                      // Fala
+                      ClipRRect(
+                        // borderRadius: BorderRadius.circular(0),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(3),
+                          topRight: Radius.circular(3),
+                          bottomLeft: Radius.circular(0),
+                          bottomRight: Radius.circular(0),
+                        ),
+                        child: CustomPaint(
+                          size: Size.infinite,
+                          painter: OceanWavePainter(
+                            progress: timeProgress,
+                            animationValue: _waveController,
+                            color: waveColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  "Ends: ${DateFormat('dd.MM.yy').format(goal.targetDate)}",
-                  style: TextStyle(color: Colors.grey[400], fontSize: 9),
+                const SizedBox(height: 1), // Odstęp między paskami
+                // --- 2. PASEK WAGI (SHIMMER) - DOLNY ---
+                SizedBox(
+                  height: 24, // Wysokość paska wagi (nieco grubszy)
+                  child: Stack(
+                    children: [
+                      // Tło paska
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade200,
+                          // borderRadius: BorderRadius.circular(3),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(0),
+                            topRight: Radius.circular(0),
+                            bottomLeft: Radius.circular(3),
+                            bottomRight: Radius.circular(3),
+                          ),
+                        ),
+                      ),
+                      // Pasek Postępu
+                      ClipRRect(
+                        // borderRadius: BorderRadius.circular(4),
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(0),
+                          topRight: Radius.circular(0),
+                          bottomLeft: Radius.circular(3),
+                          bottomRight: Radius.circular(3),
+                        ),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            return Stack(
+                              children: [
+                                // Kolor bazowy
+                                FractionallySizedBox(
+                                  widthFactor: weightProgress,
+                                  child: Container(color: weightColor),
+                                ),
+                                // Shimmer
+                                if (weightProgress > 0)
+                                  FractionallySizedBox(
+                                    widthFactor: weightProgress,
+                                    child: AnimatedBuilder(
+                                      animation: _shimmerController,
+                                      builder: (context, child) {
+                                        return Transform.translate(
+                                          offset: Offset(
+                                            constraints.maxWidth *
+                                                weightProgress *
+                                                (_shimmerController.value * 2 - 1),
+                                            0,
+                                          ),
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [
+                                                  Colors.white.withOpacity(0.0),
+                                                  Colors.white.withOpacity(0.3),
+                                                  Colors.white.withOpacity(0.0),
+                                                ],
+                                                stops: const [0.0, 0.5, 1.0],
+                                              ),
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      // Weights on bar
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 8.0),
+                          child: Text(
+                            start.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      ),
+                      // Arrow in the middle
+                      const Center(
+                        child: Icon(
+                          Icons.double_arrow_sharp,
+                          size: 16,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Text(
+                            target.toStringAsFixed(1),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -156,60 +339,57 @@ class CurrentGoalCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildCompactWeightInfo(String label, double weight) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label.toUpperCase(),
-          style: const TextStyle(
-            fontSize: 9,
-            color: Colors.grey,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
-        ),
-        Text(
-          "${weight.toStringAsFixed(1)}",
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-        ),
-      ],
-    );
+// --- OCEAN WAVE PAINTER ---
+class OceanWavePainter extends CustomPainter {
+  final double progress;
+  final Animation<double> animationValue;
+  final Color color;
+
+  OceanWavePainter({required this.progress, required this.animationValue, required this.color})
+    : super(repaint: animationValue);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress <= 0) return;
+
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    final double drawWidth = size.width * progress;
+
+    // Parametry fali dla małego paska
+    final double waveHeight = size.height * 0.2;
+    final double waveBaseY = size.height * 0.2;
+
+    path.moveTo(0, size.height);
+    path.lineTo(0, _calculateWaveY(0, size.width, waveHeight, waveBaseY));
+
+    for (double x = 0; x <= drawWidth; x++) {
+      final double y = _calculateWaveY(x, size.width, waveHeight, waveBaseY);
+      path.lineTo(x, y);
+    }
+
+    path.lineTo(drawWidth, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+
+    canvas.drawPath(path, paint);
   }
 
-  Widget _buildCompactProgressRow({
-    required String label,
-    required String statusText,
-    required double progress,
-    required Color barColor,
-    required Color textColor,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Label and Status on the same line to save space
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-            Text(
-              statusText,
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: textColor),
-            ),
-          ],
-        ),
-        const SizedBox(height: 2),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(2),
-          child: LinearProgressIndicator(
-            value: progress,
-            minHeight: 6, // Thinner bar
-            backgroundColor: Colors.grey.shade100,
-            color: barColor,
-          ),
-        ),
-      ],
-    );
+  double _calculateWaveY(double x, double width, double amplitude, double baseY) {
+    final double phase = animationValue.value * 2 * math.pi;
+    const double frequency = 3.0; // Więcej falek
+    return (amplitude / 2) * math.sin((x / width * frequency * 2 * math.pi) - phase) + baseY;
+  }
+
+  @override
+  bool shouldRepaint(covariant OceanWavePainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.animationValue != animationValue ||
+        oldDelegate.color != color;
   }
 }

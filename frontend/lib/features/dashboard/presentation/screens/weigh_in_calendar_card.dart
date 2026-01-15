@@ -19,6 +19,8 @@ class WeighInCalendarCard extends StatelessWidget {
     });
 
     return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
