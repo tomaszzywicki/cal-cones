@@ -72,7 +72,7 @@ class UserInfo extends StatelessWidget {
                 ),
                 _buildDivider(),
                 _buildInfoTile(
-                  icon: Icons.transgender, // Lub Icons.male / Icons.female zależnie od logiki
+                  icon: user?.sex == 'MALE' ? Icons.male : Icons.female,
                   label: 'Sex',
                   value: user?.sex ?? 'N/A',
                 ),
