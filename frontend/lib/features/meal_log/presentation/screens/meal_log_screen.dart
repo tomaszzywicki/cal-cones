@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/enums/app_enums.dart';
+import 'package:frontend/core/mixins/day_refresh_mixin.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/presentation/screens/meal_product_page.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
@@ -19,7 +20,7 @@ class MealLogScreen extends StatefulWidget {
   State<MealLogScreen> createState() => _MealLogScreenState();
 }
 
-class _MealLogScreenState extends State<MealLogScreen> {
+class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserver, DayRefreshMixin {
   late MealService _mealService;
 
   DateTime selectedDate = DateTime.now().toUtc();
@@ -38,6 +39,14 @@ class _MealLogScreenState extends State<MealLogScreen> {
     super.initState();
     _mealService = Provider.of<MealService>(context, listen: false);
     _loadMealProducts();
+  }
+
+  @override
+  void onDayChanged() {
+    setState(() {
+      _updateDateString();
+      // Rebuilds the UI with the new date
+    });
   }
 
   Future<void> _loadMealProducts() async {
@@ -156,8 +165,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
                                 return SingleChildScrollView(
                                   physics: const AlwaysScrollableScrollPhysics(),
                                   child: ConstrainedBox(
-                                    constraints: BoxConstraints(
-                                        minHeight: constraints.maxHeight),
+                                    constraints: BoxConstraints(minHeight: constraints.maxHeight),
                                     child: const Center(
                                       child: Text(
                                         'No products for this day',
@@ -198,7 +206,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
             context,
             // Przekazujemy funkcję odświeżającą listę
             onProductAdded: () {
-              _loadMealProducts(); 
+              _loadMealProducts();
               // Opcjonalnie można dodać SnackBar z potwierdzeniem
               // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Meal log updated!")));
             },
@@ -225,7 +233,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
     // 1. We need to calculate the "Base" (per 100g) values from the logged product
     // so that ProductDetailsPage can recalculate them dynamically.
     final double factor = (mealProduct.amount * mealProduct.conversionFactor) / 100.0;
-    
+
     // Avoid division by zero
     final double safeFactor = factor <= 0 ? 1.0 : factor;
 
@@ -241,7 +249,7 @@ class _MealLogScreenState extends State<MealLogScreen> {
       carbs: mealProduct.carbs / safeFactor,
       protein: mealProduct.protein / safeFactor,
       fat: mealProduct.fat / safeFactor,
-      createdAt: DateTime.now(), 
+      createdAt: DateTime.now(),
       lastModifiedAt: DateTime.now(),
     );
 
@@ -276,7 +284,6 @@ class _MealLogScreenState extends State<MealLogScreen> {
       // 3. Send delete request in the background (server/database)
       final mealService = Provider.of<MealService>(context, listen: false);
       await mealService.deleteMealProduct(mealProduct);
-      
     } catch (e) {
       // 4. If an error occurs, we restore the item to the list (Rollback)
       if (mounted) {
@@ -284,9 +291,9 @@ class _MealLogScreenState extends State<MealLogScreen> {
           _mealProducts.insert(backupIndex, backupItem);
           _calculateTotals();
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to delete: $e'), backgroundColor: Colors.red),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to delete: $e'), backgroundColor: Colors.red));
       }
     }
   }
@@ -313,16 +320,13 @@ class _MealLogScreenState extends State<MealLogScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Delete Entry'), 
+          title: const Text('Delete Entry'),
           backgroundColor: Colors.white,
           content: const Text('Are you sure you want to remove this product from your log?'),
           actions: [
+            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
             TextButton(
-              onPressed: () => Navigator.pop(context, false), 
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true), 
+              onPressed: () => Navigator.pop(context, true),
               child: const Text('Delete', style: TextStyle(color: Colors.red)),
             ),
           ],

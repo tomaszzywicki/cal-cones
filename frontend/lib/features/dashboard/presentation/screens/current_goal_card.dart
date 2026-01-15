@@ -95,7 +95,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: Colors.white,
-      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      // margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Padding(
         padding: EdgeInsets.only(left: rel(20), right: rel(20), top: rel(8), bottom: rel(20)),
         child: Column(

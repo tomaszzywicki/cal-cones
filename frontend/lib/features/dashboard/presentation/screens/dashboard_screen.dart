@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/core/mixins/day_refresh_mixin.dart';
 import 'package:frontend/features/dashboard/presentation/screens/bmi_card.dart';
 import 'package:frontend/features/dashboard/presentation/screens/bmi_screen.dart';
 import 'package:frontend/features/dashboard/presentation/screens/current_goal_card.dart';
@@ -8,8 +9,21 @@ import 'package:frontend/features/dashboard/presentation/screens/weight_history_
 import 'package:frontend/features/goal/presentation/screens/goal_list_screen.dart';
 import 'package:frontend/features/weight_log/presentation/screens/weight_log_main_screen.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+// FIX HERE: Add 'WidgetsBindingObserver' first, then 'DayRefreshMixin'
+class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver, DayRefreshMixin {
+  @override
+  void onDayChanged() {
+    setState(() {
+      // Rebuilds the UI with the new date
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

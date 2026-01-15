@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/enums/app_enums.dart';
+import 'package:frontend/core/mixins/day_refresh_mixin.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/goal/data/daily_target_model.dart';
 import 'package:frontend/features/goal/services/daily_target_service.dart';
@@ -21,7 +22,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 // Removed underscore to make it public for GlobalKey
-class HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, DayRefreshMixin {
   List<MealProductModel> _todayProducts = [];
   DailyTargetModel? _todayTargets;
   bool _isLoading = true;
@@ -33,6 +34,11 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    loadTodayMacros();
+  }
+
+  @override
+  void onDayChanged() {
     loadTodayMacros();
   }
 

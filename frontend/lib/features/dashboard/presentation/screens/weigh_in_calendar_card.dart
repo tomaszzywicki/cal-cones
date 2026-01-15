@@ -26,7 +26,7 @@ class WeighInCalendarCard extends StatelessWidget {
       color: Colors.white,
       child: Padding(
         // padding: EdgeInsets.symmetric(horizontal: rel(24.0), vertical: rel(12.0)),
-        padding: EdgeInsets.only(left: rel(20), right: rel(20), top: rel(12), bottom: rel(20)),
+        padding: EdgeInsets.only(left: rel(20), right: rel(20), top: rel(8), bottom: rel(20)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [

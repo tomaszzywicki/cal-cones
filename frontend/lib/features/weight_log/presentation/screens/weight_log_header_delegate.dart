@@ -7,8 +7,13 @@ import 'package:frontend/features/weight_log/presentation/widgets/current_weight
 class WeightLogHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double expandedHeight; // Np. 450.0
   final double collapsedHeight; // Np. 180.0
+  final String rebuildKey;
 
-  WeightLogHeaderDelegate({required this.expandedHeight, required this.collapsedHeight});
+  WeightLogHeaderDelegate({
+    required this.expandedHeight,
+    required this.collapsedHeight,
+    required this.rebuildKey,
+  });
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
@@ -46,10 +51,7 @@ class WeightLogHeaderDelegate extends SliverPersistentHeaderDelegate {
             left: 0,
             right: 0,
             height: currentWeightHeight,
-            child: const SingleChildScrollView(
-              physics: NeverScrollableScrollPhysics(),
-              child: CurrentWeightCard(),
-            ),
+            child: SingleChildScrollView(physics: NeverScrollableScrollPhysics(), child: CurrentWeightCard()),
           ),
 
           if (shrinkPercent > 0.1)
@@ -81,6 +83,8 @@ class WeightLogHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   bool shouldRebuild(covariant WeightLogHeaderDelegate oldDelegate) {
-    return oldDelegate.expandedHeight != expandedHeight || oldDelegate.collapsedHeight != collapsedHeight;
+    return oldDelegate.expandedHeight != expandedHeight ||
+        oldDelegate.collapsedHeight != collapsedHeight ||
+        oldDelegate.rebuildKey != rebuildKey;
   }
 }
