@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'dart:math';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
@@ -37,20 +38,27 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     _sliderMinWeight = widget.currentWeight - 15.0;
     _sliderMaxWeight = widget.currentWeight + 15.0;
 
-    // Domyślny cel (clampowany do zakresu)
-    _targetWeight = (widget.currentWeight - 5.0).clamp(_sliderMinWeight, _sliderMaxWeight);
+    // Domyślny cel - zaokrąglony do 1 miejsca po przecinku
+    double rawTarget = widget.currentWeight - 5.0;
+    _targetWeight = _roundDouble(rawTarget.clamp(_sliderMinWeight, _sliderMaxWeight), 1);
+
     _tempo = 0.5;
     _calculateDate();
   }
 
   void _calculateDate() {
-    final diff = (widget.currentWeight - _targetWeight).abs();
+    // 1. Oblicz różnicę i zaokrąglij ją do 1 miejsca po przecinku (zgodnie z UI)
+    // To eliminuje błędy typu 4.99999999 kg
+    final double rawDiff = (widget.currentWeight - _targetWeight).abs();
+    final double diff = _roundDouble(rawDiff, 1);
 
-    if (diff < 0.1 || _tempo <= 0) {
+    // Zabezpieczenie przed dzieleniem przez zero lub zbyt małą różnicą
+    if (diff < 0.1 || _tempo <= 0.05) {
       setState(() => _estimatedDate = DateTime.now().add(const Duration(days: 30)));
       return;
     }
 
+    // Obliczenia
     final weeksNeeded = diff / _tempo;
     final daysNeeded = (weeksNeeded * 7).round();
 
@@ -206,7 +214,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                                   max: _sliderMaxWeight,
                                   onChanged: (val) {
                                     setState(() {
-                                      _targetWeight = val;
+                                      // Zaokrąglamy do 1 miejsca po przecinku (np. 75.4 kg)
+                                      _targetWeight = _roundDouble(val, 1);
                                       _calculateDate();
                                     });
                                     HapticFeedback.selectionClick();
@@ -248,17 +257,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Center(
-                          child: Text(
-                            "WEEKLY PACE",
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey,
-                              letterSpacing: 1.0,
-                            ),
-                          ),
-                        ),
+                        const Center(),
                         const SizedBox(height: 12),
 
                         Padding(
@@ -276,35 +275,72 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                                 ),
                               ),
                               const SizedBox(width: 24),
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "${_tempo.toStringAsFixed(1)} kg",
-                                          style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w800,
-                                            color: Colors.black,
-                                          ),
-                                        ),
-                                        Text(
-                                          _tempo < 0.4
-                                              ? "Sustainable"
-                                              : (_tempo > 0.9 ? "Aggressive" : "Moderate"),
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey.shade600,
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                        ),
-                                      ],
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "WEEKLY PACE",
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey,
+                                      letterSpacing: 1.0,
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  Text(
+                                    "${_tempo.toStringAsFixed(2)} kg",
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w800,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  Text(
+                                    _tempo < 0.4 ? "Sustainable" : (_tempo > 0.9 ? "Aggressive" : "Moderate"),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               ),
+                              // TODO: Fix this info box
+                              // if (_targetWeight > widget.currentWeight && _tempo > 0.25)
+                              //   Container(
+                              //     margin: const EdgeInsets.only(top: 16, left: 16, right: 16),
+                              //     padding: const EdgeInsets.all(10),
+                              //     decoration: BoxDecoration(
+                              //       color: Colors.orange.shade50,
+                              //       borderRadius: BorderRadius.circular(10),
+                              //       border: Border.all(color: Colors.orange.shade200),
+                              //     ),
+                              //     child: Row(
+                              //       crossAxisAlignment: CrossAxisAlignment.start,
+                              //       mainAxisSize: MainAxisSize
+                              //           .min, // 1. Ważne: Wiersz zajmuje tylko tyle miejsca ile musi
+                              //       children: [
+                              //         Icon(
+                              //           Icons.info_outline_rounded,
+                              //           color: Colors.orange.shade700,
+                              //           size: 18,
+                              //         ),
+                              //         const SizedBox(width: 10),
+                              //         // 2. Ważne: Flexible zamiast Expanded naprawia błąd "unbounded width"
+                              //         Flexible(
+                              //           child: Text(
+                              //             "Pace > 0.25kg/week implies that some gained mass will likely be stored as fat.",
+                              //             style: TextStyle(
+                              //               color: Colors.orange.shade800,
+                              //               fontSize: 11,
+                              //               fontWeight: FontWeight.w600,
+                              //               height: 1.3,
+                              //             ),
+                              //           ),
+                              //         ),
+                              //       ],
+                              //     ),
+                              //   ),
                             ],
                           ),
                         ),
@@ -323,10 +359,11 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                             value: _tempo,
                             min: _minTempo,
                             max: _maxTempo,
-                            divisions: 11,
+                            divisions: 22,
                             onChanged: (val) {
                               setState(() {
-                                _tempo = val;
+                                // Zaokrąglamy do 2 miejsc po przecinku (np. 0.55 kg/week)
+                                _tempo = _roundDouble(val, 2);
                                 _calculateDate();
                               });
                               HapticFeedback.selectionClick();
@@ -353,7 +390,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _buildWeightInfo("Start", "${widget.currentWeight}", "kg"),
+                            _buildWeightInfo("START", "${widget.currentWeight}", "kg"),
 
                             Padding(
                               padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -460,6 +497,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                     ),
                   ),
 
+                  const SizedBox(height: 16),
                   // 4. WARNING
                   if (widget.isReplacingExistingGoal)
                     Container(
@@ -475,7 +513,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
-                              "This will archive your current goal. Action is irreversible.",
+                              "By setting a new goal, your current goal will be closed. Make sure to record your final weight for the old goal.",
                               style: TextStyle(
                                 color: Colors.red.shade800,
                                 fontSize: 12,
@@ -566,6 +604,11 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
         ),
       ],
     );
+  }
+
+  double _roundDouble(double value, int places) {
+    final mod = pow(10.0, places);
+    return ((value * mod).round().toDouble() / mod);
   }
 }
 
