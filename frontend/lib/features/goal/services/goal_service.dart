@@ -37,16 +37,18 @@ class GoalService {
       final userId = _currentUserService.getUserId();
       final currentGoal = await _goalRepository.getActiveGoal(userId);
 
-      final closedGoal = currentGoal?.copyWith(
-        endDate: DateTime.now(),
-        endWeight: closedGoalFinalWeight ?? currentGoal.endWeight,
-        isCurrent: false,
-      );
+      // FIX: Check if currentGoal exists before trying to close it
+      if (currentGoal != null) {
+        final closedGoal = currentGoal.copyWith(
+          endDate: DateTime.now(),
+          endWeight: closedGoalFinalWeight ?? currentGoal.endWeight,
+          isCurrent: false,
+        );
 
-      await _goalRepository.updateGoal(closedGoal!);
+        await _goalRepository.updateGoal(closedGoal);
+      }
 
       // 3. Zapisz nowy cel (jako aktualny)
-      // Upewnij się, że newGoal ma isCurrent = true i endDate = null
       await _goalRepository.createGoal(newGoal);
 
       AppLogger.info('GoalService: New goal set successfully.');

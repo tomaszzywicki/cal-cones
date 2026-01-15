@@ -16,7 +16,6 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-// FIX HERE: Add 'WidgetsBindingObserver' first, then 'DayRefreshMixin'
 class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver, DayRefreshMixin {
   @override
   void onDayChanged() {
@@ -51,16 +50,22 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               physics: const NeverScrollableScrollPhysics(),
               children: [
                 GestureDetector(
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => GoalListScreen()));
+                  // FIX: Czekamy na powrót z ekranu celów i odświeżamy Dashboard
+                  onTap: () async {
+                    await Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute(builder: (context) => GoalListScreen()));
+                    setState(() {});
                   },
                   child: CurrentGoalCard(),
                 ),
                 GestureDetector(
-                  onTap: () {
-                    Navigator.of(
+                  // FIX: To samo dla ekranu wagi, aby kalendarz i wykresy odświeżyły się po dodaniu wpisu
+                  onTap: () async {
+                    await Navigator.of(
                       context,
                     ).push(MaterialPageRoute(builder: (context) => WeightLogMainScreen()));
+                    setState(() {});
                   },
                   child: WeighInCalendarCard(),
                 ),

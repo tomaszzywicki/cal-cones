@@ -8,8 +8,6 @@ import 'package:frontend/show_menu_bottom_sheet.dart';
 final GlobalKey<_MainScreenState> mainScreenKey = GlobalKey<_MainScreenState>();
 
 // 1. Key to access HomeScreen state
-final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
-
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -18,15 +16,16 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 2;
+  final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
 
-  // 2. Assign Key to HomeScreen
-  final List<Widget> _screens = [
-    HomeScreen(key: homeScreenKey),
-    MealLogScreen(),
-    DashboardScreen(),
-    OtherScreen(),
-  ];
+  int _currentIndex = 2;
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [HomeScreen(key: homeScreenKey), MealLogScreen(), DashboardScreen(), OtherScreen()];
+  }
 
   @override
   Widget build(BuildContext context) {
