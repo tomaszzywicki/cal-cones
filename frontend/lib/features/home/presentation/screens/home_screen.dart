@@ -12,6 +12,7 @@ import 'package:frontend/features/meal/services/meal_service.dart';
 import 'package:frontend/features/weight_log/presentation/screens/weight_log_main_screen.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
+import 'package:frontend/main_screen.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -205,6 +206,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                               'Total Products',
                               _todayProducts.length.toString(),
                               Icons.restaurant_menu,
+                              onTap: () {
+                              context
+                                  .findAncestorStateOfType<MainScreenState>()
+                                  ?.navigateToMealLogDate(DateTime.now().toUtc());
+                              },
                             ),
                             const Divider(height: 24),
                             _buildStatRow(
@@ -223,26 +229,36 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
     );
   }
 
-  Widget _buildStatRow(String label, String value, IconData icon) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
-          child: Icon(icon, size: 20, color: Colors.black87),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(fontSize: 15, color: Colors.grey[700], fontWeight: FontWeight.w500),
+  Widget _buildStatRow(String label, String value, IconData icon, {VoidCallback? onTap}) {
+    return Material(
+      color: Colors.transparent, 
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12), 
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(8)),
+                child: Icon(icon, size: 20, color: Colors.black87),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(fontSize: 15, color: Colors.grey[700], fontWeight: FontWeight.w500),
+                ),
+              ),
+              Text(
+                value,
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
+              ),
+            ],
           ),
         ),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black),
-        ),
-      ],
+      ),
     );
   }
 }

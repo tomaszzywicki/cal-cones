@@ -91,4 +91,12 @@ class MainScreenState extends State<MainScreen> {
     // Refresh Meal Log Screen Data
     mealLogScreenKey.currentState?.loadMealProducts();
   }
+
+  void navigateToMealLogDate(DateTime date) {
+    setState(() {
+      _currentIndex = 1;
+    });
+    // Use the key to access the MealLogScreen state and set the date
+    mealLogScreenKey.currentState?.goToDate(date);
+  }
 }

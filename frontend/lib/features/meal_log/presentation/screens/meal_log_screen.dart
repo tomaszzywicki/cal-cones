@@ -105,6 +105,14 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
     await loadMealProducts();
   }
 
+  Future<void> goToDate(DateTime date) async {
+    setState(() {
+      selectedDate = date;
+      _updateDateString();
+    });
+    await loadMealProducts();
+  }
+
   void _updateDateString() {
     DateTime now = DateTime.now().toUtc();
     if (selectedDate.year == now.year && selectedDate.month == now.month && selectedDate.day == now.day) {

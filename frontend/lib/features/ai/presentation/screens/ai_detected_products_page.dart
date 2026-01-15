@@ -192,12 +192,12 @@ class _AiDetectedProductsPageState extends State<AiDetectedProductsPage> {
   }
 
   Future<void> _handleConfirm() async {
-    if (_acceptedProducts.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Please accept at least one product')));
-      return;
-    }
+    // if (_acceptedProducts.isEmpty) {
+    //   ScaffoldMessenger.of(
+    //     context,
+    //   ).showSnackBar(const SnackBar(content: Text('Please accept at least one product')));
+    //   return;
+    // }
 
     if (widget.isRecipeMode) {
       // Return the accepted products to CreateRecipeScreen
