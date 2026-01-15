@@ -19,10 +19,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
   @override
   void initState() {
     super.initState();
-    // Efekt światła (shimmer)
     _shimmerController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
-
-    // Efekt fali (ocean)
     _waveController = AnimationController(vsync: this, duration: const Duration(seconds: 10))..repeat();
   }
 
@@ -68,6 +65,10 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
 
   Widget _buildSeparatedContent(GoalModel goal, double currentWeight) {
     final now = DateTime.now();
+    // Use MediaQuery to make sizes relative to screen width
+    // Assuming 480.0 is a standard "base" design width (e.g. iPhone 12/13/14)
+    final double screenWidth = MediaQuery.of(context).size.width;
+    double rel(double size) => screenWidth * (size / 480.0);
 
     // --- 1. OBLICZENIA CZASU ---
     final totalDays = goal.targetDate.difference(goal.startDate).inDays;
@@ -98,7 +99,6 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
     Color weightColor = isMovingRightWay ? const Color(0xFF4CAF50) : const Color(0xFFE57373);
     if (isGoalReached) weightColor = const Color(0xFF43A047);
 
-    // Kolor fali
     Color waveColor = const Color(0xFF1976D2).withOpacity(0.7);
 
     return Card(
@@ -107,67 +107,83 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
       color: Colors.white,
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: EdgeInsets.all(rel(20)),
         child: Column(
-          // mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // --- HEADER ---
-            Column(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    const Text(
-                      "CURRENTLY",
-                      style: TextStyle(
-                        fontSize: 8,
-                        color: Colors.grey,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.0,
-                      ),
-                    ),
-                    // Days Left
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade50,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        daysRemaining > 0 ? "$daysRemaining days left" : "Time's up",
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                Transform.translate(
-                  offset: const Offset(0, -6),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        currentWeight.toStringAsFixed(1),
-                        style: const TextStyle(
-                          fontSize: 42,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.black87,
-                          letterSpacing: -1.5,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            "CURRENTLY",
+                            style: TextStyle(
+                              fontSize: rel(10), // Relative size
+                              color: Colors.grey,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
+                            ),
+                          ),
+                          // Days Left
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              daysRemaining > 0 ? "$daysRemaining days left" : "Time's up",
+                              style: TextStyle(
+                                fontSize: rel(11), // Relative size
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        "kg",
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+                      // FittedBox ensures the weight text scales down if it hits the edge
+                      Transform.translate(
+                        offset: const Offset(0, -4),
+                        child: FittedBox(
+                          alignment: Alignment.centerLeft,
+                          fit: BoxFit.scaleDown,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.baseline,
+                            textBaseline: TextBaseline.alphabetic,
+                            children: [
+                              Text(
+                                currentWeight.toStringAsFixed(1),
+                                style: TextStyle(
+                                  fontSize: rel(42), // Relative size
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.black87,
+                                  letterSpacing: -1.5,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                "kg",
+                                style: TextStyle(
+                                  fontSize: rel(18), // Relative size
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -175,37 +191,26 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
               ],
             ),
 
-            // const SizedBox(height: 8),
-
             // --- 1. PASEK CZASU (OCEAN WAVE) - GÓRNY ---
             Column(
               children: [
                 SizedBox(
-                  height: 8, // Wysokość paska czasu
+                  height: 8,
                   child: Stack(
                     children: [
-                      // Tło paska
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.blue.shade100.withOpacity(0.5),
-                          // bottom 2 px rounded, top 4 px rounded
-                          // borderRadius: BorderRadius.circular(3),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(3),
                             topRight: Radius.circular(3),
-                            bottomLeft: Radius.circular(0),
-                            bottomRight: Radius.circular(0),
                           ),
                         ),
                       ),
-                      // Fala
                       ClipRRect(
-                        // borderRadius: BorderRadius.circular(0),
                         borderRadius: const BorderRadius.only(
                           topLeft: Radius.circular(3),
                           topRight: Radius.circular(3),
-                          bottomLeft: Radius.circular(0),
-                          bottomRight: Radius.circular(0),
                         ),
                         child: CustomPaint(
                           size: Size.infinite,
@@ -219,31 +224,24 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                     ],
                   ),
                 ),
-                const SizedBox(height: 1), // Odstęp między paskami
+                const SizedBox(height: 1),
+
                 // --- 2. PASEK WAGI (SHIMMER) - DOLNY ---
                 SizedBox(
-                  height: 24, // Wysokość paska wagi (nieco grubszy)
+                  height: 24,
                   child: Stack(
                     children: [
-                      // Tło paska
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.grey.shade200,
-                          // borderRadius: BorderRadius.circular(3),
                           borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(0),
-                            topRight: Radius.circular(0),
                             bottomLeft: Radius.circular(3),
                             bottomRight: Radius.circular(3),
                           ),
                         ),
                       ),
-                      // Pasek Postępu
                       ClipRRect(
-                        // borderRadius: BorderRadius.circular(4),
                         borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(0),
-                          topRight: Radius.circular(0),
                           bottomLeft: Radius.circular(3),
                           bottomRight: Radius.circular(3),
                         ),
@@ -251,12 +249,10 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                           builder: (context, constraints) {
                             return Stack(
                               children: [
-                                // Kolor bazowy
                                 FractionallySizedBox(
                                   widthFactor: weightProgress,
                                   child: Container(color: weightColor),
                                 ),
-                                // Shimmer
                                 if (weightProgress > 0)
                                   FractionallySizedBox(
                                     widthFactor: weightProgress,
@@ -291,40 +287,45 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                           },
                         ),
                       ),
-                      // Weights on bar
+                      // Weights on bar (wrapped in FittedBox to prevent overflow)
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
                           padding: const EdgeInsets.only(left: 8.0),
-                          child: Text(
-                            start.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black54,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              start.toStringAsFixed(1),
+                              style: TextStyle(
+                                fontSize: rel(12),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                      // Arrow in the middle
                       const Center(
                         child: Icon(
-                          Icons.double_arrow_sharp,
-                          size: 16,
+                          Icons.arrow_forward,
+                          size: 14,
                           color: Colors.black54,
-                          fontWeight: FontWeight.w900,
+                          // Removed fontWeight (not valid for Icon)
                         ),
                       ),
                       Align(
                         alignment: Alignment.centerRight,
                         child: Padding(
                           padding: const EdgeInsets.only(right: 8.0),
-                          child: Text(
-                            target.toStringAsFixed(1),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black54,
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              target.toStringAsFixed(1),
+                              style: TextStyle(
+                                fontSize: rel(12),
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black54,
+                              ),
                             ),
                           ),
                         ),
@@ -361,7 +362,6 @@ class OceanWavePainter extends CustomPainter {
     final path = Path();
     final double drawWidth = size.width * progress;
 
-    // Parametry fali dla małego paska
     final double waveHeight = size.height * 0.2;
     final double waveBaseY = size.height * 0.2;
 
@@ -382,7 +382,7 @@ class OceanWavePainter extends CustomPainter {
 
   double _calculateWaveY(double x, double width, double amplitude, double baseY) {
     final double phase = animationValue.value * 2 * math.pi;
-    const double frequency = 3.0; // Więcej falek
+    const double frequency = 3.0;
     return (amplitude / 2) * math.sin((x / width * frequency * 2 * math.pi) - phase) + baseY;
   }
 
