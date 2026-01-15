@@ -223,15 +223,7 @@ class _MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserv
       // TODO adjust style of button
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          ShowMenuBottomSheet.show(
-            context,
-            // Przekazujemy funkcję odświeżającą listę
-            onProductAdded: () {
-              _loadMealProducts();
-              // Opcjonalnie można dodać SnackBar z potwierdzeniem
-              // ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Meal log updated!")));
-            },
-          );
+          _handleAddProduct();
         },
         backgroundColor: Colors.black,
         child: const Icon(Icons.add, color: Colors.white),
