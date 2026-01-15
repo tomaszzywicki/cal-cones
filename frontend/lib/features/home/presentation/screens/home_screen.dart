@@ -8,6 +8,7 @@ import 'package:frontend/features/home/presentation/widgets/day_macro_card.dart'
 import 'package:frontend/features/home/presentation/widgets/warning_card.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
+import 'package:frontend/features/weight_log/presentation/screens/weight_log_main_screen.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
@@ -27,6 +28,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   bool _hasActiveGoal = true;
   bool _hasWeightData = true;
+  bool _isWeightOutdated = false;
 
   @override
   void initState() {
@@ -51,6 +53,7 @@ class HomeScreenState extends State<HomeScreen> {
       if (userId != null) {
         _hasActiveGoal = await goalService.hasActiveGoal(userId);
         _hasWeightData = await weightLogService.hasWeightData(userId);
+        _isWeightOutdated = await weightLogService.isLatestEntryOutdated();
       }
 
       await dailyTargetService.refreshTargetForToday();
@@ -119,13 +122,36 @@ class HomeScreenState extends State<HomeScreen> {
                         icon: Icons.monitor_weight_outlined,
                         color: Colors.red,
                         buttonText: 'Log Weight',
-                        onAction: () {
+                        buttonAction: () {
                           showModalBottomSheet(
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
                             builder: (context) => const AddWeightEntryBottomSheet(),
                           ).then((_) => loadTodayMacros());
+                        },
+                      ),
+
+                    if (_isWeightOutdated && _hasWeightData)
+                      WarningCard(
+                        title: 'Outdated weight information',
+                        subtitle:
+                            'Your latest weight entry is older than ${WeightLogService.OUTDATED_THRESHOLD_DAYS} days. Please update it for accurate target calculations.',
+                        icon: Icons.warning_amber_rounded,
+                        color: Colors.lightBlue,
+                        buttonText: 'Update Weight',
+                        buttonAction: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) => const AddWeightEntryBottomSheet(),
+                          ).then((_) => loadTodayMacros());
+                        },
+                        onAction: () {
+                          Navigator.of(
+                            context,
+                          ).push(MaterialPageRoute(builder: (context) => WeightLogMainScreen()));
                         },
                       ),
 
@@ -136,7 +162,7 @@ class HomeScreenState extends State<HomeScreen> {
                         icon: Icons.warning_amber_rounded,
                         color: Colors.orange,
                         buttonText: 'Set Goal',
-                        onAction: () {
+                        buttonAction: () {
                           // Navigator.push(
                           //   context,
                           //   MaterialPageRoute(builder: (context) => const GoalSetup()),

@@ -7,6 +7,7 @@ import 'package:frontend/features/weight_log/services/weight_log_repository.dart
 class WeightLogService extends ChangeNotifier {
   final WeightLogRepository _weightLogRepository;
   final int? _userId;
+  static const int OUTDATED_THRESHOLD_DAYS = 30;
 
   late List<WeightEntryModel> _entries = [];
 
@@ -85,5 +86,14 @@ class WeightLogService extends ChangeNotifier {
       AppLogger.error('WeightLogService: Failed to check for weight data.', e);
       return false;
     }
+  }
+
+  Future<bool> isLatestEntryOutdated() async {
+    final latestEntry = await getLatestWeightEntry(_userId!);
+    if (latestEntry == null) return true;
+
+    final now = DateTime.now();
+    final difference = now.difference(latestEntry.date).inDays;
+    return difference > OUTDATED_THRESHOLD_DAYS;
   }
 }
