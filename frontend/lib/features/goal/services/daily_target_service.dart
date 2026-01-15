@@ -80,7 +80,7 @@ class DailyTargetService {
   }
 
   Future<void> refreshTargetForToday() async {
-    // await ensureHistoryIsPopulated();
+    await ensureHistoryIsPopulated();
     final userId = _currentUserService.currentUser?.id;
     if (userId == null) throw Exception('No authenticated user found.');
 
