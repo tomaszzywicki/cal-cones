@@ -4,7 +4,7 @@ import 'package:frontend/features/goal/data/goal_model.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/goal/presentation/widgets/active_goal_card.dart';
 import 'package:frontend/features/goal/presentation/widgets/past_goal_card.dart';
-// import 'package:frontend/features/user/presentation/screens/onboarding_screens/goal_setup.dart'; // Odkomentuj, gdy będziesz miał ten ekran
+// import 'package:frontend/features/user/presentation/screens/onboarding_screens/goal_setup.dart';
 
 class GoalListScreen extends StatefulWidget {
   const GoalListScreen({super.key});
@@ -40,15 +40,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
         titleTextStyle: const TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.bold),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          // TODO: Nawigacja do ekranu edycji lub dodawania celu
-          // Navigator.push(context, MaterialPageRoute(builder: (_) => GoalSetupScreen()));
-        },
-        label: const Text("Edit Goal"),
-        icon: const Icon(Icons.edit),
-        backgroundColor: Colors.black87,
-      ),
+      // Usunęliśmy FloatingActionButton stąd
       body: FutureBuilder<List<GoalModel>>(
         future: _goalsFuture,
         builder: (context, snapshot) {
@@ -58,7 +50,6 @@ class _GoalListScreenState extends State<GoalListScreen> {
             return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          // Jeśli nie ma danych w ogóle (null), traktujemy to jako pustą listę
           final allGoals = snapshot.data ?? [];
 
           // 1. Znajdź aktywny cel
@@ -69,7 +60,7 @@ class _GoalListScreenState extends State<GoalListScreen> {
             activeGoal = null;
           }
 
-          // 2. Znajdź i posortuj stare cele (od najnowszych)
+          // 2. Znajdź i posortuj stare cele
           final pastGoals = allGoals.where((g) => !g.isCurrent).toList()
             ..sort((a, b) => b.startDate.compareTo(a.startDate));
 
@@ -81,9 +72,10 @@ class _GoalListScreenState extends State<GoalListScreen> {
                 ActiveGoalCard(goal: activeGoal),
                 const SizedBox(height: 24),
               ] else ...[
-                // Opcjonalnie: Stan, gdy nie ma nawet aktywnego celu
                 const Card(
                   color: Colors.white,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(16))),
                   child: Padding(
                     padding: EdgeInsets.all(24.0),
                     child: Center(child: Text("No active goal set.")),
@@ -91,6 +83,43 @@ class _GoalListScreenState extends State<GoalListScreen> {
                 ),
                 const SizedBox(height: 24),
               ],
+
+              // --- PRZYCISK EDYCJI / NOWEGO CELU ---
+              // Umieszczony pomiędzy sekcjami
+              Container(
+                margin: const EdgeInsets.only(bottom: 32.0),
+                width: double.infinity,
+                // USUNIĘTO: height: 56, -> to powodowało ucinanie na telefonie
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    // TODO: Tu w przyszłości: Navigator.push(...);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    elevation: 4,
+                    shadowColor: Colors.black45,
+                    // DODANO: Padding pionowy, który nada przyciskowi wysokość "naturalnie"
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  icon: Icon(
+                    activeGoal != null ? Icons.edit_outlined : Icons.add_circle_outline,
+                    size: 24,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    activeGoal != null ? "Edit Current Goal" : "Set New Goal",
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                      color: Colors.white,
+                      height: 1.2, // Opcjonalnie: poprawia centrowanie linii tekstu
+                    ),
+                  ),
+                ),
+              ),
 
               // --- SEKCJA HISTORII ---
               const Padding(
@@ -102,7 +131,6 @@ class _GoalListScreenState extends State<GoalListScreen> {
               ),
 
               if (pastGoals.isEmpty)
-                // --- PUSTY STAN HISTORII (EMPTY STATE) ---
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
@@ -127,11 +155,9 @@ class _GoalListScreenState extends State<GoalListScreen> {
                   ),
                 )
               else
-                // --- LISTA STARYCH CELÓW ---
                 ...pastGoals.map((goal) => PastGoalCard(goal: goal)),
 
-              // Padding pod FAB
-              const SizedBox(height: 80),
+              const SizedBox(height: 40),
             ],
           );
         },

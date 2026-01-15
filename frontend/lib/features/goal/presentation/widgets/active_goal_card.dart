@@ -17,18 +17,24 @@ class ActiveGoalCard extends StatefulWidget {
 class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStateMixin {
   late AnimationController _shimmerController;
   late AnimationController _waveController;
+  late AnimationController _gaugeController;
 
   @override
   void initState() {
     super.initState();
     _shimmerController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
     _waveController = AnimationController(vsync: this, duration: const Duration(seconds: 10))..repeat();
+
+    // Animacja wskazówki
+    _gaugeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
+    _gaugeController.forward();
   }
 
   @override
   void dispose() {
     _shimmerController.dispose();
     _waveController.dispose();
+    _gaugeController.dispose();
     super.dispose();
   }
 
@@ -38,14 +44,13 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    // Access current weight
     final weightLogService = context.watch<WeightLogService>();
     final double currentWeight = weightLogService.latestEntry?.weight ?? widget.goal.startWeight;
 
     // --- CALCULATIONS ---
     final now = DateTime.now();
 
-    // 1. Time progress
+    // Time progress
     final totalDays = widget.goal.targetDate.difference(widget.goal.startDate).inDays;
     final daysElapsed = now.difference(widget.goal.startDate).inDays;
     final daysRemaining = widget.goal.targetDate.difference(now).inDays;
@@ -55,7 +60,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
       timeProgress = (daysElapsed / totalDays).clamp(0.0, 1.0);
     }
 
-    // 2. Weight progress & Difference Logic
+    // Weight progress
     final double start = widget.goal.startWeight;
     final double target = widget.goal.targetWeight;
     double weightProgress = 0.0;
@@ -63,29 +68,22 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
       weightProgress = ((start - currentWeight) / (start - target)).clamp(0.0, 1.0);
     }
 
-    // Difference from Start
     final double difference = currentWeight - start;
-
-    // Determine if "Good" or "Bad" direction
-    // If start > target (Weight Loss): Negative difference is GOOD (Green)
-    // If start < target (Weight Gain): Positive difference is GOOD (Green)
     final bool isWeightLossGoal = start > target;
     final bool isGoodProgress = isWeightLossGoal ? difference <= 0 : difference >= 0;
 
-    // Colors
     Color weightColor = weightProgress >= 1.0 ? const Color(0xFF43A047) : const Color(0xFF4CAF50);
     Color waveColor = const Color(0xFF1976D2).withOpacity(0.7);
 
-    // Difference Text Formatting
     String diffSign = difference > 0 ? '+' : '';
-    Color diffColor = isGoodProgress ? const Color(0xFF43A047) : const Color(0xFFE53935); // Green or Red
+    Color diffColor = isGoodProgress ? const Color(0xFF43A047) : const Color(0xFFE53935);
 
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       color: Colors.white,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 380), // Taller card
+        constraints: const BoxConstraints(minHeight: 380),
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -114,7 +112,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
 
             const SizedBox(height: 30),
 
-            // --- CURRENT WEIGHT & DIFFERENCE (CENTER) ---
+            // --- CURRENT WEIGHT & DIFFERENCE ---
             Column(
               children: [
                 const Text(
@@ -127,7 +125,6 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                   ),
                 ),
                 const SizedBox(height: 4),
-                // Big Weight Number
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -149,7 +146,6 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                     ),
                   ],
                 ),
-                // Difference (Green/Red)
                 Transform.translate(
                   offset: const Offset(0, -6),
                   child: Text(
@@ -160,41 +156,61 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
               ],
             ),
 
-            // FIXED: Replaced Spacer() with SizedBox to avoid unbounded height error
             const SizedBox(height: 40),
 
-            // --- TEMPO VISUALIZATION (Yellow/Orange) ---
+            // --- TEMPO GAUGE (Cleaner Look) ---
             Center(
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFF3E0), // Orange 50
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFFFCC80), width: 1), // Orange 200
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.grey.shade200, width: 1),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.shutter_speed, size: 20, color: Colors.orange.shade800),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Pace: ${widget.goal.tempo} kg/week",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.orange.shade900,
+                    // GAUGE
+                    SizedBox(
+                      width: 50,
+                      height: 25,
+                      child: CustomPaint(
+                        painter: TempoGaugePainter(tempo: widget.goal.tempo, animation: _gaugeController),
                       ),
+                    ),
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "PLANNED PACE",
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey.shade500,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        Text(
+                          "${widget.goal.tempo} kg/week",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.grey.shade800,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ),
 
-            const SizedBox(height: 24), // Space between Tempo and Bars
-            // --- PROGRESS BARS SECTION ---
+            const SizedBox(height: 24),
+
+            // --- PROGRESS BARS ---
             Column(
               children: [
-                // 1. Dates
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: Row(
@@ -220,7 +236,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                   ),
                 ),
 
-                // 2. Time Bar (Ocean Wave)
+                // Time Bar
                 SizedBox(
                   height: 14,
                   width: double.infinity,
@@ -254,13 +270,12 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                 ),
                 const SizedBox(height: 2),
 
-                // 3. Weight Bar (Green Shimmer)
+                // Weight Bar
                 SizedBox(
-                  height: 36, // Tall enough for text
+                  height: 36,
                   width: double.infinity,
                   child: Stack(
                     children: [
-                      // Background
                       Container(
                         decoration: BoxDecoration(
                           color: Colors.grey.shade200,
@@ -270,7 +285,6 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                           ),
                         ),
                       ),
-                      // Fill & Shimmer
                       ClipRRect(
                         borderRadius: const BorderRadius.only(
                           bottomLeft: Radius.circular(8),
@@ -318,7 +332,6 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                           },
                         ),
                       ),
-                      // Texts on the bar
                       Center(
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 12.0),
@@ -333,7 +346,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                                   color: Colors.black54,
                                 ),
                               ),
-                              const Icon(Icons.double_arrow_outlined, size: 20, color: Colors.black45),
+                              const Icon(Icons.arrow_forward, size: 14, color: Colors.black45),
                               Text(
                                 "Target: ${target.toStringAsFixed(1)}",
                                 style: const TextStyle(
@@ -358,7 +371,87 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
   }
 }
 
-// --- REUSED PAINTER ---
+// --- FIXED GAUGE PAINTER WITH MANUAL CAPS ---
+class TempoGaugePainter extends CustomPainter {
+  final double tempo;
+  final Animation<double> animation;
+
+  TempoGaugePainter({required this.tempo, required this.animation}) : super(repaint: animation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    const double maxTempo = 1.2;
+    final double normalizedTempo = (tempo / maxTempo).clamp(0.0, 1.0);
+
+    final center = Offset(size.width / 2, size.height);
+    final radius = size.width / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+
+    // 1. Definiujemy kolory (początek i koniec) do "zaślepek"
+    final Color startColor = const Color(0xFF4CAF50); // Zielony
+    final Color endColor = const Color(0xFFD32F2F); // Czerwony
+
+    // 2. GRADIENT (Tęcza)
+    final gradient = SweepGradient(
+      startAngle: math.pi,
+      endAngle: 2 * math.pi,
+      colors: [
+        startColor, // Green
+        const Color(0xFFFFEB3B), // Yellow
+        const Color(0xFFFF9800), // Orange
+        endColor, // Red
+      ],
+      stops: const [0.0, 0.4, 0.7, 1.0],
+    ).createShader(rect);
+
+    final arcPaint = Paint()
+      ..shader = gradient
+      ..style = PaintingStyle.stroke
+      // Używamy .butt (ścięte), bo sami narysujemy idealne kółka na końcach
+      ..strokeCap = StrokeCap.butt
+      ..strokeWidth = 6;
+
+    // Rysujemy łuk tęczy
+    canvas.drawArc(rect, math.pi, math.pi, false, arcPaint);
+
+    // 3. MANUALNE ZAŚLEPKI (Caps)
+    // To naprawia problem "uciętego" lub wyblakłego końca.
+    // Rysujemy kółka w kolorze startowym i końcowym na obu krańcach łuku.
+
+    final capRadius = 3.0; // Połowa grubości linii (6 / 2)
+
+    // Lewa zaślepka (Zielona) - na godzinie 9:00 (kąt PI)
+    final startCapCenter = Offset(center.dx - radius, center.dy);
+    canvas.drawCircle(startCapCenter, capRadius, Paint()..color = startColor);
+
+    // Prawa zaślepka (Czerwona) - na godzinie 3:00 (kąt 0 / 2PI)
+    final endCapCenter = Offset(center.dx + radius, center.dy);
+    canvas.drawCircle(endCapCenter, capRadius, Paint()..color = endColor);
+
+    // 4. WSKAZÓWKA
+    final currentProgress = normalizedTempo * animation.value;
+    final needleAngle = math.pi + (currentProgress * math.pi);
+
+    final needleLength = radius - 2;
+    final needleX = center.dx + needleLength * math.cos(needleAngle);
+    final needleY = center.dy + needleLength * math.sin(needleAngle);
+
+    final needlePaint = Paint()
+      ..color = Colors.black87
+      ..strokeWidth = 3
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawLine(center, Offset(needleX, needleY), needlePaint);
+    canvas.drawCircle(center, 4, Paint()..color = Colors.black87);
+  }
+
+  @override
+  bool shouldRepaint(covariant TempoGaugePainter oldDelegate) {
+    return oldDelegate.tempo != tempo || oldDelegate.animation != animation;
+  }
+}
+
+// --- OCEAN WAVE PAINTER (Bez zmian) ---
 class OceanWavePainter extends CustomPainter {
   final double progress;
   final Animation<double> animationValue;
