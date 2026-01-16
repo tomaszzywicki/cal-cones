@@ -22,10 +22,30 @@ class CreateRecipeScreen extends StatefulWidget {
 
 class _CreateRecipeScreenState extends State<CreateRecipeScreen> {
   final List<MealProductModel> _ingredients = [];
-  String _selectedMealType = 'Lunch';
+  late String _selectedMealType;
   bool _isGenerating = false;
 
   final List<String> _mealTypes = ['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert'];
+
+  @override
+  void initState() {
+    super.initState();
+    _setInitialMealType();
+  }
+
+  void _setInitialMealType() {
+    final hour = DateTime.now().hour;
+    // Logic: 04:00 - 11:00 -> Breakfast, 11:00 - 16:00 -> Lunch, 16:00 - 22:00 -> Dinner, else -> Snack
+    if (hour >= 4 && hour < 11) {
+      _selectedMealType = 'Breakfast';
+    } else if (hour >= 11 && hour < 16) {
+      _selectedMealType = 'Lunch';
+    } else if (hour >= 16 && hour < 22) {
+      _selectedMealType = 'Dinner';
+    } else {
+      _selectedMealType = 'Snack'; 
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -9,6 +9,7 @@ import 'package:frontend/features/home/presentation/widgets/day_macro_card.dart'
 import 'package:frontend/features/home/presentation/widgets/warning_card.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
+import 'package:frontend/features/recipe/presentation/screens/create_recipe_screen.dart';
 import 'package:frontend/features/weight_log/presentation/screens/weight_log_main_screen.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
@@ -179,6 +180,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
 
                     const SizedBox(height: 16),
 
+                    // Quick Stats 
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Container(
@@ -217,6 +219,86 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                               'Calories Left',
                               '${(_targetKcal - _consumedKcal).round()}',
                               Icons.local_fire_department,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Meal Recommender Advertisement Card
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.indigo.shade400, Colors.indigo.shade800],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.indigo.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Need inspiration?',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Discover new recipes based on ingredients you have!',
+                                    style: TextStyle(
+                                      color: Colors.white70,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => const CreateRecipeScreen(),
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.white,
+                                      foregroundColor: Colors.indigo.shade800,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
+                                    ),
+                                    icon: const Icon(Icons.auto_awesome, size: 18),
+                                    label: const Text('Try Meal Gen'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            const Icon(
+                              Icons.restaurant_menu_rounded,
+                              color: Colors.white24,
+                              size: 80,
                             ),
                           ],
                         ),

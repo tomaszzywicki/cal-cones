@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/features/recipe/data/recipe_model.dart';
+import 'package:frontend/features/recipe/presentation/screens/meal_recommender_screen.dart';
 import 'package:frontend/features/recipe/services/recipe_service.dart';
 import 'package:provider/provider.dart';
 
@@ -83,8 +84,14 @@ class _RecipeDisplayPageState extends State<RecipeDisplayPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          // Pass result 'true' if we modified the recipe (so previous screen can refresh)
-          onPressed: () => Navigator.pop(context, _recipe != widget.recipe), 
+          onPressed: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MealRecommenderScreen(),
+              ),
+            );
+          },
         ),
         actions: [
           IconButton(

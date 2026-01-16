@@ -19,7 +19,7 @@ class MainScreenState extends State<MainScreen> {
   final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
   final GlobalKey<MealLogScreenState> mealLogScreenKey = GlobalKey<MealLogScreenState>();
 
-  int _currentIndex = 2;
+  int _currentIndex = 0;
   late final List<Widget> _screens;
 
   @override
