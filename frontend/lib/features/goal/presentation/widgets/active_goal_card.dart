@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:frontend/features/home/presentation/widgets/warning_card.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';
@@ -46,6 +47,7 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
   Widget build(BuildContext context) {
     final weightLogService = context.watch<WeightLogService>();
     final double currentWeight = weightLogService.latestEntry?.weight ?? widget.goal.startWeight;
+    final bool hasCurrentWeight = weightLogService.latestEntry?.weight != null;
 
     // --- CALCULATIONS ---
     final now = DateTime.now();
@@ -94,7 +96,9 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
     final bool isWeightLossGoal = start > target;
     final bool isGoodProgress = isWeightLossGoal ? difference <= 0 : difference >= 0;
     String diffSign = difference > 0 ? '+' : '';
-    Color diffColor = isGoodProgress ? const Color(0xFF43A047) : const Color(0xFFE53935);
+    Color diffColor = hasCurrentWeight
+        ? (isGoodProgress ? const Color(0xFF43A047) : const Color(0xFFE53935))
+        : Color(0xFFE53935);
 
     return Card(
       elevation: 4,
@@ -157,11 +161,11 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                   textBaseline: TextBaseline.alphabetic,
                   children: [
                     Text(
-                      currentWeight.toStringAsFixed(1),
-                      style: const TextStyle(
+                      hasCurrentWeight ? currentWeight.toStringAsFixed(1) : " ? ",
+                      style: TextStyle(
                         fontSize: 64,
                         fontWeight: FontWeight.w900,
-                        color: Colors.black87,
+                        color: hasCurrentWeight ? Colors.black87 : Colors.grey,
                         letterSpacing: -2.5,
                       ),
                     ),
@@ -172,13 +176,28 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                     ),
                   ],
                 ),
-                Transform.translate(
-                  offset: const Offset(0, -6),
-                  child: Text(
-                    "$diffSign${difference.toStringAsFixed(1)} kg since start",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: diffColor),
+                if (!hasCurrentWeight)
+                  WarningCard(
+                    title: "Missing Weight Data",
+                    subtitle: "Log your weight to track your progress",
+                    icon: Icons.monitor_weight_outlined,
+                    color: Colors.red,
+                    buttonText: "Log Weight",
+                    buttonAction: () => Navigator.of(context).pushNamed('/weight-log'),
+                    buttonUnder: true,
+                  )
+                else
+                  Center(
+                    // Dodane dla poprawnego centrowania
+                    child: Transform.translate(
+                      offset: const Offset(0, -6),
+                      child: Text(
+                        "$diffSign${difference.toStringAsFixed(1)} kg since start",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: diffColor),
+                      ),
+                    ),
                   ),
-                ),
               ],
             ),
 

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:frontend/features/weight_log/data/weight_entry_model.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
@@ -15,12 +16,20 @@ class CurrentGoalCard extends StatefulWidget {
 class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderStateMixin {
   late AnimationController _shimmerController;
   late AnimationController _waveController;
+  late Future<GoalModel?> _activeGoalFuture;
 
   @override
   void initState() {
     super.initState();
     _shimmerController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
     _waveController = AnimationController(vsync: this, duration: const Duration(seconds: 10))..repeat();
+    _activeGoalFuture = context.read<GoalService>().getActiveGoal();
+  }
+
+  void refresh() {
+    setState(() {
+      _activeGoalFuture = context.read<GoalService>().getActiveGoal();
+    });
   }
 
   @override
@@ -33,10 +42,11 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
   @override
   Widget build(BuildContext context) {
     final weightLogService = context.watch<WeightLogService>();
-    final double? currentWeight = weightLogService.latestEntry?.weight;
+    // final double? currentWeight = weightLogService.latestEntry?.weight;
+    final WeightEntryModel? latestWeightEntry = weightLogService.latestEntry;
 
     return FutureBuilder<GoalModel?>(
-      future: context.read<GoalService>().getActiveGoal(),
+      future: _activeGoalFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Card(
@@ -58,12 +68,12 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
           );
         }
 
-        return _buildSeparatedContent(activeGoal, currentWeight ?? activeGoal.startWeight);
+        return _buildSeparatedContent(activeGoal, latestWeightEntry);
       },
     );
   }
 
-  Widget _buildSeparatedContent(GoalModel goal, double currentWeight) {
+  Widget _buildSeparatedContent(GoalModel goal, WeightEntryModel? latestWeightEntry) {
     final now = DateTime.now();
     final double screenWidth = MediaQuery.of(context).size.width;
     double rel(double size) => screenWidth * (size / 480.0);
@@ -82,6 +92,8 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
     final double start = goal.startWeight;
     final double target = goal.targetWeight;
 
+    final double currentWeight = latestWeightEntry?.weight ?? start;
+    final String displayedCurrentWeight = latestWeightEntry?.weight.toStringAsFixed(1) ?? " ? ";
     double weightProgress = (start - currentWeight) / (start - target);
 
     // Kolory
@@ -175,11 +187,11 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                             textBaseline: TextBaseline.alphabetic,
                             children: [
                               Text(
-                                currentWeight.toStringAsFixed(1),
+                                displayedCurrentWeight,
                                 style: TextStyle(
                                   fontSize: rel(42),
                                   fontWeight: FontWeight.w900,
-                                  color: Colors.black87,
+                                  color: latestWeightEntry?.weight != null ? Colors.black87 : Colors.grey,
                                   letterSpacing: -1.5,
                                 ),
                               ),

@@ -31,18 +31,26 @@ class DailyTargetService {
       throw Exception('No authenticated user found.');
     }
 
+    // Figure out daily targets from startDate to today (they will be the same as nothing was changing in between)
+    final currentWeightEntry = await _weightLogService.getLatestWeightEntry();
+    final fallbackWeight = _currentUserService.currentUser!.sex == 'female' ? 60.0 : 75.0;
+    final currentWeight = currentWeightEntry?.weight ?? fallbackWeight;
+
+    GoalModel? goal = await _goalService.getActiveGoal();
+    if (goal == null) {
+      AppLogger.warning(
+        'DailyTargetService: No active goal found for user ID: $userId. Calculating maintenance target.',
+      );
+      goal = await _goalService.createGenericMaintenanceGoal(currentWeight);
+    }
+
     // Get the date for the first missing daily target entry
     final lastDateStr = await _dailyTargetRepository.getLastEntryDate(userId);
     final today = DateTime.now().toUtc();
 
     DateTime startDate;
-    final goal = await _goalService.getActiveGoal();
-    if (goal == null) {
-      throw Exception('No active goal found for user ID: $userId');
-    }
-
     if (lastDateStr == null) {
-      startDate = goal.startDate;
+      startDate = goal!.startDate;
     } else {
       final lastDate = DateTime.parse(lastDateStr);
       startDate = lastDate.add(Duration(days: 1));
@@ -53,15 +61,9 @@ class DailyTargetService {
       return;
     }
 
-    // Figure out daily targets from startDate to today (they will be the same as nothing was changing in between)
-    final currentWeightEntry = await _weightLogService.getLatestWeightEntry();
-    if (currentWeightEntry == null) {
-      throw Exception('No weight entries found for user ID: $userId');
-    }
-    final currentWeight = currentWeightEntry.weight;
     final dailyTarget = _calculatorService.calculateDailyTarget(
       _currentUserService.currentUser!,
-      goal,
+      goal!,
       currentWeight,
     );
 

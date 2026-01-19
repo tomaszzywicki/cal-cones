@@ -78,9 +78,9 @@ class WeightLogService extends ChangeNotifier {
     await _weightLogRepository.updateWeightEntry(oldEntry);
   }
 
-  Future<bool> hasWeightData(int userId) async {
+  Future<bool> hasWeightData() async {
     try {
-      final entries = await _weightLogRepository.getWeightEntries(userId);
+      final entries = await _weightLogRepository.getWeightEntries(_userId!);
       return entries.isNotEmpty;
     } catch (e) {
       AppLogger.error('WeightLogService: Failed to check for weight data.', e);

@@ -28,14 +28,15 @@ class DailyTargetCalculatorService {
     double muscleGain;
     double fatGain;
     double fatLoss;
-    if (goal.tempo > maxMuscleGainPerWeek) {
+    double signedTempo = goal.isWeightLoss ? -goal.tempo : goal.tempo;
+    if (signedTempo > maxMuscleGainPerWeek) {
       muscleGain = maxMuscleGainPerWeek;
-      fatGain = goal.tempo - maxMuscleGainPerWeek;
+      fatGain = signedTempo - maxMuscleGainPerWeek;
     } else {
-      muscleGain = max(0, goal.tempo);
+      muscleGain = max(0, signedTempo);
       fatGain = 0;
     }
-    fatLoss = min(0, goal.tempo);
+    fatLoss = min(0, signedTempo);
 
     double weeklyCalorieAdjustment =
         ((muscleGain * costToBuildMusclePerKg) +

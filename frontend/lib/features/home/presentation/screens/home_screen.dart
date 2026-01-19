@@ -60,7 +60,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
 
       if (userId != null) {
         _hasActiveGoal = await goalService.hasActiveGoal(userId);
-        _hasWeightData = await weightLogService.hasWeightData(userId);
+        _hasWeightData = await weightLogService.hasWeightData();
         _isWeightOutdated = await weightLogService.isLatestEntryOutdated();
       }
 
@@ -180,7 +180,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
 
                     const SizedBox(height: 16),
 
-                    // Quick Stats 
+                    // Quick Stats
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Container(
@@ -209,9 +209,9 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                               _todayProducts.length.toString(),
                               Icons.restaurant_menu,
                               onTap: () {
-                              context
-                                  .findAncestorStateOfType<MainScreenState>()
-                                  ?.navigateToMealLogDate(DateTime.now().toUtc());
+                                context.findAncestorStateOfType<MainScreenState>()?.navigateToMealLogDate(
+                                  DateTime.now().toUtc(),
+                                );
                               },
                             ),
                             const Divider(height: 24),
@@ -262,31 +262,21 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                                   const SizedBox(height: 8),
                                   const Text(
                                     'Discover new recipes based on ingredients you have!',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                    ),
+                                    style: TextStyle(color: Colors.white70, fontSize: 14),
                                   ),
                                   const SizedBox(height: 16),
                                   ElevatedButton.icon(
                                     onPressed: () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const CreateRecipeScreen(),
-                                        ),
+                                        MaterialPageRoute(builder: (context) => const CreateRecipeScreen()),
                                       );
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.white,
                                       foregroundColor: Colors.indigo.shade800,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 10,
-                                      ),
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                                     ),
                                     icon: const Icon(Icons.auto_awesome, size: 18),
                                     label: const Text('Try Meal Gen'),
@@ -295,11 +285,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                               ),
                             ),
                             const SizedBox(width: 12),
-                            const Icon(
-                              Icons.restaurant_menu_rounded,
-                              color: Colors.white24,
-                              size: 80,
-                            ),
+                            const Icon(Icons.restaurant_menu_rounded, color: Colors.white24, size: 80),
                           ],
                         ),
                       ),
@@ -313,10 +299,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
 
   Widget _buildStatRow(String label, String value, IconData icon, {VoidCallback? onTap}) {
     return Material(
-      color: Colors.transparent, 
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12), 
+        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Row(
