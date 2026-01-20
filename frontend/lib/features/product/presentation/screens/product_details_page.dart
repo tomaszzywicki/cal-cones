@@ -167,25 +167,31 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildMacroColumn(
-                                  'Carbs',
-                                  _calculatedCarbs,
-                                  _carbsPercent,
-                                  const Color(0xFF388E3C),
+                                Expanded(
+                                  child: _buildMacroColumn(
+                                    'Carbs',
+                                    _calculatedCarbs,
+                                    _carbsPercent,
+                                    const Color(0xFF388E3C),
+                                  ),
                                 ),
-                                SizedBox(width: 5),
-                                _buildMacroColumn(
-                                  'Protein',
-                                  _calculatedProtein,
-                                  _proteinPercent,
-                                  const Color(0xFFD32F2F),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: _buildMacroColumn(
+                                    'Protein',
+                                    _calculatedProtein,
+                                    _proteinPercent,
+                                    const Color(0xFFD32F2F),
+                                  ),
                                 ),
-                                SizedBox(width: 5),
-                                _buildMacroColumn(
-                                  'Fat',
-                                  _calculatedFat,
-                                  _fatPercent,
-                                  const Color(0xFFF57C00),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: _buildMacroColumn(
+                                    'Fat',
+                                    _calculatedFat,
+                                    _fatPercent,
+                                    const Color(0xFFF57C00),
+                                  ),
                                 ),
                               ],
                             ),
@@ -357,12 +363,12 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
                               ),
                             )
                           : Text(
-                                widget.mode == ProductPageMode.edit
-                                ? 'Save Changes'
-                                : widget.mode == ProductPageMode.addToRecipe
-                                    ? 'Add to ingredients'
-                                    : 'Add to log',                              
-                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+                              widget.mode == ProductPageMode.edit
+                                  ? 'Save Changes'
+                                  : widget.mode == ProductPageMode.addToRecipe
+                                      ? 'Add to ingredients'
+                                      : 'Add to log',
+                              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
                             ),
                     ),
                   ),

@@ -8,6 +8,7 @@ import 'package:frontend/features/other/presentation/widgets/profile_card.dart';
 import 'package:frontend/features/other/presentation/screens/user_info_page.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/recipe/presentation/screens/meal_recommender_screen.dart';
+import 'package:frontend/features/goal/presentation/screens/goal_list_screen.dart';
 
 class OtherScreen extends StatefulWidget {
   const OtherScreen({super.key});
@@ -108,7 +109,7 @@ class _OtherScreenState extends State<OtherScreen> {
                   title: 'Goals',
                   subtitle: 'Set your nutrition targets',
                   onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => UserInfo()));
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GoalListScreen()));
                   },
                 ),
                 _buildDivider(),

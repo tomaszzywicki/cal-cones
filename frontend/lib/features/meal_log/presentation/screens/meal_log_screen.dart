@@ -49,11 +49,9 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
   void onDayChanged() {
     setState(() {
       _updateDateString();
-      // Rebuilds the UI with the new date
     });
   }
 
-  // CHANGED: Removed underscore to make method public
   Future<void> loadMealProducts() async {
     setState(() => _isLoading = true);
 
@@ -246,12 +244,20 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
         ),
       ),
 
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _handleAddProduct();
-        },
-        backgroundColor: Colors.black,
-        child: const Icon(Icons.add, color: Colors.white),
+      floatingActionButton: SizedBox(
+        height: 50, 
+        child: FloatingActionButton.extended(
+          onPressed: () {
+            _handleAddProduct();
+          },
+          backgroundColor: Colors.black,
+          extendedPadding: const EdgeInsets.symmetric(horizontal: 16),
+          icon: const Icon(Icons.add, color: Colors.white, size: 20),
+          label: const Text(
+            "Add product for this day",
+            style: TextStyle(color: Colors.white, fontSize: 14),
+          ),
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
