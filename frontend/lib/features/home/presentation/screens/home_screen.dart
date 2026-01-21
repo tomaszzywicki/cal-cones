@@ -29,6 +29,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
   DailyTargetModel? _todayTargets;
   bool _isLoading = true;
 
+  bool _hasOnboardingCompleted = true;
   bool _hasActiveGoal = true;
   bool _hasWeightData = true;
   bool _isWeightOutdated = false;
@@ -59,6 +60,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
       final userId = currentUserService.currentUser!.id;
 
       if (userId != null) {
+        _hasOnboardingCompleted = currentUserService.currentUser!.setupCompleted;
         _hasActiveGoal = await goalService.hasActiveGoal(userId);
         _hasWeightData = await weightLogService.hasWeightData();
         _isWeightOutdated = await weightLogService.isLatestEntryOutdated();
@@ -86,10 +88,10 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
   double get _consumedCarbs => _todayProducts.fold(0, (sum, p) => sum + p.carbs);
   double get _consumedProtein => _todayProducts.fold(0, (sum, p) => sum + p.protein);
   double get _consumedFat => _todayProducts.fold(0, (sum, p) => sum + p.fat);
-  double get _targetKcal => _todayTargets?.calories.toDouble() ?? 0;
-  double get _targetCarbs => _todayTargets != null ? (_todayTargets!.carbsG.toDouble()) : 0;
-  double get _targetProtein => _todayTargets != null ? (_todayTargets!.proteinG.toDouble()) : 0;
-  double get _targetFat => _todayTargets != null ? (_todayTargets!.fatG.toDouble()) : 0;
+  double get _targetKcal => _todayTargets?.calories.toDouble() ?? 2500;
+  double get _targetCarbs => _todayTargets?.carbsG.toDouble() ?? 260;
+  double get _targetProtein => _todayTargets?.proteinG.toDouble() ?? 120;
+  double get _targetFat => _todayTargets?.fatG.toDouble() ?? 60;
 
   @override
   Widget build(BuildContext context) {
@@ -123,7 +125,20 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                       targetFat: _targetFat,
                     ),
 
-                    if (!_hasWeightData)
+                    if (!_hasOnboardingCompleted)
+                      WarningCard(
+                        title: 'Complete Your Onboarding',
+                        subtitle: 'Finish setting up your profile to get personalized target calculations.',
+                        icon: Icons.info_outline,
+                        color: Colors.orange,
+                        buttonText: 'Complete Now',
+                        buttonAction: () {
+                          // Navigate to onboarding screen
+                          Navigator.of(context).pushNamed('/onboarding');
+                        },
+                      ),
+
+                    if (!_hasWeightData && _hasOnboardingCompleted)
                       WarningCard(
                         title: 'Missing Weight Data',
                         subtitle: 'Log your weight to get accurate calorie targets.',
@@ -140,7 +155,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                         },
                       ),
 
-                    if (_isWeightOutdated && _hasWeightData)
+                    if (_isWeightOutdated && _hasWeightData && _hasOnboardingCompleted)
                       WarningCard(
                         title: 'Outdated weight information',
                         subtitle:
@@ -163,7 +178,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                         },
                       ),
 
-                    if (!_hasActiveGoal)
+                    if (!_hasActiveGoal && _hasOnboardingCompleted)
                       WarningCard(
                         title: 'You have not set a goal',
                         subtitle: 'Current calorie targets are calculated to help maintain your weight.',
@@ -178,7 +193,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                         },
                       ),
 
-                    const SizedBox(height: 16),
+                    // const SizedBox(height: 16),
 
                     // Quick Stats
                     Padding(
