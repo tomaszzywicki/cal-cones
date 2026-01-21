@@ -203,22 +203,9 @@ class _Onboarding extends State<Onboarding> {
             // Header: Back Button + Indicator
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 8.0),
-              child: Stack(
-                alignment: Alignment.center,
+              child: Column(
                 children: [
-                  // Back Button (Left)
-                  if (!onFirstPage)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: Colors.black87),
-                        onPressed: () {
-                          _pageController.previousPage(duration: _animDuration, curve: _animCurve);
-                        },
-                      ),
-                    ),
-
-                  // Page Indicator (Center)
+                  // Page Indicator (Top)
                   SmoothPageIndicator(
                     controller: _pageController,
                     count: pages.length,
@@ -228,6 +215,25 @@ class _Onboarding extends State<Onboarding> {
                       activeDotColor: const Color(0xFF0C1C24),
                       dotColor: Colors.grey[300]!,
                       spacing: 6,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Back Button (Below, Left-aligned)
+                  SizedBox(
+                    height: 40,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: !onFirstPage
+                          ? IconButton(
+                              icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: Colors.black87),
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                _pageController.previousPage(duration: _animDuration, curve: _animCurve);
+                              },
+                            )
+                          : null,
                     ),
                   ),
                 ],
