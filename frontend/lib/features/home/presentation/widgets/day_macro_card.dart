@@ -10,7 +10,6 @@ class DayMacroCard extends StatelessWidget {
   final double targetCarbs;
   final double targetProtein;
   final double targetFat;
-  final bool onboardingComplete;
 
   const DayMacroCard({
     super.key,
@@ -18,11 +17,10 @@ class DayMacroCard extends StatelessWidget {
     required this.consumedCarbs,
     required this.consumedProtein,
     required this.consumedFat,
-    this.targetKcal = 2500,
-    this.targetCarbs = 200,
-    this.targetProtein = 160,
-    this.targetFat = 90,
-    this.onboardingComplete = false,
+    this.targetKcal = 2000,
+    this.targetCarbs = 260,
+    this.targetProtein = 120,
+    this.targetFat = 60,
   });
 
   double get remainingKcal => (targetKcal - consumedKcal).clamp(0, targetKcal);

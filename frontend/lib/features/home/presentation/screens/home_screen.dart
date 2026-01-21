@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/enums/app_enums.dart';
+import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/core/mixins/day_refresh_mixin.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/goal/data/daily_target_model.dart';
@@ -10,6 +11,7 @@ import 'package:frontend/features/home/presentation/widgets/warning_card.dart';
 import 'package:frontend/features/meal/data/meal_product_model.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
 import 'package:frontend/features/recipe/presentation/screens/create_recipe_screen.dart';
+import 'package:frontend/features/user/presentation/screens/onboarding.dart';
 import 'package:frontend/features/weight_log/presentation/screens/weight_log_main_screen.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
@@ -71,6 +73,11 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
       // Fetches from LOCAL DATABASE
       final products = await mealService.getMealProductsForDate(today);
       final targets = await dailyTargetService.getDailyTargetForDate(today);
+      AppLogger.info(
+        '[HomeScreen] Loaded today\'s macros: '
+        'Products count=${products.length}, '
+        'Targets=${targets != null ? 'calories=${targets.calories}, carbsG=${targets.carbsG}, proteinG=${targets.proteinG}, fatG=${targets.fatG}' : 'null'}',
+      );
 
       setState(() {
         _todayProducts = products;
@@ -88,7 +95,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
   double get _consumedCarbs => _todayProducts.fold(0, (sum, p) => sum + p.carbs);
   double get _consumedProtein => _todayProducts.fold(0, (sum, p) => sum + p.protein);
   double get _consumedFat => _todayProducts.fold(0, (sum, p) => sum + p.fat);
-  double get _targetKcal => _todayTargets?.calories.toDouble() ?? 2500;
+  double get _targetKcal => _todayTargets?.calories.toDouble() ?? 2000;
   double get _targetCarbs => _todayTargets?.carbsG.toDouble() ?? 260;
   double get _targetProtein => _todayTargets?.proteinG.toDouble() ?? 120;
   double get _targetFat => _todayTargets?.fatG.toDouble() ?? 60;
@@ -126,16 +133,21 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                     ),
 
                     if (!_hasOnboardingCompleted)
-                      WarningCard(
-                        title: 'Complete Your Onboarding',
-                        subtitle: 'Finish setting up your profile to get personalized target calculations.',
-                        icon: Icons.info_outline,
-                        color: Colors.orange,
-                        buttonText: 'Complete Now',
-                        buttonAction: () {
-                          // Navigate to onboarding screen
-                          Navigator.of(context).pushNamed('/onboarding');
-                        },
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: WarningCard(
+                          title: 'Complete Your Onboarding',
+                          subtitle: 'Finish setting up your profile to get personalized target calculations.',
+                          icon: Icons.info_outline,
+                          color: Colors.orange,
+                          buttonText: 'Complete Now',
+                          buttonAction: () {
+                            Navigator.of(
+                              context,
+                            ).push(MaterialPageRoute(builder: (context) => const Onboarding()));
+                          },
+                          buttonUnder: true,
+                        ),
                       ),
 
                     if (!_hasWeightData && _hasOnboardingCompleted)

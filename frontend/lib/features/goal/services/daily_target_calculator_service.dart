@@ -7,17 +7,22 @@ import 'package:frontend/features/user/data/user_model.dart';
 
 class DailyTargetCalculatorService {
   DailyTargetModel calculateDailyTarget(UserModel user, GoalModel goal, double currentWeight) {
-    if (user.id == null) {
-      throw Exception('User ID is null. Cannot calculate daily target.');
-    }
-    if (user.height == null || user.ageYears == null || user.sex == null) {
-      throw Exception('User data incomplete for BMR calculation. Cannot calculate daily target.');
-    }
+    // if (user.id == null) {
+    //   throw Exception('User ID is null. Cannot calculate daily target.');
+    // }
+    // if (user.height == null || user.ageYears == null || user.sex == null) {
+    //   throw Exception('User data incomplete for BMR calculation. Cannot calculate daily target.');
+    // }
+    int ageYears = user.ageYears ?? 30;
+    String sex = user.sex ?? 'female';
+    int height = user.height ?? (sex == 'male' ? 175 : 160);
+    String activityLevel = user.activityLevel ?? 'moderately_active';
+    String dietType = user.dietType ?? 'low_carb';
 
-    double s = (user.sex == 'male') ? 5.0 : -161.0;
-    double bmr = (10 * currentWeight) + (6.25 * user.height!) - (5 * user.ageYears!) + s;
+    double s = (sex == 'male') ? 5.0 : -161.0;
+    double bmr = (10 * currentWeight) + (6.25 * height) - (5 * ageYears) + s;
 
-    double activityFactor = _getActivityFactor(user.activityLevel);
+    double activityFactor = _getActivityFactor(activityLevel);
     double tdee = bmr * activityFactor;
 
     const double costToBuildMusclePerKg = 7000; // kcal
@@ -46,7 +51,7 @@ class DailyTargetCalculatorService {
     double dailyCalorieAdjustment = weeklyCalorieAdjustment / 7.0;
     int targetCalories = (tdee + dailyCalorieAdjustment).round();
 
-    final macroTargets = _getMacroTargets(user.dietType, targetCalories);
+    final macroTargets = _getMacroTargets(dietType, targetCalories);
 
     return DailyTargetModel(
       date: DateTime.now().toUtc().toIso8601String().split('T').first,
@@ -57,7 +62,7 @@ class DailyTargetCalculatorService {
       proteinG: macroTargets['proteinG']!,
       carbsG: macroTargets['carbsG']!,
       fatG: macroTargets['fatG']!,
-      dietType: user.dietType ?? 'balanced',
+      dietType: dietType,
       lastModifiedAt: DateTime.now().toUtc(),
     );
   }

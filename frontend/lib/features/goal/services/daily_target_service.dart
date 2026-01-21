@@ -26,6 +26,7 @@ class DailyTargetService {
   );
 
   Future<void> ensureHistoryIsPopulated() async {
+    AppLogger.debug("DailyTargetService: Ensuring daily target history is populated...");
     final userId = _currentUserService.currentUser?.id;
     if (userId == null) {
       throw Exception('No authenticated user found.');
@@ -57,9 +58,15 @@ class DailyTargetService {
     }
 
     if (startDate.isAfter(today)) {
-      // History is already up to date
+      AppLogger.info(
+        'DailyTargetService: Daily target history is already populated up to today for user ID: $userId',
+      );
       return;
     }
+
+    AppLogger.info(
+      'DailyTargetService: Filling daily targets from ${_dateToString(startDate)} to ${_dateToString(today)} for user ID: $userId',
+    );
 
     final dailyTarget = _calculatorService.calculateDailyTarget(
       _currentUserService.currentUser!,
@@ -82,6 +89,7 @@ class DailyTargetService {
   }
 
   Future<void> refreshTargetForToday() async {
+    AppLogger.debug("DailyTargetService: Refreshing daily target for today...");
     await ensureHistoryIsPopulated();
     final userId = _currentUserService.currentUser?.id;
     if (userId == null) throw Exception('No authenticated user found.');
