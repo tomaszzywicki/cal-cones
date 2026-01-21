@@ -14,16 +14,23 @@ class DailyTargetCalculatorService {
     //   throw Exception('User data incomplete for BMR calculation. Cannot calculate daily target.');
     // }
     int ageYears = user.ageYears ?? 30;
-    String sex = user.sex ?? 'female';
+    String sex = user.sex?.toLowerCase() ?? 'male';
     int height = user.height ?? (sex == 'male' ? 175 : 160);
-    String activityLevel = user.activityLevel ?? 'moderately_active';
-    String dietType = user.dietType ?? 'low_carb';
+    String activityLevel = user.activityLevel?.toLowerCase() ?? 'sedentary';
+    String dietType = user.dietType?.toLowerCase() ?? 'balanced';
 
     double s = (sex == 'male') ? 5.0 : -161.0;
     double bmr = (10 * currentWeight) + (6.25 * height) - (5 * ageYears) + s;
 
     double activityFactor = _getActivityFactor(activityLevel);
     double tdee = bmr * activityFactor;
+
+    AppLogger.info(
+      'Calculating daily target:\n\tWeight: $currentWeight kg\n\tHeight: $height cm\n\tAge: $ageYears years\n\tSex: $sex',
+    );
+    AppLogger.info(
+      'Activity Level: $activityLevel\nDiet Type: $dietType\nBMR: $bmr kcal\nActivity Factor: $activityFactor\nTDEE: $tdee kcal',
+    );
 
     const double costToBuildMusclePerKg = 7000; // kcal
     const double costToBuildFatPerKg = 8000; // kcal
@@ -50,6 +57,10 @@ class DailyTargetCalculatorService {
 
     double dailyCalorieAdjustment = weeklyCalorieAdjustment / 7.0;
     int targetCalories = (tdee + dailyCalorieAdjustment).round();
+
+    AppLogger.info(
+      "Daily Calorie Adjustment: $dailyCalorieAdjustment kcal\nTarget Calories: $targetCalories kcal",
+    );
 
     final macroTargets = _getMacroTargets(dietType, targetCalories);
 

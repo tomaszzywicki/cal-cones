@@ -15,6 +15,7 @@ import 'package:frontend/features/user/services/user_service.dart';
 import 'package:frontend/main_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:provider/provider.dart';
+import 'dart:math' as math;
 import 'package:frontend/core/logger/app_logger.dart';
 
 class Onboarding extends StatefulWidget {
@@ -101,6 +102,12 @@ class _Onboarding extends State<Onboarding> {
     final currentUserService = context.read<CurrentUserService>();
     final userService = context.read<UserService>();
     bool isConnected = connectivityService.isConnected;
+
+    double weightDifference = _startWeight! - _targetWeight!;
+    bool isMaintenanceMode = weightDifference.abs() < 0.1;
+    if (isMaintenanceMode) {
+      _tempo = 0.0;
+    }
 
     final userOnboardingModel = UserOnboardingModel(
       id: currentUserService.currentUser!.id!,
