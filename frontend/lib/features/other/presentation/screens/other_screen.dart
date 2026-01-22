@@ -3,6 +3,7 @@ import 'package:frontend/core/database/local_database_service.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/goal/presentation/screens/goal_list_screen.dart';
 import 'package:frontend/features/other/presentation/screens/password_reset_page.dart';
 import 'package:frontend/features/other/presentation/widgets/profile_card.dart';
 import 'package:frontend/features/other/presentation/screens/user_info_page.dart';
@@ -69,8 +70,8 @@ class _OtherScreenState extends State<OtherScreen> {
                   },
                 ),
                 _buildDivider(),
-                _buildListTile(icon: Icons.settings_outlined, title: 'Settings', onTap: () {}),
-                _buildDivider(),
+                // _buildListTile(icon: Icons.settings_outlined, title: 'Settings', onTap: () {}),
+                // _buildDivider(),
                 _buildListTile(
                   icon: Icons.lock_outline,
                   title: 'Password',

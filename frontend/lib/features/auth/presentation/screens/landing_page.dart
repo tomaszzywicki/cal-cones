@@ -89,7 +89,7 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
 
                     // Tagline
                     Text(
-                      "Track your nutrition with the better way",
+                      "Track your nutrition the better way",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w400,
@@ -118,7 +118,12 @@ class _LandingPageState extends State<LandingPage> with SingleTickerProviderStat
                         ),
                         child: const Text(
                           "Get Started",
-                          style: TextStyle(fontSize: 19, fontWeight: FontWeight.w700, letterSpacing: 0.8),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),

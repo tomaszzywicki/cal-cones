@@ -26,9 +26,23 @@ class DailyTargetService {
   );
 
   Future<void> ensureHistoryIsPopulated() async {
+    AppLogger.debug("DailyTargetService: Ensuring daily target history is populated...");
     final userId = _currentUserService.currentUser?.id;
     if (userId == null) {
       throw Exception('No authenticated user found.');
+    }
+
+    // Figure out daily targets from startDate to today (they will be the same as nothing was changing in between)
+    final currentWeightEntry = await _weightLogService.getLatestWeightEntry();
+    final fallbackWeight = _currentUserService.currentUser!.sex == 'female' ? 60.0 : 75.0;
+    final currentWeight = currentWeightEntry?.weight ?? fallbackWeight;
+
+    GoalModel? goal = await _goalService.getActiveGoal();
+    if (goal == null) {
+      AppLogger.warning(
+        'DailyTargetService: No active goal found for user ID: $userId. Calculating maintenance target.',
+      );
+      goal = await _goalService.createGenericMaintenanceGoal(currentWeight);
     }
 
     // Get the date for the first missing daily target entry
@@ -36,32 +50,27 @@ class DailyTargetService {
     final today = DateTime.now().toUtc();
 
     DateTime startDate;
-    final goal = await _goalService.getActiveGoal();
-    if (goal == null) {
-      throw Exception('No active goal found for user ID: $userId');
-    }
-
     if (lastDateStr == null) {
-      startDate = goal.startDate;
+      startDate = goal!.startDate;
     } else {
       final lastDate = DateTime.parse(lastDateStr);
       startDate = lastDate.add(Duration(days: 1));
     }
 
     if (startDate.isAfter(today)) {
-      // History is already up to date
+      AppLogger.info(
+        'DailyTargetService: Daily target history is already populated up to today for user ID: $userId',
+      );
       return;
     }
 
-    // Figure out daily targets from startDate to today (they will be the same as nothing was changing in between)
-    final currentWeightEntry = await _weightLogService.getLatestWeightEntry();
-    if (currentWeightEntry == null) {
-      throw Exception('No weight entries found for user ID: $userId');
-    }
-    final currentWeight = currentWeightEntry.weight;
+    AppLogger.info(
+      'DailyTargetService: Filling daily targets from ${_dateToString(startDate)} to ${_dateToString(today)} for user ID: $userId',
+    );
+
     final dailyTarget = _calculatorService.calculateDailyTarget(
       _currentUserService.currentUser!,
-      goal,
+      goal!,
       currentWeight,
     );
 
@@ -80,6 +89,7 @@ class DailyTargetService {
   }
 
   Future<void> refreshTargetForToday() async {
+    AppLogger.debug("DailyTargetService: Refreshing daily target for today...");
     await ensureHistoryIsPopulated();
     final userId = _currentUserService.currentUser?.id;
     if (userId == null) throw Exception('No authenticated user found.');

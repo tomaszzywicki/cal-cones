@@ -84,7 +84,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         appBar: AppBar(
           elevation: 0,
           scrolledUnderElevation: 0,
-          backgroundColor: Colors.transparent,
+          backgroundColor: Colors.grey[50],
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.black),
             onPressed: () => Navigator.pop(context),
@@ -102,6 +102,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
               ),
           ],
         ),
+        backgroundColor: Colors.grey[50],
         body: Column(
           children: [
             Expanded(
@@ -498,7 +499,7 @@ class _ProductDetailsPageState extends State<ProductDetailsPage> {
         Navigator.pop(context, {'success': true, 'mealProduct': tempMealProduct});
         return;
       }
-      
+
       // HANDLE EDIT OR ADD TO LOG
       final mealProductService = Provider.of<MealService>(context, listen: false);
 

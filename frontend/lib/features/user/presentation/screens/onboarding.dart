@@ -12,9 +12,12 @@ import 'package:frontend/features/user/presentation/screens/onboarding_screens/6
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/7_onboarding_diet.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding_screens/8_onboarding_goal_data.dart';
 import 'package:frontend/features/user/services/user_service.dart';
+import 'package:frontend/features/weight_log/data/weight_entry_model.dart';
+import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:frontend/main_screen.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:provider/provider.dart';
+import 'dart:math' as math;
 import 'package:frontend/core/logger/app_logger.dart';
 
 class Onboarding extends StatefulWidget {
@@ -100,7 +103,14 @@ class _Onboarding extends State<Onboarding> {
     final connectivityService = context.read<ConnectivityService>();
     final currentUserService = context.read<CurrentUserService>();
     final userService = context.read<UserService>();
+    final weightLogService = context.read<WeightLogService>();
     bool isConnected = connectivityService.isConnected;
+
+    double weightDifference = _startWeight! - _targetWeight!;
+    bool isMaintenanceMode = weightDifference.abs() < 0.1;
+    if (isMaintenanceMode) {
+      _tempo = 0.0;
+    }
 
     final userOnboardingModel = UserOnboardingModel(
       id: currentUserService.currentUser!.id!,
@@ -126,7 +136,23 @@ class _Onboarding extends State<Onboarding> {
       ).showSnackBar(SnackBar(content: Text('Check internet connection and try again')));
     } else {
       try {
+        // 1. Save User Profile & Goal
         await userService.saveOnboardingInfo(userOnboardingModel);
+
+        // 2. Save Initial Weight Entry
+        try {
+          final initialWeightEntry = WeightEntryModel.create(
+            userId: currentUserService.currentUser?.id,
+            weight: _startWeight!,
+            date: DateTime.now(),
+          );
+          await weightLogService.addWeightEntry(initialWeightEntry);
+          AppLogger.info("Initial weight entry added to log successfully.");
+        } catch (e) {
+          // We log the error but don't stop the flow since the main onboarding succeeded
+          AppLogger.error("Failed to add initial weight to log: $e");
+        }
+
         AppLogger.info("Onboarding info saved successfully.");
         Navigator.of(
           context,
@@ -203,22 +229,9 @@ class _Onboarding extends State<Onboarding> {
             // Header: Back Button + Indicator
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 8.0),
-              child: Stack(
-                alignment: Alignment.center,
+              child: Column(
                 children: [
-                  // Back Button (Left)
-                  if (!onFirstPage)
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: Colors.black87),
-                        onPressed: () {
-                          _pageController.previousPage(duration: _animDuration, curve: _animCurve);
-                        },
-                      ),
-                    ),
-
-                  // Page Indicator (Center)
+                  // Page Indicator (Top)
                   SmoothPageIndicator(
                     controller: _pageController,
                     count: pages.length,
@@ -228,6 +241,25 @@ class _Onboarding extends State<Onboarding> {
                       activeDotColor: const Color(0xFF0C1C24),
                       dotColor: Colors.grey[300]!,
                       spacing: 6,
+                    ),
+                  ),
+
+                  const SizedBox(height: 16),
+
+                  // Back Button (Below, Left-aligned)
+                  SizedBox(
+                    height: 40,
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: !onFirstPage
+                          ? IconButton(
+                              icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: Colors.black87),
+                              padding: EdgeInsets.zero,
+                              onPressed: () {
+                                _pageController.previousPage(duration: _animDuration, curve: _animCurve);
+                              },
+                            )
+                          : null,
                     ),
                   ),
                 ],
