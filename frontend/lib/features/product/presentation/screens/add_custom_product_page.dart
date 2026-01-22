@@ -38,7 +38,12 @@ class _AddCustomProductPageState extends State<AddCustomProductPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add Custom Product'), elevation: 0),
+      appBar: AppBar(
+        title: const Text('Add Custom Product'),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        backgroundColor: Colors.grey[50],
+      ),
       backgroundColor: Colors.grey[50],
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),

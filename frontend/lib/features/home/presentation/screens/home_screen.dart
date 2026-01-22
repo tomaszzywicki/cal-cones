@@ -107,6 +107,7 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text(
           'Today',
           style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold),
