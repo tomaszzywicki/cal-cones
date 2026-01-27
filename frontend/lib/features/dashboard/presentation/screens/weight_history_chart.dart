@@ -1,3 +1,4 @@
+import 'dart:math'; // Potrzebne do pow()
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';
@@ -28,6 +29,9 @@ class WeightHistoryChart extends StatefulWidget {
 }
 
 class _WeightHistoryChartState extends State<WeightHistoryChart> {
+  ChartPeriod _selectedPeriod = ChartPeriod.month;
+  GoalModel? _activeGoal;
+
   @override
   void initState() {
     super.initState();
@@ -41,8 +45,10 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
     });
   }
 
-  ChartPeriod _selectedPeriod = ChartPeriod.month;
-  GoalModel? _activeGoal;
+  double roundWithDecimals(double value, int decimals) {
+    double mod = pow(10.0, decimals).toDouble();
+    return ((value * mod).round().toDouble() / mod);
+  }
 
   DateTime _getStartTime(List<dynamic> entries) {
     if (_selectedPeriod.duration == null) {
@@ -70,7 +76,7 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
       grouped.forEach((weekIndex, weekEntries) {
         final weights = weekEntries.map((e) => (e.weight as num).toDouble());
         final avgWeight = weights.reduce((a, b) => a + b) / weights.length;
-        aggregatedSpots.add(FlSpot(weekIndex * 7.0 + 3.5, double.parse(avgWeight.toStringAsFixed(1))));
+        aggregatedSpots.add(FlSpot(weekIndex * 7.0 + 3.5, roundWithDecimals(avgWeight, 1)));
       });
       return aggregatedSpots..sort((a, b) => a.x.compareTo(b.x));
     }
@@ -88,20 +94,39 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
     final startTime = _getStartTime(weightEntries);
     final spots = _processData(weightEntries, startTime);
 
-    // Obliczanie bazowego zakresu
+    // --- OŚ X: Minimalny margines poziomy ---
     final double baseMaxX =
         _selectedPeriod.duration?.inDays.toDouble() ??
         (DateTime.now().difference(startTime).inDays.toDouble().clamp(1, 10000) + 1);
+    final double horizontalOffset = baseMaxX * 0.01;
 
-    // Dodanie delikatnego marginesu (zapasu) po bokach (ok. 3% zakresu)
-    final double horizontalOffset = baseMaxX * 0.03;
+    // --- OŚ Y: Obliczanie zakresu z uwzględnieniem celu ---
+    List<double> yValues = spots.map((s) => s.y).toList();
 
-    final minY = spots.isEmpty
-        ? 0.0
-        : (spots.map((s) => s.y).reduce((a, b) => a < b ? a : b) - 3).floorToDouble();
-    final maxY = spots.isEmpty
-        ? 100.0
-        : (spots.map((s) => s.y).reduce((a, b) => a > b ? a : b) + 3).ceilToDouble();
+    if (_activeGoal != null) {
+      if (!(_activeGoal!.isMaintenanceMode)) {
+        yValues.add(_activeGoal!.startWeight);
+        yValues.add(_activeGoal!.targetWeight);
+      } else {
+        yValues.add(_activeGoal!.targetWeight + 0.5);
+        yValues.add(_activeGoal!.targetWeight - 0.5);
+      }
+    }
+
+    double minY = 0;
+    double maxY = 100;
+
+    if (yValues.isNotEmpty) {
+      final minVal = yValues.reduce((a, b) => a < b ? a : b);
+      final maxVal = yValues.reduce((a, b) => a > b ? a : b);
+      final range = maxVal - minVal;
+
+      // Bardzo mały margines pionowy (2% zakresu lub 0.5kg), aby wykres wypełniał przestrzeń
+      final margin = (range * 0.02).clamp(0.5, 1.5);
+
+      minY = (minVal - margin).floorToDouble();
+      maxY = (maxVal + margin).ceilToDouble();
+    }
 
     return Column(
       children: [
@@ -147,7 +172,6 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
             height: 280,
             child: LineChart(
               LineChartData(
-                // Zastosowanie marginesu poziomego
                 minX: -horizontalOffset,
                 maxX: baseMaxX + horizontalOffset,
                 minY: minY,
@@ -162,28 +186,14 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                       final date = startTime.add(Duration(days: s.x.toInt()));
                       final isAvg = _selectedPeriod.index >= ChartPeriod.threeMonths.index;
 
-                      if (isAvg) {
-                        final weekStart = date.subtract(Duration(days: date.weekday - 1));
-                        final weekEnd = weekStart.add(const Duration(days: 6));
-                        return LineTooltipItem(
-                          '${s.y} kg (Avg)\n',
-                          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                          children: [
-                            TextSpan(
-                              text:
-                                  '${DateFormat('MMM d').format(weekStart)} - ${DateFormat('MMM d').format(weekEnd)}',
-                              style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 10),
-                            ),
-                          ],
-                        );
-                      }
-
                       return LineTooltipItem(
-                        '${s.y} kg\n',
+                        '${s.y} kg${isAvg ? ' (Avg)' : ''}\n',
                         const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
                         children: [
                           TextSpan(
-                            text: DateFormat('EEEE, MMM d').format(date),
+                            text: isAvg
+                                ? '${DateFormat('MMM d').format(date.subtract(Duration(days: date.weekday - 1)))} - ${DateFormat('MMM d').format(date.add(Duration(days: 7 - date.weekday)))}'
+                                : DateFormat('EEEE, MMM d').format(date),
                             style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 10),
                           ),
                         ],
@@ -195,16 +205,16 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                   LineChartBarData(
                     spots: spots,
                     isCurved: true,
-                    curveSmoothness: 0.25,
+                    curveSmoothness: 0.15,
                     preventCurveOverShooting: true,
                     barWidth: 3,
                     color: Colors.black,
                     dotData: FlDotData(
                       show: true,
                       getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-                        radius: _selectedPeriod.index >= ChartPeriod.threeMonths.index ? 4 : 3,
+                        radius: _selectedPeriod.index >= ChartPeriod.threeMonths.index ? 3 : 2,
                         color: Colors.black,
-                        strokeWidth: 1.5,
+                        strokeWidth: 1,
                         strokeColor: Colors.white,
                       ),
                     ),
@@ -213,7 +223,7 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Colors.black.withOpacity(0.05), Colors.transparent],
+                        colors: [Colors.black.withOpacity(0.03), Colors.transparent],
                       ),
                     ),
                   ),
@@ -222,7 +232,7 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 35,
+                      reservedSize: 32,
                       getTitlesWidget: (value, meta) => Text(
                         value.toStringAsFixed(0),
                         style: const TextStyle(color: Colors.grey, fontSize: 10),
@@ -235,14 +245,11 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                       reservedSize: 40,
                       interval: (baseMaxX / 4).clamp(1, 365),
                       getTitlesWidget: (value, meta) {
-                        // Nie pokazujemy etykiet dla marginesu
                         if (value < 0 || value > baseMaxX) return const SizedBox.shrink();
                         final date = startTime.add(Duration(days: value.toInt()));
                         return Column(
                           children: [
-                            const SizedBox(height: 6),
-                            Container(height: 5, width: 1, color: Colors.grey.shade300),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 8),
                             Text(
                               _selectedPeriod == ChartPeriod.week
                                   ? DateFormat('E').format(date)
@@ -264,7 +271,6 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                 ),
                 borderData: FlBorderData(show: false),
                 extraLinesData: ExtraLinesData(horizontalLines: _buildHorizontalLines()),
-
                 rangeAnnotations: RangeAnnotations(horizontalRangeAnnotations: _buildMaintenanceRange()),
               ),
             ),
@@ -275,54 +281,44 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
   }
 
   List<HorizontalLine> _buildHorizontalLines() {
-    GoalModel? activeGoal = _activeGoal;
-    bool isMaintenanceMode = activeGoal?.isMaintenanceMode ?? false;
-    double startWeight = activeGoal?.startWeight ?? 0.0;
-    double targetWeight = activeGoal?.targetWeight ?? 0.0;
-
-    if (isMaintenanceMode) return []; // W trybie utrzymania nie rysujemy linii start/target
+    if (_activeGoal == null || _activeGoal!.isMaintenanceMode) return [];
 
     return [
-      // Linia startowa (Czerwona)
       HorizontalLine(
-        y: startWeight,
-        color: Colors.red,
-        strokeWidth: 2,
+        y: _activeGoal!.startWeight,
+        color: Colors.red.withOpacity(0.5),
+        strokeWidth: 1.2,
         dashArray: [5, 5],
         label: HorizontalLineLabel(
           show: true,
           alignment: Alignment.topLeft,
-          labelResolver: (line) => 'Starting Weight',
-          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+          labelResolver: (line) => 'Start: ${roundWithDecimals(line.y, 1)}kg',
+          style: TextStyle(color: Colors.red.withOpacity(0.8), fontWeight: FontWeight.bold, fontSize: 10),
         ),
       ),
-      // Linia docelowa
       HorizontalLine(
-        y: targetWeight,
-        color: Colors.green,
-        strokeWidth: 2,
+        y: _activeGoal!.targetWeight,
+        color: Colors.green.withOpacity(0.5),
+        strokeWidth: 1.2,
+        dashArray: [5, 5],
         label: HorizontalLineLabel(
           show: true,
           alignment: Alignment.topRight,
-          labelResolver: (line) => 'Target Weight',
-          style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+          labelResolver: (line) => 'Goal: ${roundWithDecimals(line.y, 1)}kg',
+          style: TextStyle(color: Colors.green.withOpacity(0.8), fontWeight: FontWeight.bold, fontSize: 10),
         ),
       ),
     ];
   }
 
   List<HorizontalRangeAnnotation> _buildMaintenanceRange() {
-    GoalModel? activeGoal = _activeGoal;
-    bool isMaintenanceMode = _activeGoal?.isMaintenanceMode ?? false;
-    double targetWeight = _activeGoal?.targetWeight ?? 0.0;
-
-    if (!(_activeGoal?.isMaintenanceMode ?? false)) return [];
+    if (_activeGoal == null || !_activeGoal!.isMaintenanceMode) return [];
 
     return [
       HorizontalRangeAnnotation(
-        y1: (_activeGoal?.targetWeight ?? 0.0) - 1.0, // Dół paska (-1kg)
-        y2: (_activeGoal?.targetWeight ?? 0.0) + 1.0, // Góra paska (+1kg)
-        color: Colors.grey.withOpacity(0.3),
+        y1: _activeGoal!.targetWeight - 1.0,
+        y2: _activeGoal!.targetWeight + 1.0,
+        color: Colors.green.withOpacity(0.05),
       ),
     ];
   }
