@@ -1,9 +1,10 @@
+import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';
 import 'package:frontend/features/goal/services/goal_repository.dart';
 import 'package:frontend/core/logger/app_logger.dart';
 
-class GoalService {
+class GoalService with ChangeNotifier {
   final GoalRepository _goalRepository;
   final CurrentUserService _currentUserService;
 
@@ -51,6 +52,7 @@ class GoalService {
       // 3. Zapisz nowy cel (jako aktualny)
       await _goalRepository.createGoal(newGoal);
 
+      notifyListeners();
       AppLogger.info('GoalService: New goal set successfully.');
     } catch (e) {
       AppLogger.error('GoalService: Failed to set new goal.', e);

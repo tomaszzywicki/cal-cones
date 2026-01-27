@@ -16,20 +16,25 @@ class CurrentGoalCard extends StatefulWidget {
 class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderStateMixin {
   late AnimationController _shimmerController;
   late AnimationController _waveController;
-  late Future<GoalModel?> _activeGoalFuture;
+
+  // Przechowujemy Future w zmiennej, aby uniknąć lagów przy animacjach
+  Future<GoalModel?>? _activeGoalFuture;
 
   @override
   void initState() {
     super.initState();
     _shimmerController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat();
     _waveController = AnimationController(vsync: this, duration: const Duration(seconds: 10))..repeat();
-    _activeGoalFuture = context.read<GoalService>().getActiveGoal();
   }
 
-  void refresh() {
-    setState(() {
-      _activeGoalFuture = context.read<GoalService>().getActiveGoal();
-    });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Ta metoda wywoła się tylko gdy GoalService wywoła notifyListeners().
+    // Dzięki temu Future odświeży się tylko gdy dane faktycznie się zmienią,
+    // a nie przy każdej klatce animacji fali/shimmera.
+    final goalService = context.watch<GoalService>();
+    _activeGoalFuture = goalService.getActiveGoal();
   }
 
   @override
@@ -41,14 +46,14 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    // Słuchamy zmian wagi (rebuild przy nowym wpisie)
     final weightLogService = context.watch<WeightLogService>();
-    // final double? currentWeight = weightLogService.latestEntry?.weight;
     final WeightEntryModel? latestWeightEntry = weightLogService.latestEntry;
 
     return FutureBuilder<GoalModel?>(
       future: _activeGoalFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting && snapshot.data == null) {
           return const Card(
             color: Colors.white,
             child: SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
@@ -107,31 +112,23 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       color: Colors.white,
-      // margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       child: Padding(
         padding: EdgeInsets.only(left: rel(20), right: rel(20), top: rel(8), bottom: rel(20)),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // --- HEADER WITH TITLE ---
             Column(
               children: [
                 Text(
                   "Current Goal",
-                  style: TextStyle(
-                    fontSize: rel(18),
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87, // Almost black
-                  ),
+                  style: TextStyle(fontSize: rel(18), fontWeight: FontWeight.w600, color: Colors.black87),
                 ),
                 const SizedBox(height: 4),
                 const Divider(thickness: 1, height: 1, color: Color(0xFFEEEEEE)),
                 const SizedBox(height: 8),
               ],
             ),
-
-            // --- INFO SECTION ---
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +151,6 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                               letterSpacing: 1.0,
                             ),
                           ),
-                          // Days Left
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
@@ -176,7 +172,6 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                           ),
                         ],
                       ),
-                      // FittedBox ensures the weight text scales down if it hits the edge
                       Transform.translate(
                         offset: const Offset(0, -4),
                         child: FittedBox(
@@ -213,10 +208,6 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                 ),
               ],
             ),
-
-            // const SizedBox(height: 12),
-
-            // --- 1. PASEK CZASU (OCEAN WAVE) - GÓRNY ---
             Column(
               children: [
                 SizedBox(
@@ -250,8 +241,6 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                   ),
                 ),
                 const SizedBox(height: 1),
-
-                // --- 2. PASEK WAGI (SHIMMER) - DOLNY ---
                 SizedBox(
                   height: 24,
                   child: Stack(
@@ -280,14 +269,14 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                                 ),
                                 if (weightProgress > 0)
                                   FractionallySizedBox(
-                                    widthFactor: weightProgress,
+                                    widthFactor: weightProgress.clamp(0.0, 1.0),
                                     child: AnimatedBuilder(
                                       animation: _shimmerController,
                                       builder: (context, child) {
                                         return Transform.translate(
                                           offset: Offset(
                                             constraints.maxWidth *
-                                                weightProgress *
+                                                weightProgress.clamp(0.0, 1.0) *
                                                 (_shimmerController.value * 2 - 1),
                                             0,
                                           ),
@@ -312,7 +301,6 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                           },
                         ),
                       ),
-                      // Weights on bar
                       Align(
                         alignment: Alignment.centerLeft,
                         child: Padding(
@@ -330,7 +318,7 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
                           ),
                         ),
                       ),
-                      Center(child: Icon(Icons.double_arrow_outlined, size: 20, color: Colors.black54)),
+                      const Center(child: Icon(Icons.double_arrow_outlined, size: 20, color: Colors.black54)),
                       Align(
                         alignment: Alignment.centerRight,
                         child: Padding(
@@ -360,7 +348,6 @@ class _CurrentGoalCardState extends State<CurrentGoalCard> with TickerProviderSt
   }
 }
 
-// --- OCEAN WAVE PAINTER ---
 class OceanWavePainter extends CustomPainter {
   final double progress;
   final Animation<double> animationValue;
@@ -372,29 +359,22 @@ class OceanWavePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     if (progress <= 0) return;
-
-    final paint = Paint()
+    final Paint paint = Paint()
       ..color = color
       ..style = PaintingStyle.fill;
-
-    final path = Path();
-    final double drawWidth = size.width * progress;
-
-    final double waveHeight = size.height * 0.2;
-    final double waveBaseY = size.height * 0.2;
-
+    final Path path = Path();
+    final drawWidth = size.width * progress;
+    final waveHeight = size.height * 0.2;
+    final waveBaseY = size.height * 0.2;
     path.moveTo(0, size.height);
     path.lineTo(0, _calculateWaveY(0, size.width, waveHeight, waveBaseY));
-
     for (double x = 0; x <= drawWidth; x++) {
       final double y = _calculateWaveY(x, size.width, waveHeight, waveBaseY);
       path.lineTo(x, y);
     }
-
     path.lineTo(drawWidth, size.height);
     path.lineTo(0, size.height);
     path.close();
-
     canvas.drawPath(path, paint);
   }
 
