@@ -30,19 +30,17 @@ class WeightHistoryChart extends StatefulWidget {
 
 class _WeightHistoryChartState extends State<WeightHistoryChart> {
   ChartPeriod _selectedPeriod = ChartPeriod.month;
-  GoalModel? _activeGoal;
+
+  // Przechowujemy Future w zmiennej, aby uniknąć lagów (identycznie jak w CurrentGoalCard)
+  Future<GoalModel?>? _activeGoalFuture;
 
   @override
-  void initState() {
-    super.initState();
-    _loadGoal();
-  }
-
-  Future<void> _loadGoal() async {
-    final goal = await context.read<GoalService>().getActiveGoal();
-    setState(() {
-      _activeGoal = goal;
-    });
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Watch zapewnia, że gdy GoalService wywoła notifyListeners(),
+    // didChangeDependencies odpali się ponownie i zaktualizuje Future.
+    final goalService = context.watch<GoalService>();
+    _activeGoalFuture = goalService.getActiveGoal();
   }
 
   double roundWithDecimals(double value, int decimals) {
@@ -94,198 +92,207 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
     final startTime = _getStartTime(weightEntries);
     final spots = _processData(weightEntries, startTime);
 
-    // --- OŚ X: Minimalny margines poziomy ---
-    final double baseMaxX =
-        _selectedPeriod.duration?.inDays.toDouble() ??
-        (DateTime.now().difference(startTime).inDays.toDouble().clamp(1, 10000) + 1);
-    final double horizontalOffset = baseMaxX * 0.01;
+    return FutureBuilder<GoalModel?>(
+      future: _activeGoalFuture,
+      builder: (context, snapshot) {
+        final activeGoal = snapshot.data;
 
-    // --- OŚ Y: Obliczanie zakresu z uwzględnieniem celu ---
-    List<double> yValues = spots.map((s) => s.y).toList();
+        // --- OŚ X: Minimalny margines poziomy ---
+        final double baseMaxX =
+            _selectedPeriod.duration?.inDays.toDouble() ??
+            (DateTime.now().difference(startTime).inDays.toDouble().clamp(1, 10000) + 1);
+        final double horizontalOffset = baseMaxX * 0.01;
 
-    if (_activeGoal != null) {
-      if (!(_activeGoal!.isMaintenanceMode)) {
-        yValues.add(_activeGoal!.startWeight);
-        yValues.add(_activeGoal!.targetWeight);
-      } else {
-        yValues.add(_activeGoal!.targetWeight + 0.5);
-        yValues.add(_activeGoal!.targetWeight - 0.5);
-      }
-    }
+        // --- OŚ Y: Obliczanie zakresu z uwzględnieniem celu ---
+        List<double> yValues = spots.map((s) => s.y).toList();
 
-    double minY = 0;
-    double maxY = 100;
+        if (activeGoal != null) {
+          if (!(activeGoal.isMaintenanceMode)) {
+            yValues.add(activeGoal.startWeight);
+            yValues.add(activeGoal.targetWeight);
+          } else {
+            yValues.add(activeGoal.targetWeight + 0.5);
+            yValues.add(activeGoal.targetWeight - 0.5);
+          }
+        }
 
-    if (yValues.isNotEmpty) {
-      final minVal = yValues.reduce((a, b) => a < b ? a : b);
-      final maxVal = yValues.reduce((a, b) => a > b ? a : b);
-      final range = maxVal - minVal;
+        double minY = 0;
+        double maxY = 100;
 
-      // Bardzo mały margines pionowy (2% zakresu lub 0.5kg), aby wykres wypełniał przestrzeń
-      final margin = (range * 0.02).clamp(0.5, 1.5);
+        if (yValues.isNotEmpty) {
+          final minVal = yValues.reduce((a, b) => a < b ? a : b);
+          final maxVal = yValues.reduce((a, b) => a > b ? a : b);
+          final range = maxVal - minVal;
 
-      minY = (minVal - margin).floorToDouble();
-      maxY = (maxVal + margin).ceilToDouble();
-    }
+          final margin = (range * 0.02).clamp(0.5, 1.5);
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: ChartPeriod.values.map((period) {
-              final isSelected = _selectedPeriod == period;
-              return Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 2.0),
-                  child: ChoiceChip(
-                    padding: EdgeInsets.zero,
-                    labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                    label: Center(
-                      child: Text(
-                        period.label,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: isSelected ? Colors.white : Colors.black87,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        ),
-                      ),
-                    ),
-                    selected: isSelected,
-                    onSelected: (val) => setState(() => _selectedPeriod = period),
-                    selectedColor: Colors.black,
-                    backgroundColor: Colors.grey.shade100,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                    showCheckmark: false,
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: SizedBox(
-            height: 280,
-            child: LineChart(
-              LineChartData(
-                minX: -horizontalOffset,
-                maxX: baseMaxX + horizontalOffset,
-                minY: minY,
-                maxY: maxY,
-                lineTouchData: LineTouchData(
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (spot) => Colors.black,
-                    fitInsideHorizontally: true,
-                    fitInsideVertically: true,
-                    tooltipPadding: const EdgeInsets.all(8),
-                    getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
-                      final date = startTime.add(Duration(days: s.x.toInt()));
-                      final isAvg = _selectedPeriod.index >= ChartPeriod.threeMonths.index;
+          minY = (minVal - margin).floorToDouble();
+          maxY = (maxVal + margin).ceilToDouble();
+        }
 
-                      return LineTooltipItem(
-                        '${s.y} kg${isAvg ? ' (Avg)' : ''}\n',
-                        const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                        children: [
-                          TextSpan(
-                            text: isAvg
-                                ? '${DateFormat('MMM d').format(date.subtract(Duration(days: date.weekday - 1)))} - ${DateFormat('MMM d').format(date.add(Duration(days: 7 - date.weekday)))}'
-                                : DateFormat('EEEE, MMM d').format(date),
-                            style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 10),
-                          ),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                ),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: spots,
-                    isCurved: true,
-                    curveSmoothness: 0.15,
-                    preventCurveOverShooting: true,
-                    barWidth: 3,
-                    color: Colors.black,
-                    dotData: FlDotData(
-                      show: true,
-                      getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
-                        radius: _selectedPeriod.index >= ChartPeriod.threeMonths.index ? 3 : 2,
-                        color: Colors.black,
-                        strokeWidth: 1,
-                        strokeColor: Colors.white,
-                      ),
-                    ),
-                    belowBarData: BarAreaData(
-                      show: true,
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Colors.black.withOpacity(0.03), Colors.transparent],
-                      ),
-                    ),
-                  ),
-                ],
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 32,
-                      getTitlesWidget: (value, meta) => Text(
-                        value.toStringAsFixed(0),
-                        style: const TextStyle(color: Colors.grey, fontSize: 10),
-                      ),
-                    ),
-                  ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      interval: (baseMaxX / 4).clamp(1, 365),
-                      getTitlesWidget: (value, meta) {
-                        if (value < 0 || value > baseMaxX) return const SizedBox.shrink();
-                        final date = startTime.add(Duration(days: value.toInt()));
-                        return Column(
-                          children: [
-                            const SizedBox(height: 8),
-                            Text(
-                              _selectedPeriod == ChartPeriod.week
-                                  ? DateFormat('E').format(date)
-                                  : DateFormat('MMM d').format(date),
-                              style: const TextStyle(color: Colors.grey, fontSize: 9),
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: ChartPeriod.values.map((period) {
+                  final isSelected = _selectedPeriod == period;
+                  return Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 2.0),
+                      child: ChoiceChip(
+                        padding: EdgeInsets.zero,
+                        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+                        label: Center(
+                          child: Text(
+                            period.label,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: isSelected ? Colors.white : Colors.black87,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                             ),
-                          ],
-                        );
-                      },
+                          ),
+                        ),
+                        selected: isSelected,
+                        onSelected: (val) => setState(() => _selectedPeriod = period),
+                        selectedColor: Colors.black,
+                        backgroundColor: Colors.grey.shade100,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                        showCheckmark: false,
+                        visualDensity: VisualDensity.compact,
+                      ),
                     ),
-                  ),
-                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade100, strokeWidth: 1),
-                ),
-                borderData: FlBorderData(show: false),
-                extraLinesData: ExtraLinesData(horizontalLines: _buildHorizontalLines()),
-                rangeAnnotations: RangeAnnotations(horizontalRangeAnnotations: _buildMaintenanceRange()),
+                  );
+                }).toList(),
               ),
             ),
-          ),
-        ),
-      ],
+            const SizedBox(height: 24),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: SizedBox(
+                height: 280,
+                child: LineChart(
+                  LineChartData(
+                    minX: -horizontalOffset,
+                    maxX: baseMaxX + horizontalOffset,
+                    minY: minY,
+                    maxY: maxY,
+                    lineTouchData: LineTouchData(
+                      touchTooltipData: LineTouchTooltipData(
+                        getTooltipColor: (spot) => Colors.black,
+                        fitInsideHorizontally: true,
+                        fitInsideVertically: true,
+                        tooltipPadding: const EdgeInsets.all(8),
+                        getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
+                          final date = startTime.add(Duration(days: s.x.toInt()));
+                          final isAvg = _selectedPeriod.index >= ChartPeriod.threeMonths.index;
+
+                          return LineTooltipItem(
+                            '${s.y} kg${isAvg ? ' (Avg)' : ''}\n',
+                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                            children: [
+                              TextSpan(
+                                text: isAvg
+                                    ? '${DateFormat('MMM d').format(date.subtract(Duration(days: date.weekday - 1)))} - ${DateFormat('MMM d').format(date.add(Duration(days: 7 - date.weekday)))}'
+                                    : DateFormat('EEEE, MMM d').format(date),
+                                style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 10),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    lineBarsData: [
+                      LineChartBarData(
+                        spots: spots,
+                        isCurved: true,
+                        curveSmoothness: 0.15,
+                        preventCurveOverShooting: true,
+                        barWidth: 3,
+                        color: Colors.black,
+                        dotData: FlDotData(
+                          show: true,
+                          getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                            radius: _selectedPeriod.index >= ChartPeriod.threeMonths.index ? 3 : 2,
+                            color: Colors.black,
+                            strokeWidth: 1,
+                            strokeColor: Colors.white,
+                          ),
+                        ),
+                        belowBarData: BarAreaData(
+                          show: true,
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.black.withOpacity(0.03), Colors.transparent],
+                          ),
+                        ),
+                      ),
+                    ],
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 32,
+                          getTitlesWidget: (value, meta) => Text(
+                            value.toStringAsFixed(0),
+                            style: const TextStyle(color: Colors.grey, fontSize: 10),
+                          ),
+                        ),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 40,
+                          interval: (baseMaxX / 4).clamp(1, 365),
+                          getTitlesWidget: (value, meta) {
+                            if (value < 0 || value > baseMaxX) return const SizedBox.shrink();
+                            final date = startTime.add(Duration(days: value.toInt()));
+                            return Column(
+                              children: [
+                                const SizedBox(height: 8),
+                                Text(
+                                  _selectedPeriod == ChartPeriod.week
+                                      ? DateFormat('E').format(date)
+                                      : DateFormat('MMM d').format(date),
+                                  style: const TextStyle(color: Colors.grey, fontSize: 9),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (value) =>
+                          FlLine(color: Colors.grey.shade100, strokeWidth: 1),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    extraLinesData: ExtraLinesData(horizontalLines: _buildHorizontalLines(activeGoal)),
+                    rangeAnnotations: RangeAnnotations(
+                      horizontalRangeAnnotations: _buildMaintenanceRange(activeGoal),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
-  List<HorizontalLine> _buildHorizontalLines() {
-    if (_activeGoal == null || _activeGoal!.isMaintenanceMode) return [];
+  List<HorizontalLine> _buildHorizontalLines(GoalModel? activeGoal) {
+    if (activeGoal == null || activeGoal.isMaintenanceMode) return [];
 
     return [
       HorizontalLine(
-        y: _activeGoal!.startWeight,
+        y: activeGoal.startWeight,
         color: Colors.red.withOpacity(0.5),
         strokeWidth: 1.2,
         dashArray: [5, 5],
@@ -297,7 +304,7 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
         ),
       ),
       HorizontalLine(
-        y: _activeGoal!.targetWeight,
+        y: activeGoal.targetWeight,
         color: Colors.green.withOpacity(0.5),
         strokeWidth: 1.2,
         dashArray: [5, 5],
@@ -311,13 +318,13 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
     ];
   }
 
-  List<HorizontalRangeAnnotation> _buildMaintenanceRange() {
-    if (_activeGoal == null || !_activeGoal!.isMaintenanceMode) return [];
+  List<HorizontalRangeAnnotation> _buildMaintenanceRange(GoalModel? activeGoal) {
+    if (activeGoal == null || !activeGoal.isMaintenanceMode) return [];
 
     return [
       HorizontalRangeAnnotation(
-        y1: _activeGoal!.targetWeight - 1.0,
-        y2: _activeGoal!.targetWeight + 1.0,
+        y1: activeGoal.targetWeight - 1.0,
+        y2: activeGoal.targetWeight + 1.0,
         color: Colors.green.withOpacity(0.05),
       ),
     ];
