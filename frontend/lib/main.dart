@@ -124,7 +124,7 @@ void main() async {
         Provider<AuthService>.value(value: authService),
         Provider<UserService>.value(value: userService),
         Provider<ProductService>.value(value: productService),
-        Provider<MealService>.value(value: mealService),
+        ChangeNotifierProvider<MealService>.value(value: mealService),
         Provider<GoalService>.value(value: goalService),
         Provider<AIService>.value(value: aiService),
         Provider<RecipeService>.value(value: recipeService),

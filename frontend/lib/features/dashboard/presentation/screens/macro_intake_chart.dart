@@ -4,8 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/goal/services/daily_target_service.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
-import 'package:frontend/features/meal/data/meal_product_model.dart';
-import 'package:frontend/features/goal/data/daily_target_model.dart';
 
 class MacroIntakeChart extends StatefulWidget {
   const MacroIntakeChart({super.key});
@@ -17,11 +15,13 @@ class MacroIntakeChart extends StatefulWidget {
 class _MacroIntakeChartState extends State<MacroIntakeChart> {
   bool _isLoading = true;
   List<_DailyData> _weeklyData = [];
-  double _maxY = 2500; // Domyślna wartość, będzie aktualizowana
+  double _maxY = 2500;
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Nasłuchiwanie zmian w MealService - każda zmiana w serwisie odświeży wykres
+    context.watch<MealService>();
     _loadData();
   }
 
@@ -65,7 +65,7 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
     if (mounted) {
       setState(() {
         _weeklyData = loadedData;
-        _maxY = (currentMax * 1.1).roundToDouble(); // 10% marginesu u góry
+        _maxY = (currentMax * 1.15).roundToDouble();
         _isLoading = false;
       });
     }
@@ -73,7 +73,7 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    if (_isLoading && _weeklyData.isEmpty) {
       return const Card(
         color: Colors.white,
         child: SizedBox(height: 250, child: Center(child: CircularProgressIndicator())),
@@ -107,7 +107,7 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
                     drawVerticalLine: false,
                     horizontalInterval: 500,
                     getDrawingHorizontalLine: (value) =>
-                        FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
+                        FlLine(color: Colors.grey.withOpacity(0.15), strokeWidth: 1),
                   ),
                   borderData: FlBorderData(show: false),
                   barTouchData: BarTouchData(
@@ -118,7 +118,7 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
                         final dateStr = DateFormat('MMM dd').format(data.date);
                         return BarTooltipItem(
                           '$dateStr\n${rod.toY.round()} kcal',
-                          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                         );
                       },
                     ),
@@ -130,18 +130,10 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
                         getTitlesWidget: (value, meta) {
                           int index = value.toInt();
                           if (index < 0 || index >= _weeklyData.length) return const SizedBox();
-                          // Krótka nazwa dnia po angielsku (Mon, Tue...)
                           String label = DateFormat('E').format(_weeklyData[index].date);
                           return Padding(
                             padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              label,
-                              style: const TextStyle(
-                                fontSize: 10,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                            child: Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
                           );
                         },
                       ),
@@ -151,12 +143,10 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
                         showTitles: true,
                         reservedSize: 35,
                         interval: 500,
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            '${value.toInt()}',
-                            style: const TextStyle(color: Colors.grey, fontSize: 10),
-                          );
-                        },
+                        getTitlesWidget: (value, meta) => Text(
+                          '${value.toInt()}',
+                          style: const TextStyle(color: Colors.grey, fontSize: 10),
+                        ),
                       ),
                     ),
                     topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -166,7 +156,7 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
                     return BarChartGroupData(
                       x: entry.key,
                       barRods: _makeMacroRods(entry.value),
-                      barsSpace: 4, // Odstęp między słupkiem kcal a makro
+                      barsSpace: 4,
                     );
                   }).toList(),
                 ),
@@ -179,19 +169,17 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
   }
 
   List<BarChartRodData> _makeMacroRods(_DailyData data) {
-    const Color colorKcal = Colors.blue;
-    const Color colorCarbs = Colors.green;
-    const Color colorProtein = Colors.red;
-    const Color colorFat = Colors.orange;
+    const colorKcal = Colors.blue;
+    const colorCarbs = Colors.green;
+    const colorProtein = Colors.red;
+    const colorFat = Colors.orange;
 
     double totalMacros = data.carbs + data.protein + data.fat;
-    // Skalujemy makroskładniki tak, aby suma ich wysokości odpowiadała spożytym kaloriom
     double carbsSplit = totalMacros == 0 ? 0 : (data.carbs / totalMacros) * data.consumedKcal;
     double proteinSplit = totalMacros == 0 ? 0 : (data.protein / totalMacros) * data.consumedKcal;
     double fatSplit = totalMacros == 0 ? 0 : (data.fat / totalMacros) * data.consumedKcal;
 
     return [
-      // Słupek 1: Kalorie (niebieski z limitem)
       BarChartRodData(
         toY: data.consumedKcal > data.targetKcal ? data.consumedKcal : data.targetKcal,
         width: 10,
@@ -204,7 +192,6 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
             BarChartRodStackItem(data.consumedKcal, data.targetKcal, colorKcal.withOpacity(0.1)),
         ],
       ),
-      // Słupek 2: Makroskładniki (widoczny tylko jeśli spożyto kalorie)
       BarChartRodData(
         toY: data.consumedKcal > 0 ? data.consumedKcal : 0,
         width: 10,
