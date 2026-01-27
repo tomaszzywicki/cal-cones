@@ -26,162 +26,182 @@ class WeightHistoryChart extends StatefulWidget {
 class _WeightHistoryChartState extends State<WeightHistoryChart> {
   ChartPeriod _selectedPeriod = ChartPeriod.month;
 
+  // Oblicza pozycję na osi X w zależności od wybranego okresu czasu
   List<FlSpot> _getFilteredSpots(List<dynamic> entries) {
     if (entries.isEmpty) return [];
 
     final now = DateTime.now();
+    final startTime = _selectedPeriod.duration == null
+        ? (entries.isEmpty ? now : entries.first.date as DateTime)
+        : now.subtract(_selectedPeriod.duration!);
 
-    final filteredEntries = _selectedPeriod.duration == null
-        ? entries
-        : entries.where((entry) {
-            return entry.date.isAfter(now.subtract(_selectedPeriod.duration!));
-          }).toList();
+    final filteredEntries = entries.where((entry) => entry.date.isAfter(startTime)).toList();
+
+    if (filteredEntries.isEmpty) return [];
 
     return filteredEntries.map((entry) {
-      final timeOffset = entry.date.difference(filteredEntries.first.date).inDays.toDouble();
-      return FlSpot(timeOffset, entry.weight.toDouble());
+      // X to liczba dni od punktu startowego wybranego okresu
+      final xValue = entry.date.difference(startTime).inDays.toDouble();
+      return FlSpot(xValue, entry.weight.toDouble());
     }).toList();
   }
 
   double _getYInterval(List<FlSpot> spots) {
     if (spots.isEmpty) return 1.0;
+    final range = _getYMax(spots) - _getYMin(spots);
+    if (range <= 5) return 1.0;
+    if (range <= 15) return 2.0;
+    return 5.0;
+  }
 
-    final weights = spots.map((spot) => spot.y).toList();
-    final minWeight = weights.reduce((a, b) => a < b ? a : b);
-    final maxWeight = weights.reduce((a, b) => a > b ? a : b);
-    final range = maxWeight - minWeight;
+  // Dodaje zapas (padding) do skali Y
+  double _getYMin(List<FlSpot> spots) {
+    if (spots.isEmpty) return 0;
+    final minWeight = spots.map((s) => s.y).reduce((a, b) => a < b ? a : b);
+    return (minWeight - 2).floorToDouble();
+  }
 
-    if (range <= 5) {
-      return 0.5;
-    } else if (range <= 10) {
-      return 1.0;
-    } else if (range <= 20) {
-      return 2.0;
-    } else {
-      return 5.0;
-    }
+  double _getYMax(List<FlSpot> spots) {
+    if (spots.isEmpty) return 100;
+    final maxWeight = spots.map((s) => s.y).reduce((a, b) => a > b ? a : b);
+    return (maxWeight + 2).ceilToDouble();
+  }
+
+  double _getXMax() {
+    return _selectedPeriod.duration?.inDays.toDouble() ??
+        (DateTime.now().difference(DateTime.now().subtract(const Duration(days: 365))).inDays.toDouble());
   }
 
   @override
   Widget build(BuildContext context) {
     final weightLogService = context.watch<WeightLogService>();
     final weightEntries = weightLogService.entries;
-
     final spots = _getFilteredSpots(weightEntries);
 
-    return Card(
-      color: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
-        child: Column(
-          children: [
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: ChartPeriod.values.map((period) {
-                  final isSelected = _selectedPeriod == period;
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3.0),
-                    child: ChoiceChip(
-                      label: Text(period.label),
-                      selected: isSelected,
-                      onSelected: (bool selected) {
-                        if (selected) {
-                          setState(() {
-                            _selectedPeriod = period;
-                          });
-                        }
+    // Maksymalna wartość X to długość trwania okresu w dniach
+    final double maxX =
+        _selectedPeriod.duration?.inDays.toDouble() ?? (spots.isEmpty ? 30 : spots.last.x + 5);
+
+    return Column(
+      children: [
+        // Selektor okresu (bez zmian w logice, styl dopasowany do braku karty)
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: ChartPeriod.values.map((period) {
+              final isSelected = _selectedPeriod == period;
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: ChoiceChip(
+                  label: Text(period.label),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    if (selected) setState(() => _selectedPeriod = period);
+                  },
+                  selectedColor: Colors.black,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : Colors.black54,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  backgroundColor: Colors.transparent,
+                  side: BorderSide(color: isSelected ? Colors.black : Colors.grey.shade300),
+                  showCheckmark: false,
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(height: 32),
+        // Wykres wylewa się bezpośrednio na tło (bez Card)
+        SizedBox(
+          height: 250,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 20, left: 10),
+            child: LineChart(
+              LineChartData(
+                minX: 0,
+                maxX: maxX,
+                minY: _getYMin(spots),
+                maxY: _getYMax(spots),
+                lineBarsData: [
+                  LineChartBarData(
+                    spots: spots,
+                    isCurved: true,
+                    // Poprawione wygładzanie
+                    curveSmoothness: 0.35,
+                    preventCurveOverShooting: true,
+                    barWidth: 4,
+                    color: Colors.black,
+                    dotData: FlDotData(
+                      show: true,
+                      getDotPainter: (spot, percent, barData, index) => FlDotCirclePainter(
+                        radius: 4,
+                        color: Colors.black,
+                        strokeWidth: 2,
+                        strokeColor: Colors.white,
+                      ),
+                    ),
+                    belowBarData: BarAreaData(
+                      show: true,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [Colors.black.withOpacity(0.1), Colors.black.withOpacity(0.0)],
+                      ),
+                    ),
+                  ),
+                ],
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 45,
+                      interval: _getYInterval(spots),
+                      getTitlesWidget: (value, meta) => Text(
+                        value.toStringAsFixed(1),
+                        style: const TextStyle(color: Colors.grey, fontSize: 12),
+                      ),
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 30,
+                      interval: maxX / 4, // Wyświetla ok. 4 etykiety czasowe
+                      getTitlesWidget: (value, meta) {
+                        // Można tu dodać formatowanie dat, na razie puste dla czystości
+                        return const SizedBox.shrink();
                       },
-                      selectedColor: Colors.grey[600],
-                      labelStyle: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                        fontSize: 12,
-                      ),
-                      backgroundColor: Colors.grey[100],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(color: isSelected ? Colors.indigo : Colors.transparent),
-                      ),
                     ),
-                  );
-                }).toList(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: LineChart(
-                LineChartData(
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: spots,
-                      isCurved: true,
-                      preventCurveOverShooting: true,
-                      preventCurveOvershootingThreshold: 8,
-                      curveSmoothness: 0.6,
-                      barWidth: 3,
-                      color: Colors.black,
-                      // dotData: FlDotData(show: false),
-                    ),
-                  ],
-
-                  extraLinesData: ExtraLinesData(
-                    horizontalLines: [
-                      HorizontalLine(
-                        y: 75.8,
-                        color: Colors.red,
-                        strokeWidth: 2,
-                        dashArray: [5, 5],
-                        label: HorizontalLineLabel(
-                          show: true,
-                          alignment: Alignment.topRight,
-                          style: TextStyle(color: Colors.red.shade700, fontWeight: FontWeight.bold),
-                          labelResolver: (line) => 'Starting Weight',
-                        ),
-                      ),
-                      HorizontalLine(
-                        y: 74,
-                        color: Colors.green,
-                        strokeWidth: 2,
-                        dashArray: [5, 5],
-                        label: HorizontalLineLabel(
-                          show: true,
-                          alignment: Alignment.bottomLeft,
-                          style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.bold),
-                          labelResolver: (line) => 'Target Weight',
-                        ),
-                      ),
-                    ],
                   ),
-
-                  // : HorizontalLine(y: 75, color: Colors.red, strokeWidth: 2),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        interval: _getYInterval(spots),
-                        getTitlesWidget: (value, meta) {
-                          return Text(
-                            '${value.toStringAsFixed(1)}',
-                            style: TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.w600),
-                          );
-                        },
-                      ),
-                    ),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                gridData: FlGridData(
+                  show: true,
+                  drawVerticalLine: false,
+                  getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade200, strokeWidth: 1),
+                ),
+                borderData: FlBorderData(show: false),
+                lineTouchData: LineTouchData(
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (spot) => Colors.black,
+                    getTooltipItems: (spots) => spots
+                        .map(
+                          (s) => LineTooltipItem(
+                            '${s.y} kg',
+                            const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        )
+                        .toList(),
                   ),
-                  gridData: FlGridData(show: false),
-                  borderData: FlBorderData(show: false),
                 ),
               ),
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

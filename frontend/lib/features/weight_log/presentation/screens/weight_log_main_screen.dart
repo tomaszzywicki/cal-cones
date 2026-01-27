@@ -22,7 +22,7 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen>
   double _lastScrollDelta = 0.0;
 
   // Konfiguracja wysokości
-  final double _expandedHeight = 450.0; // Waga + Wykres
+  final double _expandedHeight = 500.0; // Waga + Wykres
   final double _collapsedHeight = 170.0; // Tylko ściśnięta Waga
 
   @override

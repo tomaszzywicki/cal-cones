@@ -149,7 +149,6 @@ class _Onboarding extends State<Onboarding> {
           await weightLogService.addWeightEntry(initialWeightEntry);
           AppLogger.info("Initial weight entry added to log successfully.");
         } catch (e) {
-          // We log the error but don't stop the flow since the main onboarding succeeded
           AppLogger.error("Failed to add initial weight to log: $e");
         }
 
