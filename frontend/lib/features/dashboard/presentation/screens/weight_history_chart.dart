@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:frontend/features/goal/data/goal_model.dart';
+import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -26,7 +28,21 @@ class WeightHistoryChart extends StatefulWidget {
 }
 
 class _WeightHistoryChartState extends State<WeightHistoryChart> {
+  @override
+  void initState() {
+    super.initState();
+    _loadGoal();
+  }
+
+  Future<void> _loadGoal() async {
+    final goal = await context.read<GoalService>().getActiveGoal();
+    setState(() {
+      _activeGoal = goal;
+    });
+  }
+
   ChartPeriod _selectedPeriod = ChartPeriod.month;
+  GoalModel? _activeGoal;
 
   DateTime _getStartTime(List<dynamic> entries) {
     if (_selectedPeriod.duration == null) {
@@ -247,11 +263,67 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                   getDrawingHorizontalLine: (value) => FlLine(color: Colors.grey.shade100, strokeWidth: 1),
                 ),
                 borderData: FlBorderData(show: false),
+                extraLinesData: ExtraLinesData(horizontalLines: _buildHorizontalLines()),
+
+                rangeAnnotations: RangeAnnotations(horizontalRangeAnnotations: _buildMaintenanceRange()),
               ),
             ),
           ),
         ),
       ],
     );
+  }
+
+  List<HorizontalLine> _buildHorizontalLines() {
+    GoalModel? activeGoal = _activeGoal;
+    bool isMaintenanceMode = activeGoal?.isMaintenanceMode ?? false;
+    double startWeight = activeGoal?.startWeight ?? 0.0;
+    double targetWeight = activeGoal?.targetWeight ?? 0.0;
+
+    if (isMaintenanceMode) return []; // W trybie utrzymania nie rysujemy linii start/target
+
+    return [
+      // Linia startowa (Czerwona)
+      HorizontalLine(
+        y: startWeight,
+        color: Colors.red,
+        strokeWidth: 2,
+        dashArray: [5, 5],
+        label: HorizontalLineLabel(
+          show: true,
+          alignment: Alignment.topLeft,
+          labelResolver: (line) => 'Starting Weight',
+          style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+        ),
+      ),
+      // Linia docelowa
+      HorizontalLine(
+        y: targetWeight,
+        color: Colors.green,
+        strokeWidth: 2,
+        label: HorizontalLineLabel(
+          show: true,
+          alignment: Alignment.topRight,
+          labelResolver: (line) => 'Target Weight',
+          style: const TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+        ),
+      ),
+    ];
+  }
+
+  List<HorizontalRangeAnnotation> _buildMaintenanceRange() {
+    GoalModel? activeGoal = _activeGoal;
+    bool isMaintenanceMode = _activeGoal?.isMaintenanceMode ?? false;
+    double targetWeight = _activeGoal?.targetWeight ?? 0.0;
+
+    if (!(_activeGoal?.isMaintenanceMode ?? false)) return [];
+
+    return [
+      HorizontalRangeAnnotation(
+        y1: (_activeGoal?.targetWeight ?? 0.0) - 1.0, // Dół paska (-1kg)
+        y2: (_activeGoal?.targetWeight ?? 0.0) + 1.0, // Góra paska (+1kg)
+        color: Colors.grey.withOpacity(0.3),
+      ),
+    ];
   }
 }

@@ -1,12 +1,11 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:frontend/features/dashboard/presentation/screens/weight_history_chart.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/current_weight_card.dart';
 
 class WeightLogHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final double expandedHeight; // Np. 450.0
-  final double collapsedHeight; // Np. 180.0
+  final double expandedHeight;
+  final double collapsedHeight;
   final String rebuildKey;
 
   WeightLogHeaderDelegate({
@@ -17,55 +16,45 @@ class WeightLogHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final double shrinkPercent = math.min(1.0, shrinkOffset / (expandedHeight - collapsedHeight));
+    // Obliczamy aktualną wysokość całego nagłówka w zależności od scrolla
+    final double currentFullHeight = math.max(minExtent, maxExtent - shrinkOffset);
 
-    final double chartOpacity = (1.0 - (shrinkPercent * 1.5)).clamp(0.0, 1.0);
+    // Procent zwinięcia (0.0 - pełny, 1.0 - zwinięty)
+    final double shrinkPercent = (shrinkOffset / (maxExtent - minExtent)).clamp(0.0, 1.0);
 
-    final double currentWeightHeight = Tween<double>(
-      begin: collapsedHeight, // <--- TUTAJ BYŁ BŁĄD (jeśli było expandedHeight)
-      end: collapsedHeight,
-    ).transform(shrinkPercent);
+    // Dynamiczna wysokość wykresu - reszta miejsca po odjęciu stałej wysokości karty wagi
+    // Dodajemy clamp, żeby wysokość nie zeszła poniżej 0
+    final double dynamicChartHeight = math.max(0.0, currentFullHeight - collapsedHeight);
+
+    // Opacity może zostać, żeby wykres znikał trochę szybciej niż samo zwijanie (estetyka)
+    final double chartOpacity = (1.0 - (shrinkPercent * 1.2)).clamp(0.0, 1.0);
 
     return Container(
       color: Colors.grey[50],
-      child: Stack(
-        fit: StackFit.expand,
+      child: Column(
+        // Używamy Column zamiast Stack dla naturalnego układu wysokości
         children: [
-          // WARSTWA 1: WYKRES (Pod spodem)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            // Wykres zaczyna się tam, gdzie kończy się waga, więc nic na niego nie nachodzi
-            top: currentWeightHeight,
-            child: Opacity(
-              opacity: chartOpacity,
-              // IgnorePointer blokuje kliknięcia tylko gdy wykres jest niewidoczny
-              child: IgnorePointer(ignoring: chartOpacity == 0, child: WeightHistoryChart()),
+          // KARTA WAGI - stała wysokość collapsedHeight
+          SizedBox(
+            height: collapsedHeight,
+            child: const SingleChildScrollView(
+              physics: NeverScrollableScrollPhysics(),
+              child: CurrentWeightCard(),
             ),
           ),
 
-          // WARSTWA 2: KARTA WAGI (Na wierzchu)
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: currentWeightHeight,
-            child: SingleChildScrollView(physics: NeverScrollableScrollPhysics(), child: CurrentWeightCard()),
-          ),
-
-          if (shrinkPercent > 0.1)
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              height: 20,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.grey[50]!.withValues(alpha: 0.0), Colors.grey[50]!],
+          // WYKRES - dynamicznie zmniejszana wysokość
+          if (dynamicChartHeight > 0)
+            Expanded(
+              child: Opacity(
+                opacity: chartOpacity,
+                child: ClipRect(
+                  // Zapobiega wychodzeniu wykresu poza dostępny obszar (overflow)
+                  child: OverflowBox(
+                    alignment: Alignment.topCenter,
+                    maxHeight: expandedHeight - collapsedHeight,
+                    minHeight: 0,
+                    child: WeightHistoryChart(),
                   ),
                 ),
               ),

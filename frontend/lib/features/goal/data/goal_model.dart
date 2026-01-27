@@ -77,4 +77,6 @@ class GoalModel extends GoalEntity {
 
   double get totalWeightChange => targetWeight - startWeight;
   bool get isWeightLoss => totalWeightChange < 0;
+
+  bool get isMaintenanceMode => startWeight == targetWeight;
 }
