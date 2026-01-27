@@ -77,7 +77,22 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               },
               child: BMIcard(isExpanded: false),
             ),
+            const SizedBox(height: 24),
+
+            // Tytuł wykresu
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Weight History',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             AspectRatio(aspectRatio: 16 / 15, child: WeightHistoryChart()),
+            const SizedBox(height: 16),
             AspectRatio(aspectRatio: 16 / 11, child: MacroIntakeChart()),
           ],
         ),

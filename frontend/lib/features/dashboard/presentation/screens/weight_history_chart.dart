@@ -72,9 +72,13 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
     final startTime = _getStartTime(weightEntries);
     final spots = _processData(weightEntries, startTime);
 
-    final double maxX =
+    // Obliczanie bazowego zakresu
+    final double baseMaxX =
         _selectedPeriod.duration?.inDays.toDouble() ??
         (DateTime.now().difference(startTime).inDays.toDouble().clamp(1, 10000) + 1);
+
+    // Dodanie delikatnego marginesu (zapasu) po bokach (ok. 3% zakresu)
+    final double horizontalOffset = baseMaxX * 0.03;
 
     final minY = spots.isEmpty
         ? 0.0
@@ -85,7 +89,6 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
 
     return Column(
       children: [
-        // 1. Zoptymalizowane selektory - mniejsze i mieszczące się w szerokości
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12.0),
           child: Row(
@@ -122,21 +125,21 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
           ),
         ),
         const SizedBox(height: 24),
-        // 2. Wykres z naprawionym Tooltipem
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: SizedBox(
             height: 280,
             child: LineChart(
               LineChartData(
-                minX: 0,
-                maxX: maxX,
+                // Zastosowanie marginesu poziomego
+                minX: -horizontalOffset,
+                maxX: baseMaxX + horizontalOffset,
                 minY: minY,
                 maxY: maxY,
                 lineTouchData: LineTouchData(
                   touchTooltipData: LineTouchTooltipData(
                     getTooltipColor: (spot) => Colors.black,
-                    fitInsideHorizontally: true, // NAPRAWA: Tooltip nie wyjeżdża poza ekran
+                    fitInsideHorizontally: true,
                     fitInsideVertically: true,
                     tooltipPadding: const EdgeInsets.all(8),
                     getTooltipItems: (touchedSpots) => touchedSpots.map((s) {
@@ -214,9 +217,10 @@ class _WeightHistoryChartState extends State<WeightHistoryChart> {
                     sideTitles: SideTitles(
                       showTitles: true,
                       reservedSize: 40,
-                      interval: (maxX / 4).clamp(1, 365),
+                      interval: (baseMaxX / 4).clamp(1, 365),
                       getTitlesWidget: (value, meta) {
-                        if (value < 0 || value > maxX) return const SizedBox.shrink();
+                        // Nie pokazujemy etykiet dla marginesu
+                        if (value < 0 || value > baseMaxX) return const SizedBox.shrink();
                         final date = startTime.add(Duration(days: value.toInt()));
                         return Column(
                           children: [
