@@ -57,6 +57,11 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
 
     try {
       final dailyTargetService = context.read<DailyTargetService>();
+      await dailyTargetService.ensureHistoryIsPopulated();
+      if (selectedDate.day == DateTime.now().toUtc().day) {
+        await dailyTargetService.refreshTargetForToday();
+      }
+
       final mealProducts = await _mealService.getMealProductsForDate(selectedDate);
       final dailyTargets = await dailyTargetService.getDailyTargetForDate(selectedDate);
       setState(() {
@@ -192,7 +197,12 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: MacroLine(name: 'Fat', color: Colors.yellow, value: _totalFat, endValue: _targetFat),
+                    child: MacroLine(
+                      name: 'Fat',
+                      color: Colors.yellow,
+                      value: _totalFat,
+                      endValue: _targetFat,
+                    ),
                   ),
                 ],
               ),
@@ -245,7 +255,7 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
       ),
 
       floatingActionButton: SizedBox(
-        height: 50, 
+        height: 50,
         child: FloatingActionButton.extended(
           onPressed: () {
             _handleAddProduct();
@@ -253,10 +263,7 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
           backgroundColor: Colors.black,
           extendedPadding: const EdgeInsets.symmetric(horizontal: 16),
           icon: const Icon(Icons.add, color: Colors.white, size: 20),
-          label: const Text(
-            "Add product for this day",
-            style: TextStyle(color: Colors.white, fontSize: 14),
-          ),
+          label: const Text("Add product for this day", style: TextStyle(color: Colors.white, fontSize: 14)),
         ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
