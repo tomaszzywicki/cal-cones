@@ -77,7 +77,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               },
               child: BMIcard(isExpanded: false),
             ),
-            AspectRatio(aspectRatio: 16 / 14, child: WeightHistoryChart()),
+            AspectRatio(aspectRatio: 16 / 15, child: WeightHistoryChart()),
             AspectRatio(aspectRatio: 16 / 11, child: MacroIntakeChart()),
           ],
         ),
