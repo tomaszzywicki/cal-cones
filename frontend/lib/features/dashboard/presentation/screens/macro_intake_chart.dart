@@ -74,97 +74,79 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading && _weeklyData.isEmpty) {
-      return const Card(
-        color: Colors.white,
-        child: SizedBox(height: 250, child: Center(child: CircularProgressIndicator())),
-      );
+      return const SizedBox(height: 250, child: Center(child: CircularProgressIndicator()));
     }
 
-    return Card(
-      color: Colors.white,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              "Last Seven Days",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.indigo),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              height: 250,
-              child: BarChart(
-                BarChartData(
-                  maxY: _maxY,
-                  gridData: FlGridData(
-                    show: true,
-                    drawVerticalLine: false,
-                    horizontalInterval: 500,
-                    getDrawingHorizontalLine: (value) =>
-                        FlLine(color: Colors.grey.withOpacity(0.15), strokeWidth: 1),
-                  ),
-                  borderData: FlBorderData(show: false),
-                  barTouchData: BarTouchData(
-                    touchTooltipData: BarTouchTooltipData(
-                      getTooltipColor: (_) => Colors.indigo.withOpacity(0.9),
-                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                        final data = _weeklyData[groupIndex];
-                        final dateStr = DateFormat('MMM dd').format(data.date);
-                        return BarTooltipItem(
-                          '$dateStr\n${rod.toY.round()} kcal',
-                          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                        );
-                      },
-                    ),
-                  ),
-                  titlesData: FlTitlesData(
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        getTitlesWidget: (value, meta) {
-                          int index = value.toInt();
-                          if (index < 0 || index >= _weeklyData.length) return const SizedBox();
-                          String label = DateFormat('E').format(_weeklyData[index].date);
-                          return Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
-                          );
-                        },
-                      ),
-                    ),
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 35,
-                        interval: 500,
-                        getTitlesWidget: (value, meta) => Text(
-                          '${value.toInt()}',
-                          style: const TextStyle(color: Colors.grey, fontSize: 10),
-                        ),
-                      ),
-                    ),
-                    topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  barGroups: _weeklyData.asMap().entries.map((entry) {
-                    return BarChartGroupData(
-                      x: entry.key,
-                      barRods: _makeMacroRods(entry.value),
-                      barsSpace: 4,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // const Padding(
+        //   padding: EdgeInsets.only(left: 4.0, bottom: 16.0),
+        //   child: Text(
+        //     "Last Seven Days",
+        //     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.indigo),
+        //   ),
+        // ),
+        SizedBox(
+          height: 250, // Stała wysokość zapobiega pustym przestrzeniom i overflow
+          child: BarChart(
+            BarChartData(
+              maxY: _maxY,
+              gridData: FlGridData(
+                show: true,
+                drawVerticalLine: false,
+                horizontalInterval: 500,
+                getDrawingHorizontalLine: (value) =>
+                    FlLine(color: Colors.grey.withOpacity(0.15), strokeWidth: 1),
+              ),
+              borderData: FlBorderData(show: false),
+              barTouchData: BarTouchData(
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipColor: (_) => Colors.indigo.withOpacity(0.9),
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    final data = _weeklyData[groupIndex];
+                    final dateStr = DateFormat('MMM dd').format(data.date);
+                    return BarTooltipItem(
+                      '$dateStr\n${rod.toY.round()} kcal',
+                      const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                     );
-                  }).toList(),
+                  },
                 ),
               ),
+              titlesData: FlTitlesData(
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: (value, meta) {
+                      int index = value.toInt();
+                      if (index < 0 || index >= _weeklyData.length) return const SizedBox();
+                      String label = DateFormat('E').format(_weeklyData[index].date);
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                      );
+                    },
+                  ),
+                ),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 35,
+                    interval: 500,
+                    getTitlesWidget: (value, meta) =>
+                        Text('${value.toInt()}', style: const TextStyle(color: Colors.grey, fontSize: 10)),
+                  ),
+                ),
+                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              ),
+              barGroups: _weeklyData.asMap().entries.map((entry) {
+                return BarChartGroupData(x: entry.key, barRods: _makeMacroRods(entry.value), barsSpace: 4);
+              }).toList(),
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 

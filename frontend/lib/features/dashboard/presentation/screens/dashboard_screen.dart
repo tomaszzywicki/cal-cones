@@ -91,9 +91,23 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               ),
             ),
             const SizedBox(height: 12),
-            AspectRatio(aspectRatio: 16 / 16, child: WeightHistoryChart()),
+            // AspectRatio(aspectRatio: 16 / 16, child: WeightHistoryChart()),
+            WeightHistoryChart(),
             const SizedBox(height: 16),
-            AspectRatio(aspectRatio: 16 / 16, child: MacroIntakeChart()),
+            // AspectRatio(aspectRatio: 16 / 16, child: MacroIntakeChart()),
+            // Tytuł wykresu
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Macro Intake (Last 7 Days)',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            MacroIntakeChart(),
           ],
         ),
       ),
