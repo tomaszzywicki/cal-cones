@@ -79,23 +79,6 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             ),
             const SizedBox(height: 24),
 
-            // Tytuł wykresu
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'Weight History',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            // AspectRatio(aspectRatio: 16 / 16, child: WeightHistoryChart()),
-            WeightHistoryChart(),
-            const SizedBox(height: 16),
-            // AspectRatio(aspectRatio: 16 / 16, child: MacroIntakeChart()),
-            // Tytuł wykresu
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0),
               child: Align(
@@ -108,6 +91,21 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             ),
             const SizedBox(height: 16),
             MacroIntakeChart(),
+
+            const SizedBox(height: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Weight History',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            WeightHistoryChart(),
+            const SizedBox(height: 16),
           ],
         ),
       ),
