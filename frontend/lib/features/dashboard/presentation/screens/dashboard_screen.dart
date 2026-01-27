@@ -93,7 +93,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             const SizedBox(height: 12),
             AspectRatio(aspectRatio: 16 / 16, child: WeightHistoryChart()),
             const SizedBox(height: 16),
-            AspectRatio(aspectRatio: 16 / 14, child: MacroIntakeChart()),
+            AspectRatio(aspectRatio: 16 / 16, child: MacroIntakeChart()),
           ],
         ),
       ),

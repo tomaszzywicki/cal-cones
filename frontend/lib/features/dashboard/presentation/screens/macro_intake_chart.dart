@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/goal/services/daily_target_service.dart';
 import 'package:frontend/features/meal/services/meal_service.dart';
@@ -16,6 +17,7 @@ class MacroIntakeChart extends StatefulWidget {
 class _MacroIntakeChartState extends State<MacroIntakeChart> {
   bool _isLoading = true;
   List<_DailyData> _weeklyData = [];
+  double _maxY = 2500; // Domyślna wartość, będzie aktualizowana
 
   @override
   void initState() {
@@ -29,16 +31,13 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
 
     final List<_DailyData> loadedData = [];
     final now = DateTime.now();
+    double currentMax = 2000;
 
-    // Pobieramy dane z ostatnich 7 dni (od 6 dni temu do dzisiaj)
     for (int i = 6; i >= 0; i--) {
       final date = now.subtract(Duration(days: i));
-
-      // Pobieranie danych z serwisów
       final products = await mealService.getMealProductsForDate(date);
       final target = await targetService.getDailyTargetForDate(date);
 
-      // Sumowanie makroskładników dla danego dnia
       double kcal = 0, carbs = 0, protein = 0, fat = 0;
       for (var p in products) {
         kcal += p.kcal;
@@ -47,11 +46,15 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
         fat += p.fat;
       }
 
+      final targetKcal = target?.calories.toDouble() ?? 2000;
+      if (kcal > currentMax) currentMax = kcal;
+      if (targetKcal > currentMax) currentMax = targetKcal;
+
       loadedData.add(
         _DailyData(
           date: date,
           consumedKcal: kcal,
-          targetKcal: target?.calories.toDouble() ?? 2000,
+          targetKcal: targetKcal,
           carbs: carbs,
           protein: protein,
           fat: fat,
@@ -62,6 +65,7 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
     if (mounted) {
       setState(() {
         _weeklyData = loadedData;
+        _maxY = (currentMax * 1.1).roundToDouble(); // 10% marginesu u góry
         _isLoading = false;
       });
     }
@@ -72,27 +76,53 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
     if (_isLoading) {
       return const Card(
         color: Colors.white,
-        child: SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
+        child: SizedBox(height: 250, child: Center(child: CircularProgressIndicator())),
       );
     }
 
     return Card(
       color: Colors.white,
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Ostatnie 7 dni", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            const SizedBox(height: 20),
+            const Text(
+              "Last Seven Days",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.indigo),
+            ),
+            const SizedBox(height: 24),
             SizedBox(
-              height: 200,
+              height: 250,
               child: BarChart(
                 BarChartData(
-                  gridData: FlGridData(show: false),
+                  maxY: _maxY,
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    horizontalInterval: 500,
+                    getDrawingHorizontalLine: (value) =>
+                        FlLine(color: Colors.grey.withOpacity(0.2), strokeWidth: 1),
+                  ),
                   borderData: FlBorderData(show: false),
+                  barTouchData: BarTouchData(
+                    touchTooltipData: BarTouchTooltipData(
+                      getTooltipColor: (_) => Colors.indigo.withOpacity(0.9),
+                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                        final data = _weeklyData[groupIndex];
+                        final dateStr = DateFormat('MMM dd').format(data.date);
+                        return BarTooltipItem(
+                          '$dateStr\n${rod.toY.round()} kcal',
+                          const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                        );
+                      },
+                    ),
+                  ),
                   titlesData: FlTitlesData(
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
@@ -100,17 +130,35 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
                         getTitlesWidget: (value, meta) {
                           int index = value.toInt();
                           if (index < 0 || index >= _weeklyData.length) return const SizedBox();
-                          final days = ['Pn', 'Wt', 'Śr', 'Cz', 'Pt', 'So', 'Nd'];
-                          // Mapowanie dnia tygodnia (DateTime.weekday: 1-7)
-                          String label = days[_weeklyData[index].date.weekday - 1];
+                          // Krótka nazwa dnia po angielsku (Mon, Tue...)
+                          String label = DateFormat('E').format(_weeklyData[index].date);
                           return Padding(
                             padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(label, style: const TextStyle(fontSize: 10, color: Colors.grey)),
+                            child: Text(
+                              label,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
                           );
                         },
                       ),
                     ),
-                    leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 35,
+                        interval: 500,
+                        getTitlesWidget: (value, meta) {
+                          return Text(
+                            '${value.toInt()}',
+                            style: const TextStyle(color: Colors.grey, fontSize: 10),
+                          );
+                        },
+                      ),
+                    ),
                     topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
@@ -118,7 +166,7 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
                     return BarChartGroupData(
                       x: entry.key,
                       barRods: _makeMacroRods(entry.value),
-                      barsSpace: 4,
+                      barsSpace: 4, // Odstęp między słupkiem kcal a makro
                     );
                   }).toList(),
                 ),
@@ -136,36 +184,42 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
     const Color colorProtein = Colors.red;
     const Color colorFat = Colors.orange;
 
-    // Obliczanie proporcji makroskładników w stosunku do spożytych kalorii
     double totalMacros = data.carbs + data.protein + data.fat;
+    // Skalujemy makroskładniki tak, aby suma ich wysokości odpowiadała spożytym kaloriom
     double carbsSplit = totalMacros == 0 ? 0 : (data.carbs / totalMacros) * data.consumedKcal;
     double proteinSplit = totalMacros == 0 ? 0 : (data.protein / totalMacros) * data.consumedKcal;
     double fatSplit = totalMacros == 0 ? 0 : (data.fat / totalMacros) * data.consumedKcal;
 
     return [
-      // Słupek 1: Kalorie vs Cel
+      // Słupek 1: Kalorie (niebieski z limitem)
       BarChartRodData(
         toY: data.consumedKcal > data.targetKcal ? data.consumedKcal : data.targetKcal,
-        width: 12,
-        borderRadius: BorderRadius.circular(4),
+        width: 10,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
         rodStackItems: [
           BarChartRodStackItem(0, data.consumedKcal.clamp(0, data.targetKcal), colorKcal),
           if (data.consumedKcal > data.targetKcal)
-            BarChartRodStackItem(data.targetKcal, data.consumedKcal, Colors.redAccent.withOpacity(0.6))
+            BarChartRodStackItem(data.targetKcal, data.consumedKcal, Colors.redAccent.withOpacity(0.8))
           else
             BarChartRodStackItem(data.consumedKcal, data.targetKcal, colorKcal.withOpacity(0.1)),
         ],
       ),
-      // Słupek 2: Podział Makroskładników (skalowany do spożytych kcal)
+      // Słupek 2: Makroskładniki (widoczny tylko jeśli spożyto kalorie)
       BarChartRodData(
-        toY: data.consumedKcal,
-        width: 12,
-        borderRadius: BorderRadius.circular(4),
-        rodStackItems: [
-          BarChartRodStackItem(0, carbsSplit, colorCarbs),
-          BarChartRodStackItem(carbsSplit, carbsSplit + proteinSplit, colorProtein),
-          BarChartRodStackItem(carbsSplit + proteinSplit, carbsSplit + proteinSplit + fatSplit, colorFat),
-        ],
+        toY: data.consumedKcal > 0 ? data.consumedKcal : 0,
+        width: 10,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
+        rodStackItems: data.consumedKcal > 0
+            ? [
+                BarChartRodStackItem(0, carbsSplit, colorCarbs),
+                BarChartRodStackItem(carbsSplit, carbsSplit + proteinSplit, colorProtein),
+                BarChartRodStackItem(
+                  carbsSplit + proteinSplit,
+                  carbsSplit + proteinSplit + fatSplit,
+                  colorFat,
+                ),
+              ]
+            : [],
       ),
     ];
   }
