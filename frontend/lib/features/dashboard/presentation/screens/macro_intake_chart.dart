@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/core/logger/app_logger.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/goal/services/daily_target_service.dart';
@@ -27,16 +28,23 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
   }
 
   Future<void> _loadData() async {
-    // Używamy read zamiast watch wewnątrz metody asynchronicznej
     final mealService = context.read<MealService>();
     final targetService = context.read<DailyTargetService>();
+
+    // 1. Upewnij się, że historia celów jest wygenerowana w bazie danych
+    try {
+      await targetService.ensureHistoryIsPopulated();
+    } catch (e) {
+      debugPrint("Błąd podczas populacji historii celów: $e");
+    }
 
     final List<_DailyData> loadedData = [];
     final now = DateTime.now();
     double currentMax = 0;
 
     for (int i = 6; i >= 0; i--) {
-      final date = DateTime(now.year, now.month, now.day).subtract(Duration(days: i));
+      // 2. Używamy DateTime.utc, aby uniknąć przesunięć stref czasowych przy konwersji w serwisie
+      final date = DateTime.utc(now.year, now.month, now.day).subtract(Duration(days: i));
 
       final products = await mealService.getMealProductsForDate(date);
       final target = await targetService.getDailyTargetForDate(date);
@@ -54,14 +62,13 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
         consumedKcal: kcal,
         targetKcal: target?.calories.toDouble() ?? 2000,
         carbs: carbs,
-        targetCarbs: target?.carbsG.toDouble() ?? 200,
+        targetCarbs: target?.carbsG.toDouble() ?? 150,
         protein: protein,
-        targetProtein: target?.proteinG.toDouble() ?? 150,
+        targetProtein: target?.proteinG.toDouble() ?? 120,
         fat: fat,
-        targetFat: target?.fatG.toDouble() ?? 70,
+        targetFat: target?.fatG.toDouble() ?? 80,
       );
 
-      // Sprawdzamy wartości dla aktualnie wybranego typu, aby wyliczyć skalę
       double consumedVal = _getVal(dayData, _selectedType, isTarget: false);
       double targetVal = _getVal(dayData, _selectedType, isTarget: true);
 
@@ -74,9 +81,7 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
     if (mounted) {
       setState(() {
         _weeklyData = loadedData;
-        // Obliczanie górnej granicy z 15% zapasem
         if (currentMax == 0) {
-          // Wartości domyślne dla pustego wykresu
           _maxY = _selectedType == MacroType.calories ? 2500 : 200;
         } else {
           _maxY = currentMax * 1.15;
@@ -118,6 +123,8 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
       return const SizedBox(height: 250, child: Center(child: CircularProgressIndicator()));
     }
 
+    AppLogger.debug("maxY: $_maxY");
+
     return Column(
       children: [
         SizedBox(
@@ -148,9 +155,11 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
                     bottomTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
+                        reservedSize: 30, // Explicitly reserve size to match known height in LineChart
                         getTitlesWidget: (value, meta) {
                           int i = value.toInt();
                           if (i < 0 || i >= _weeklyData.length) return const SizedBox();
+                          // Formatujemy datę do wyświetlenia (lokalnie)
                           return Padding(
                             padding: const EdgeInsets.only(top: 8),
                             child: Text(
@@ -184,11 +193,28 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
                   LineChartData(
                     maxY: _maxY,
                     minY: 0,
-                    minX: -1.23,
+                    minX: -0.5,
                     maxX: 6.5,
                     gridData: const FlGridData(show: false),
                     borderData: FlBorderData(show: false),
-                    titlesData: const FlTitlesData(show: false),
+                    titlesData: FlTitlesData(
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 40, // Match BarChart
+                          getTitlesWidget: (v, m) => const SizedBox(), // Invisible
+                        ),
+                      ),
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 30, // Match BarChart
+                          getTitlesWidget: (v, m) => const SizedBox(), // Invisible
+                        ),
+                      ),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    ),
                     lineBarsData: [
                       LineChartBarData(
                         spots: _weeklyData.asMap().entries.map((e) {
