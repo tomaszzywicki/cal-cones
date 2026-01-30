@@ -20,8 +20,10 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialActivityLevel != null) {
-      _selectedActivityLevel = widget.initialActivityLevel;
+    
+    final initial = widget.initialActivityLevel;
+    if (initial != null) {
+      _selectedActivityLevel = initial.toLowerCase();
       _isFirstSelected = _selectedActivityLevel == 'sedentary';
       _isSecondSelected = _selectedActivityLevel == 'moderately_active';
       _isThirdSelected = _selectedActivityLevel == 'very_active';
@@ -31,6 +33,7 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         child: SafeArea(
@@ -39,34 +42,34 @@ class _OnboardingActivityState extends State<OnboardingActivity> {
 
             children: [
               SizedBox(height: 100),
-              Text('What is your activity level?', style: TextTheme.of(context).headlineLarge),
+              Text('What is your activity level?', style: TextTheme.of(context).headlineMedium),
               SizedBox(height: 50),
-              _activityContainer('Mostly Sedentary', 'Jakiś tam opis 1', () {
+              _activityContainer('Mostly Sedentary', 'Little or no exercise', () {
                 setState(() {
                   _isFirstSelected = true;
                   _isSecondSelected = false;
                   _isThirdSelected = false;
                   _selectedActivityLevel = 'sedentary';
                 });
-              }, _isFirstSelected ? Color(0xFF7C98A5) : Color(0xFFFDF8FE)),
+              }, _isFirstSelected ? Colors.grey[400] : Colors.white),
               SizedBox(height: 10),
-              _activityContainer('Moderately Active', 'Jakiś tam opis 1', () {
+              _activityContainer('Moderately Active', '2 to 3 workouts a week', () {
                 setState(() {
                   _isFirstSelected = false;
                   _isSecondSelected = true;
                   _isThirdSelected = false;
                   _selectedActivityLevel = 'moderately_active';
                 });
-              }, _isSecondSelected ? Color(0xFF7C98A5) : Color(0xFFFDF8FE)),
+              }, _isSecondSelected ? Colors.grey[400] : Colors.white),
               SizedBox(height: 10),
-              _activityContainer('Very Active', 'Jakiś tam opis 1', () {
+              _activityContainer('Very Active', 'Around 5 workouts a week', () {
                 setState(() {
                   _isFirstSelected = false;
                   _isSecondSelected = false;
                   _isThirdSelected = true;
                   _selectedActivityLevel = 'very_active';
                 });
-              }, _isThirdSelected ? Color(0xFF7C98A5) : Color(0xFFFDF8FE)),
+              }, _isThirdSelected ? Colors.grey[400] : Colors.white),
 
               Spacer(),
               OnboardingButton(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/user/presentation/screens/onboarding.dart';
 import 'package:provider/provider.dart';
 
 class UserInfo extends StatelessWidget {
@@ -57,6 +58,45 @@ class UserInfo extends StatelessWidget {
 
             const SizedBox(height: 24),
 
+            // --- NOWA SEKCJA: Personal Details ---
+            _buildSectionTitle('Personal Details'),
+            const SizedBox(height: 8),
+            _buildSection(
+              children: [
+                _buildInfoTile(
+                  icon: Icons.cake_outlined,
+                  label: 'Age',
+                  // Używamy gettera 'age' z UserEntity
+                  value: user?.age?.toString() ?? 'N/A',
+                  isFirst: true,
+                ),
+                _buildDivider(),
+                _buildInfoTile(
+                  icon: user?.sex == 'MALE' ? Icons.male : Icons.female,
+                  label: 'Sex',
+                  value: user?.sex ?? 'N/A',
+                ),
+                _buildDivider(),
+                _buildInfoTile(
+                  icon: Icons.height,
+                  label: 'Height',
+                  value: user?.height != null ? '${user!.height} cm' : 'N/A',
+                ),
+                _buildDivider(),
+                _buildInfoTile(icon: Icons.restaurant, label: 'Diet Type', value: user?.dietType ?? 'N/A'),
+                _buildDivider(),
+                _buildInfoTile(
+                  icon: Icons.directions_run,
+                  label: 'Activity Level',
+                  value: user?.activityLevel ?? 'N/A',
+                  isLast: true,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 24),
+            // -------------------------------------
+
             // Status section
             _buildSectionTitle('Status'),
             const SizedBox(height: 8),
@@ -68,6 +108,13 @@ class UserInfo extends StatelessWidget {
                   value: user?.setupCompleted == true ? 'Yes' : 'No',
                   valueColor: user?.setupCompleted == true ? Colors.green : Colors.orange,
                   isFirst: true,
+                  onTap: (user != null && !user.setupCompleted)
+                      ? () {
+                          Navigator.of(
+                            context,
+                          ).push(MaterialPageRoute(builder: (context) => const Onboarding()));
+                        }
+                      : null,
                 ),
                 _buildDivider(),
                 _buildInfoTile(
@@ -154,49 +201,59 @@ class UserInfo extends StatelessWidget {
     Color? valueColor,
     bool isFirst = false,
     bool isLast = false,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.vertical(
           top: isFirst ? const Radius.circular(16) : Radius.zero,
           bottom: isLast ? const Radius.circular(16) : Radius.zero,
         ),
-      ),
-      child: Row(
-        children: [
-          // Icon
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(10)),
-            child: Icon(icon, color: Colors.black87, size: 20),
-          ),
-          const SizedBox(width: 16),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: valueColor ?? Colors.black,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+              top: isFirst ? const Radius.circular(16) : Radius.zero,
+              bottom: isLast ? const Radius.circular(16) : Radius.zero,
             ),
           ),
-        ],
+          child: Row(
+            children: [
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(color: Colors.white12, borderRadius: BorderRadius.circular(10)),
+                child: Icon(icon, color: Colors.black87, size: 20),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: valueColor ?? Colors.black,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              if (onTap != null) const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -204,8 +261,6 @@ class UserInfo extends StatelessWidget {
   Widget _buildDivider() {
     return Divider(height: 1, thickness: 1, indent: 72, endIndent: 20, color: Colors.grey[200]);
   }
-
-  // Inne funkcje
 
   String _formatDate(DateTime date) {
     final months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

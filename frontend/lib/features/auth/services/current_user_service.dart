@@ -93,6 +93,7 @@ class CurrentUserService extends ChangeNotifier {
   int getUserId() {
     final user = _currentUser;
     if (user == null) {
+      // return null;
       throw Exception('No current user found');
     }
     if (user.id == null) {

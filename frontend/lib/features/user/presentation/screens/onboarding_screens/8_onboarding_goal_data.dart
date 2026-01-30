@@ -44,10 +44,14 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
 
     _startDate = widget.initialStartDate ?? DateTime.now();
     _targetDate = widget.initialTargetDate;
-    _targetWeight =
-        widget.initialTargetWeight ?? (widget.currentWeight != null ? widget.currentWeight! - 10 : 70.0);
+    
+    // CHANGED: Default to currentWeight (maintenance) if no initial target is set
+    _targetWeight = widget.initialTargetWeight ?? (widget.currentWeight ?? 70.0);
+    
     _tempo = widget.initialTempo ?? 0.5;
-    _weightDifference = (widget.currentWeight ?? 80.0) - _targetWeight;
+    
+    // Calculate initial difference (should be 0 if defaults are used)
+    _weightDifference = (widget.currentWeight ?? 70.0) - _targetWeight;
 
     if (widget.currentWeight != null) {
       _calculateTargetDate();
@@ -64,7 +68,7 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
       _weightDifference = weightDifference;
     });
 
-    if (_tempo == 0) {
+    if (_tempo == 0 || _weightDifference.abs() < 0.1) {
       setState(() {
         _targetDate = null;
       });
@@ -100,12 +104,17 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
 
   @override
   Widget build(BuildContext context) {
-    final currentWeight = widget.currentWeight ?? 80.0;
+    final currentWeight = widget.currentWeight ?? 70.0;
     final weeksNeeded = _targetDate != null ? _targetDate!.difference(_startDate).inDays ~/ 7 : 0;
 
     final isMaintenanceMode = _weightDifference.abs() < 0.1;
 
+    // CHANGED: Dynamic min/max centered around current weight
+    final double sliderMin = (currentWeight - 40).clamp(30.0, 300.0);
+    final double sliderMax = (currentWeight + 40).clamp(30.0, 300.0);
+
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: SafeArea(
         child: Column(
           children: [
@@ -152,7 +161,7 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.blue,
+                                color: Colors.black,
                               ),
                             ),
                           ],
@@ -164,18 +173,18 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
 
                     SliderTheme(
                       data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: Colors.blue,
+                        activeTrackColor: Colors.black,
                         inactiveTrackColor: Colors.grey[300],
-                        thumbColor: Colors.blue,
-                        overlayColor: Colors.blue.withOpacity(0.2),
+                        thumbColor: Colors.black,
+                        overlayColor: Colors.black.withOpacity(0.2),
                         trackHeight: 4,
                         thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                       ),
                       child: Slider(
-                        value: _targetWeight,
-                        min: 40.0,
-                        max: 150.0,
-                        divisions: 220,
+                        value: _targetWeight.clamp(sliderMin, sliderMax), // Ensure value stays within dynamic bounds
+                        min: sliderMin,
+                        max: sliderMax,
+                        divisions: 800, // (40+40) * 10 steps = 0.1 precision
                         label: '${_targetWeight.toStringAsFixed(1)} kg',
                         onChanged: (value) {
                           setState(() {
@@ -201,7 +210,7 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
                             color: isMaintenanceMode
-                                ? Colors.blue
+                                ? Colors.black
                                 : (_weightDifference > 0 ? Colors.green : Colors.orange),
                           ),
                         ),
@@ -222,7 +231,7 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
                           _getTempoLabel(),
                           style: const TextStyle(
                             fontSize: 16,
-                            color: Colors.blue,
+                            color: Colors.black,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -232,10 +241,10 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
 
                       SliderTheme(
                         data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: Colors.blue,
+                          activeTrackColor: Colors.black,
                           inactiveTrackColor: Colors.grey[300],
-                          thumbColor: Colors.blue,
-                          overlayColor: Colors.blue.withOpacity(0.2),
+                          thumbColor: Colors.black,
+                          overlayColor: Colors.black.withOpacity(0.2),
                           trackHeight: 4,
                           thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 10),
                         ),
@@ -287,14 +296,14 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
                           decoration: BoxDecoration(
                             color: Colors.grey[100],
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.blue, width: 2),
+                            border: Border.all(color: Colors.black, width: 2),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Row(
                                 children: [
-                                  const Icon(Icons.calendar_today, color: Colors.blue, size: 20),
+                                  const Icon(Icons.calendar_today, color: Colors.black, size: 20),
                                   const SizedBox(width: 12),
                                   Text(
                                     _targetDate != null
@@ -367,10 +376,12 @@ class _OnbboardingGoalDataState extends State<OnbboardingGoalData> {
                 text: 'Next',
                 onPressed: _targetDate == null
                     ? () {
-                        AppLogger.debug('Target date is null');
+                        // Opcjonalnie wyświetl komunikat, że trzeba wybrać datę (dla maintenance)
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Please select a target date')),
+                        );
                       }
                     : () {
-                        AppLogger.debug('Test');
                         widget.setGoalData(_startDate, _targetDate!, _targetWeight, _tempo);
                       },
               ),

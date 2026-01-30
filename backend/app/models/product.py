@@ -25,6 +25,8 @@ class Product(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime)
     last_modified_at: Mapped[datetime] = mapped_column(DateTime)
     from_model: Mapped[bool] = mapped_column(BOOLEAN)
+    name_from_model: Mapped[String] = mapped_column(String, nullable=True)
+    average_portion: Mapped[float] = mapped_column(Float, nullable=True)
 
     # Relationship
     user: Mapped["User"] = relationship("User", back_populates="products")

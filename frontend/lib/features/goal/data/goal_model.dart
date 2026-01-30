@@ -27,7 +27,7 @@ class GoalModel extends GoalEntity {
       targetWeight: (json['target_weight'] as num).toDouble(),
       endWeight: json['end_weight'] != null ? (json['end_weight'] as num).toDouble() : null,
       tempo: (json['tempo'] as num).toDouble(),
-      isCurrent: json['is_current'] as bool,
+      isCurrent: (json['is_current'] as int) == 1 || (json['is_current'] == true),
     );
   }
 
@@ -43,7 +43,40 @@ class GoalModel extends GoalEntity {
       'target_weight': targetWeight,
       'end_weight': endWeight,
       'tempo': tempo,
-      'is_current': isCurrent,
+      'is_current': isCurrent ? 1 : 0,
     };
   }
+
+  GoalModel copyWith({
+    int? id,
+    String? uuid,
+    int? userId,
+    DateTime? startDate,
+    DateTime? targetDate,
+    DateTime? endDate,
+    double? startWeight,
+    double? targetWeight,
+    double? endWeight,
+    double? tempo,
+    bool? isCurrent,
+  }) {
+    return GoalModel(
+      id: id ?? this.id,
+      uuid: uuid ?? this.uuid,
+      userId: userId ?? this.userId,
+      startDate: startDate ?? this.startDate,
+      targetDate: targetDate ?? this.targetDate,
+      endDate: endDate ?? this.endDate,
+      startWeight: startWeight ?? this.startWeight,
+      targetWeight: targetWeight ?? this.targetWeight,
+      endWeight: endWeight ?? this.endWeight,
+      tempo: tempo ?? this.tempo,
+      isCurrent: isCurrent ?? this.isCurrent,
+    );
+  }
+
+  double get totalWeightChange => targetWeight - startWeight;
+  bool get isWeightLoss => totalWeightChange < 0;
+
+  bool get isMaintenanceMode => startWeight == targetWeight;
 }

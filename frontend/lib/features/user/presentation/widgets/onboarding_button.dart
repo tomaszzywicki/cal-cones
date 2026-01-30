@@ -12,14 +12,11 @@ class OnboardingButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return ElevatedButton(
       onPressed: onPressed,
-      // style: Theme.of(context)
       child: Text(text),
-      // child: Text(
-      //   text,
-      //   style: TextTheme.of(
-      //     context,
-      //   ).bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-      // ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.black,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
     );
   }
 }

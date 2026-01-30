@@ -75,6 +75,7 @@ class _OnboardingBirthdayState extends State<OnboardingBirthday> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: SafeArea(
@@ -90,7 +91,7 @@ class _OnboardingBirthdayState extends State<OnboardingBirthday> {
                     height: 30,
                     margin: EdgeInsets.only(top: 135),
                     decoration: BoxDecoration(
-                      color: Color(0xFF7C98A5),
+                      color: Colors.grey[400],
                       borderRadius: BorderRadius.circular(5),
                     ),
                   ),

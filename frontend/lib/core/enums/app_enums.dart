@@ -2,6 +2,7 @@ enum ProductPageMode {
   add, // Dodawanie do meala
   view, // Podgląd
   edit, // Edycja
+  addToRecipe, // Dodawanie do przepisu
 }
 
 enum MealPageMode {

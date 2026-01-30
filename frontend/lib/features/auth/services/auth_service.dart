@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:frontend/core/logger/app_logger.dart';
+import 'package:frontend/core/sync/sync_service.dart';
 import 'package:frontend/features/auth/data/user_auth_model.dart';
 import 'package:frontend/features/auth/services/auth_api_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
@@ -14,8 +15,9 @@ class AuthService {
   final FirebaseAuthService _firebaseAuthService;
   final AuthApiService _authApiService;
   final CurrentUserService _currentUserService;
+  final SyncService _syncService;
 
-  AuthService(this._firebaseAuthService, this._authApiService, this._currentUserService);
+  AuthService(this._firebaseAuthService, this._authApiService, this._currentUserService, this._syncService);
 
   Future<UserModel> signInWithEmailAndPassword(String email, String password) async {
     try {
@@ -35,6 +37,10 @@ class AuthService {
         final userModel = UserModel.fromJson(jsonDecode(response.body));
         // 3. Save user to local storage
         await _currentUserService.setUser(userModel);
+
+        // 4. Sync informacji z serwera
+        await _syncService.syncFromServer(userModel.id!);
+
         return userModel;
       } else {
         AppLogger.info('[$_tag] Backend user data fetch failed: ${response.statusCode} - ${response.body}');
@@ -112,6 +118,28 @@ class AuthService {
       } catch (rollbackError) {
         AppLogger.error('❌ Firebase rollback failed: $rollbackError');
       }
+    }
+  }
+
+  Future<void> changePassword(String currentPassword, String newPassword) async {
+    try {
+      await _firebaseAuthService.changePassword(currentPassword, newPassword);
+      AppLogger.info('[$_tag] Password changed successfully');
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
+    } catch (e) {
+      throw AuthException('Failed to change password: $e');
+    }
+  }
+
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _firebaseAuthService.sendPasswordResetEmail(email);
+      AppLogger.info('[$_tag] Password reset email sent to: $email');
+    } on FirebaseAuthException catch (e) {
+      throw _handleFirebaseAuthException(e);
+    } catch (e) {
+      throw AuthException('Failed to send reset email: $e');
     }
   }
 

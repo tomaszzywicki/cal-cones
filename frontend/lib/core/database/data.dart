@@ -1,4 +1,5 @@
 import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
 
 Future<void> addData(Database db, int version) async {
   // === Units ===
@@ -34,6 +35,7 @@ Future<void> addData(Database db, int version) async {
 
   await db.insert('products', {
     'id': 1,
+    'uuid': Uuid().v4(),
     'user_id': -1,
     'name': 'Chicken Breast',
     'manufacturer': 'Generic',
@@ -44,11 +46,13 @@ Future<void> addData(Database db, int version) async {
     'created_at': now,
     'last_modified_at': now,
     'from_model': 0,
+    'average_portion': 100,
     'is_synced': 1,
   });
 
   await db.insert('products', {
     'id': 2,
+    'uuid': Uuid().v4(),
     'user_id': -1,
     'name': 'Brown Rice',
     'manufacturer': 'Generic',
@@ -59,14 +63,16 @@ Future<void> addData(Database db, int version) async {
     'created_at': now,
     'last_modified_at': now,
     'from_model': 0,
+    'average_portion': 100,
     'is_synced': 1,
   });
 
   await db.insert('products', {
     'id': 3,
+    'uuid': Uuid().v4(),
     'user_id': -1,
     'name': 'Banana',
-    'manufacturer': null,
+    'manufacturer': 'Generic',
     'kcal': 89,
     'carbs': 22.8,
     'protein': 1.1,
@@ -74,11 +80,13 @@ Future<void> addData(Database db, int version) async {
     'created_at': now,
     'last_modified_at': now,
     'from_model': 0,
+    'average_portion': 100,
     'is_synced': 1,
   });
 
   await db.insert('products', {
     'id': 4,
+    'uuid': Uuid().v4(),
     'user_id': -1,
     'name': 'Eggs',
     'manufacturer': 'Generic',
@@ -89,14 +97,16 @@ Future<void> addData(Database db, int version) async {
     'created_at': now,
     'last_modified_at': now,
     'from_model': 0,
+    'average_portion': 100,
     'is_synced': 1,
   });
 
   await db.insert('products', {
     'id': 5,
+    'uuid': Uuid().v4(),
     'user_id': -1,
     'name': 'Oatmeal',
-    'manufacturer': 'Quaker',
+    'manufacturer': 'Generic',
     'kcal': 389,
     'carbs': 66.3,
     'protein': 16.9,
@@ -104,6 +114,7 @@ Future<void> addData(Database db, int version) async {
     'created_at': now,
     'last_modified_at': now,
     'from_model': 0,
+    'average_portion': 100,
     'is_synced': 1,
   });
 }

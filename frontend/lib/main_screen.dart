@@ -5,20 +5,33 @@ import 'package:frontend/features/meal_log/presentation/screens/meal_log_screen.
 import 'package:frontend/features/other/presentation/screens/other_screen.dart';
 import 'package:frontend/show_menu_bottom_sheet.dart';
 
-// ✅ DODAJ GLOBAL KEY
-final GlobalKey<_MainScreenState> mainScreenKey = GlobalKey<_MainScreenState>();
+final GlobalKey<MainScreenState> mainScreenKey = GlobalKey<MainScreenState>();
 
+// 1. Key to access HomeScreen state
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  State<MainScreen> createState() => _MainScreenState();
+  State<MainScreen> createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 2;
+class MainScreenState extends State<MainScreen> {
+  final GlobalKey<HomeScreenState> homeScreenKey = GlobalKey<HomeScreenState>();
+  final GlobalKey<MealLogScreenState> mealLogScreenKey = GlobalKey<MealLogScreenState>();
 
-  final List<Widget> _screens = [HomeScreen(), MealLogScreen(), DashboardScreen(), OtherScreen()];
+  int _currentIndex = 0;
+  late final List<Widget> _screens;
+
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      HomeScreen(key: homeScreenKey),
+      MealLogScreen(key: mealLogScreenKey),
+      DashboardScreen(),
+      OtherScreen(),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +43,6 @@ class _MainScreenState extends State<MainScreen> {
         onTap: (index) => _onBottomNavTap(index),
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Colors.black,
-
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home, size: 26, color: Colors.black),
@@ -62,13 +74,34 @@ class _MainScreenState extends State<MainScreen> {
       ShowMenuBottomSheet.show(context);
       return;
     }
+
     int pageIndex = index >= 2 ? index - 1 : index;
     setState(() => _currentIndex = pageIndex);
+
+    // 3. Auto-Refresh Logic
+    if (pageIndex == 0) {
+      // Refresh Home Screen Macros
+      homeScreenKey.currentState?.loadTodayMacros();
+    } else if (pageIndex == 1) {
+      // Refresh Meal Log Screen Data
+      mealLogScreenKey.currentState?.loadMealProducts();
+    }
   }
 
   void navigateToMealLog() {
     setState(() {
       _currentIndex = 1;
     });
+
+    // Refresh Meal Log Screen Data
+    mealLogScreenKey.currentState?.loadMealProducts();
+  }
+
+  void navigateToMealLogDate(DateTime date) {
+    setState(() {
+      _currentIndex = 1;
+    });
+    // Use the key to access the MealLogScreen state and set the date
+    mealLogScreenKey.currentState?.goToDate(date);
   }
 }

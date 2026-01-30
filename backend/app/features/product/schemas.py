@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict, UUID4
 
 
 class ProductCreate(BaseModel):
-    user_id: int
+    uuid: UUID4 | None = None
     name: str
     manufacturer: str | None
     kcal: int
@@ -29,13 +29,14 @@ class ProductResponse(BaseModel):
     created_at: datetime
     last_modified_at: datetime
     from_model: bool
+    name_from_model: str | None
+    average_portion: float | None
 
     model_config = ConfigDict(from_attributes=True)
 
 
 class ProductUpdate(BaseModel):
     uuid: UUID4
-    user_id: int
     name: str | None
     manufacturer: str | None
     kcal: int | None
@@ -45,5 +46,7 @@ class ProductUpdate(BaseModel):
     created_at: datetime | None
     last_modified_at: datetime | None
     from_model: bool | None
+    name_from_model: str | None
+    average_portion: float | None
 
     model_config = ConfigDict(from_attributes=True)

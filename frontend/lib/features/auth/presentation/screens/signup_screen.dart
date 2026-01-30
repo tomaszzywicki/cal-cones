@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/app_widget.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding.dart';
-import 'package:frontend/main_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:provider/provider.dart';
 
@@ -47,6 +45,7 @@ class _SignupScreenState extends State<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       body: Center(
         child: SafeArea(
           child: Form(
@@ -75,6 +74,10 @@ class _SignupScreenState extends State<SignupScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : signUp,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
                     child: _isLoading ? CircularProgressIndicator() : Text('Sign Up'),
                   ),
                 ),
@@ -87,7 +90,11 @@ class _SignupScreenState extends State<SignupScreen> {
                       onPressed: () {
                         Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginScreen()));
                       },
-                      child: Text("Sign in"),
+
+                      child: Text(
+                        "Sign in",
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ],
                 ),

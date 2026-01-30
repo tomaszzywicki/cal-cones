@@ -12,3 +12,7 @@ DATABASE_URL = f"postgresql+psycopg://{user}:{password}@{host}:{port}/{db}"
 
 # Firebase
 FIREBASE_KEY_PATH = Path("/app/app/cal-cones-firebase-adminsdk-fbsvc-c2ea5e8376.json")
+
+# Model
+CONF_THRESHOLD = 0.3
+DET_IMGSZ = 1824

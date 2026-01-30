@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:frontend/features/product/data/product_model.dart';
 import 'package:frontend/features/product/services/product_service.dart';
@@ -19,6 +21,7 @@ class _SearchTabState extends State<SearchTab> {
   bool _isLoading = false;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -94,6 +97,7 @@ class _SearchTabState extends State<SearchTab> {
                       icon: const Icon(Icons.clear),
                       onPressed: () {
                         _searchController.clear();
+                        _debounceTimer?.cancel();
                         _searchProducts('');
                       },
                     )
@@ -101,11 +105,10 @@ class _SearchTabState extends State<SearchTab> {
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onChanged: (value) {
-              // Debounce - 300ms
-              Future.delayed(const Duration(milliseconds: 300), () {
-                if (value == _searchController.text) {
-                  _searchProducts(value);
-                }
+              // Debounce - 400ms
+              _debounceTimer?.cancel();
+              _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+                _searchProducts(value);
               });
             },
           ),
@@ -132,6 +135,7 @@ class _SearchTabState extends State<SearchTab> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }

@@ -1,121 +1,82 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from uuid import uuid4
 
 from app.core.logger_setup import get_logger
-from app.features.meal.schemas import (
-    MealCreate,
-    MealProductCreate,
-    MealResponse,
-    MealProductResponse,
-    MealUpdate,
-)
-from app.models.meal import Meal
+from app.features.meal.schemas import MealProductCreate, MealProductResponse, MealProductUpdate
+
+# from app.models.meal import Meal
 from app.models.meal_product import MealProduct
 from app.models.user import User
 
 logger = get_logger(__name__)
 
 
-def create_meal_with_products(
-    db: Session, user_uid: str, meal_data: MealCreate, meal_products: list[MealProductCreate]
-):
-    """Create a meal along with its associated products for a user"""
+def create_new_meal_product(
+    db: Session, meal_product: MealProductCreate, user_uid: str
+) -> MealProductResponse:
     user = db.query(User).filter(User.uid == user_uid).first()
     if not user:
-        raise ValueError(f"User with uid {user_uid} not found")
+        raise ValueError(f"User with {user_uid} does not exist")
 
-    meal_uuid = uuid4()
+    uuid = meal_product.uuid if meal_product.uuid else uuid4()
+    now = datetime.now(tz=timezone.utc)
 
-    meal = Meal(
-        uuid=meal_uuid,
+    new_meal_product = MealProduct(
+        uuid=uuid,
         user_id=user.id,
-        name=meal_data.name,
-        total_kcal=meal_data.total_kcal,
-        total_carbs=meal_data.total_carbs,
-        total_protein=meal_data.total_protein,
-        total_fat=meal_data.total_fat,
-        notes=meal_data.notes,
-        consumed_at=meal_data.created_at,  # na razie załóżmy że to to samo xd
-        created_at=meal_data.created_at,
-        last_modified_at=meal_data.last_modified_at,
+        product_uuid=meal_product.product_uuid,
+        name=meal_product.name,
+        manufacturer=meal_product.manufacturer,
+        kcal=meal_product.kcal,
+        carbs=meal_product.carbs,
+        protein=meal_product.protein,
+        fat=meal_product.fat,
+        unit_id=meal_product.unit_id,
+        unit_short=meal_product.unit_short,
+        conversion_factor=meal_product.conversion_factor,
+        amount=meal_product.amount,
+        notes=meal_product.notes,
+        created_at=meal_product.created_at or now,
+        last_modified_at=meal_product.last_modified_at or now,
     )
 
-    db.add(meal)
+    db.add(new_meal_product)
     db.commit()
-    db.refresh(meal)
+    db.refresh(new_meal_product)
 
-    for product_data in meal_products:
-        meal_product = MealProduct(
-            uuid=uuid4(),
-            meal_uuid=meal_uuid,
-            user_id=user.id,
-            product_uuid=product_data.product_uuid,
-            name=product_data.name,
-            manufacturer=product_data.manufacturer,
-            kcal=product_data.kcal,
-            carbs=product_data.carbs,
-            protein=product_data.protein,
-            fat=product_data.fat,
-            unit_id=product_data.unit_id,
-            unit_short=product_data.unit_short,
-            conversion_factor=product_data.conversion_factor,
-            amount=product_data.amount,
-            notes=product_data.notes,
-            created_at=product_data.created_at,
-            last_modified_at=product_data.last_modified_at,
-        )
-
-        db.add(meal_product)
-
-    db.commit()
-    return MealResponse.model_validate(meal, from_attributes=True)
+    return MealProductResponse.model_validate(new_meal_product)
 
 
-def get_user_meals(db: Session, user_uid: str) -> list[MealResponse]:
-    """Get all meals for a user"""
+def update_meal_product(
+    db: Session, meal_product_data: MealProductUpdate, user_uid: str
+) -> MealProductResponse:
     user = db.query(User).filter(User.uid == user_uid).first()
     if not user:
-        raise ValueError(f"User with uid {user_uid} not found")
+        raise ValueError(f"User with uid {user_uid} does not exist")
 
-    meals = db.query(Meal).filter(Meal.user_id == user.id).all()
-    return [MealResponse.model_validate(meal, from_attributes=True) for meal in meals]
+    meal_product = (
+        db.query(MealProduct)
+        .filter(MealProduct.uuid == meal_product_data.uuid, MealProduct.user_id == user.id)
+        .first()
+    )
+    if not meal_product:
+        raise ValueError(f"Meal product with uuid={meal_product_data.uuid} and user_id={user.id} not found")
 
+    update_data = meal_product_data.model_dump(exclude_unset=True, exclude={"uuid"})
+    for field, value in update_data.items():
+        setattr(meal_product, field, value)
 
-def get_meal_products(db: Session, meal_uuid: str, user_uid: str) -> list[MealProductResponse]:
-    """Get all products for a specific meal of a user"""
-    user = db.query(User).filter(User.uid == user_uid).first()
-    if not user:
-        raise ValueError(f"User with uid {user_uid} not found")
-
-    meal = db.query(Meal).filter(Meal.uuid == meal_uuid, Meal.user_id == user.id).first()
-    if not meal:
-        raise ValueError(f"Meal with uuid {meal_uuid} not found for user {user_uid}")
-
-    meal_products = db.query(MealProduct).filter(MealProduct.meal_uuid == meal_uuid).all()
-    return [MealProductResponse.model_validate(mp, from_attributes=True) for mp in meal_products]
-
-
-def delete_meal(db: Session, meal_uuid: str, user_uid: str) -> None:
-    """Delete a meal by UUID"""
-    user = db.query(User).filter(User.uid == user_uid).first()
-    if not user:
-        raise ValueError(f"User with uid {user_uid} not found")
-
-    meal = db.query(Meal).filter(Meal.uuid == meal_uuid, Meal.user_id == user.id).first()
-    if not meal:
-        raise ValueError(f"Meal with uuid {meal_uuid} not found for user {user_uid}")
-
-    db.delete(meal)
     db.commit()
-    return
+    db.refresh(meal_product)
+    return MealProductResponse.model_validate(meal_product)
 
 
 def delete_meal_product(db: Session, meal_product_uuid: str, user_uid: str) -> None:
-    """Delete a meal product by UUID"""
     user = db.query(User).filter(User.uid == user_uid).first()
+
     if not user:
-        raise ValueError(f"User with uid {user_uid} not found")
+        raise ValueError(f"User with uid {user_uid} does not exist")
 
     meal_product = (
         db.query(MealProduct)
@@ -123,58 +84,19 @@ def delete_meal_product(db: Session, meal_product_uuid: str, user_uid: str) -> N
         .first()
     )
     if not meal_product:
-        raise ValueError(f"MealProduct with uuid {meal_product_uuid} not found for user {user_uid}")
+        logger.warning(
+            f"Meal product with uuid={meal_product_uuid} and user_id={user.id} not found, may be already deleted"
+        )
+        return
 
     db.delete(meal_product)
     db.commit()
-    return
 
 
-def update_meal_with_products(
-    db: Session, user_uid: str, meal_uuid: str, meal_data: MealUpdate, meal_products: list[MealProductCreate]
-):
-    """Update a meal and its associated products for a user"""
+def get_all_meal_products(db: Session, user_uid: str) -> list[MealProductResponse]:
     user = db.query(User).filter(User.uid == user_uid).first()
     if not user:
-        raise ValueError(f"User with uid {user_uid} not found")
+        raise ValueError(f"User with uid {user_uid} does not exist")
 
-    meal = db.query(Meal).filter(Meal.uuid == meal_uuid, Meal.user_id == user.id).first()
-    if not meal:
-        raise ValueError(f"Meal with uuid {meal_uuid} not found for user {user_uid}")
-
-    # Update meal fields
-    for field, value in meal_data.model_dump(exclude_none=True).items():
-        setattr(meal, field, value)
-
-    db.commit()
-    db.refresh(meal)
-
-    # Delete existing meal products
-    db.query(MealProduct).filter(MealProduct.meal_uuid == meal_uuid).delete()
-
-    # Add updated meal products
-    for product_data in meal_products:
-        meal_product = MealProduct(
-            uuid=uuid4(),
-            meal_uuid=meal_uuid,
-            user_id=user.id,
-            product_uuid=product_data.product_uuid,
-            name=product_data.name,
-            manufacturer=product_data.manufacturer,
-            kcal=product_data.kcal,
-            carbs=product_data.carbs,
-            protein=product_data.protein,
-            fat=product_data.fat,
-            unit_id=product_data.unit_id,
-            unit_short=product_data.unit_short,
-            conversion_factor=product_data.conversion_factor,
-            amount=product_data.amount,
-            notes=product_data.notes,
-            created_at=product_data.created_at,
-            last_modified_at=product_data.last_modified_at,
-        )
-
-        db.add(meal_product)
-
-    db.commit()
-    return MealResponse.model_validate(meal, from_attributes=True)
+    meal_products = db.query(MealProduct).filter(MealProduct.user_id == user.id).all()
+    return [MealProductResponse.model_validate(mp) for mp in meal_products]

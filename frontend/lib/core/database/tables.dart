@@ -22,11 +22,12 @@ Future<void> initTables(Database db, int version) async {
   ''');
 
   await db.execute('''
-    CREATE TABLE weight_logs (
+    CREATE TABLE weight_entries (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       uuid TEXT,
       user_id INTEGER NOT NULL,
       weight REAL NOT NULL,
+      date TEXT NOT NULL,
       created_at TEXT NOT NULL,
       last_modified_at TEXT NOT NULL,
       is_synced INTEGER NOT NULL DEFAULT 0
@@ -47,6 +48,7 @@ Future<void> initTables(Database db, int version) async {
       created_at TEXT NOT NULL,
       last_modified_at TEXT NOT NULL,
       from_model INTEGER NOT NULL DEFAULT 0,
+      average_portion REAL,
       is_synced INTEGER NOT NULL DEFAULT 0
     )
 ''');
@@ -76,7 +78,7 @@ Future<void> initTables(Database db, int version) async {
     -- meal_id INTEGER NOT NULL,
     -- meal_uuid TEXT,
     user_id INTEGER NOT NULL,
-    product_id INTEGER NOT NULL,
+    product_id INTEGER,
     product_uuid TEXT,
     name TEXT NOT NULL,
     manufacturer TEXT,
@@ -106,6 +108,46 @@ Future<void> initTables(Database db, int version) async {
       unit_type TEXT NOT NULL,
       conversion_factor REAL NOT NULL,
       base_unit INTEGER NOT NULL DEFAULT 0
+    )
+  ''');
+
+  await db.execute('''
+    CREATE TABLE IF NOT EXISTS sync_queue (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      feature TEXT NOT NULL,
+      operation TEXT NOT NULL,
+      entity_uuid TEXT NOT NULL,
+      payload TEXT,
+      created_at TEXT NOT NULL
+    )
+  ''');
+
+  // Recipe table
+  await db.execute('''
+    CREATE TABLE recipes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      time TEXT,
+      calories INTEGER,
+      ingredients TEXT, -- JSON encoded list of strings
+      instructions TEXT, -- JSON encoded list of strings
+      created_at TEXT NOT NULL
+    )
+  ''');
+
+  await db.execute('''
+    CREATE TABLE daily_targets (
+      date TEXT PRIMARY KEY,
+      user_id INTEGER NOT NULL,
+      goal_id INTEGER NOT NULL,
+      weight_used DOUBLE NOT NULL,
+      diet_type TEXT,
+      calories INTEGER NOT NULL,
+      protein_g INTEGER NOT NULL,
+      carbs_g INTEGER NOT NULL,
+      fat_g INTEGER NOT NULL,
+      last_modified_at TEXT NOT NULL,
+      is_synced INTEGER NOT NULL DEFAULT 0
     )
   ''');
 }

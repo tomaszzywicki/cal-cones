@@ -1,14 +1,15 @@
 import 'package:frontend/features/meal/data/meal_product_entity.dart';
+import 'package:uuid/uuid.dart';
 
 class MealProductModel extends MealProductEntity {
   MealProductModel({
     super.id,
-    super.uuid,
+    required super.uuid,
     // super.mealId,
     // super.mealUuid,
     super.userId,
-    required super.productId,
-    super.productUuid,
+    // required super.productId,
+    required super.productUuid,
     required super.name,
     super.manufacturer,
     required super.kcal,
@@ -27,6 +28,7 @@ class MealProductModel extends MealProductEntity {
 
   static MealProductModel fromProductWithAmount({
     required int productId,
+    required String productUuid,
     required String name,
     String? manufacturer,
     required num baseKcal, // to na 100g
@@ -43,9 +45,10 @@ class MealProductModel extends MealProductEntity {
     final factor = amount * conversionFactor / 100;
 
     return MealProductModel(
+      uuid: Uuid().v4(),
       userId: userId,
-      productId: productId,
       name: name,
+      productUuid: productUuid,
       manufacturer: manufacturer,
       kcal: (baseKcal * factor).round(),
       carbs: (baseCarbs * factor),
@@ -87,13 +90,13 @@ class MealProductModel extends MealProductEntity {
   // Backend API response parsing
   factory MealProductModel.fromJson(Map<String, dynamic> json) {
     return MealProductModel(
-      id: json['id'] as int?,
-      uuid: json['uuid'] as String?,
+      // id: json['id'] as int?,
+      uuid: json['uuid'] as String,
       // mealId: json['meal_id'] as int,
       // mealUuid: json['meal_uuid'] as String?,
       userId: json['user_id'] as int,
-      productId: json['product_id'] as int,
-      productUuid: json['product_uuid'] as String?,
+      // productId: json['product_id'] as int,
+      productUuid: json['product_uuid'] as String,
       name: json['name'] as String,
       manufacturer: json['manufacturer'] as String?,
       kcal: json['kcal'] as int,
@@ -114,12 +117,11 @@ class MealProductModel extends MealProductEntity {
   // MealProductModel to JSON for API requests
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'uuid': uuid,
       // 'meal_id': mealId,
       // 'meal_uuid': mealUuid,
       'user_id': userId,
-      'product_id': productId,
+      // 'product_id': productId,
       'product_uuid': productUuid,
       'name': name,
       'manufacturer': manufacturer,
@@ -131,7 +133,7 @@ class MealProductModel extends MealProductEntity {
       'unit_short': unitShort,
       'conversion_factor': conversionFactor,
       'amount': amount,
-      'notes': notes,
+      'notes': notes ?? '',
       'created_at': createdAt.toIso8601String(),
       'last_modified_at': lastModifiedAt.toIso8601String(),
       'is_synced': isSynced ? 1 : 0,
@@ -146,7 +148,7 @@ class MealProductModel extends MealProductEntity {
       // 'meal_id': mealId,
       // 'meal_uuid': mealUuid,
       'user_id': userId,
-      'product_id': productId,
+      'product_id': null,
       'product_uuid': productUuid,
       'name': name,
       'manufacturer': manufacturer,
@@ -169,12 +171,12 @@ class MealProductModel extends MealProductEntity {
   factory MealProductModel.fromMap(Map<String, dynamic> map) {
     return MealProductModel(
       id: map['id'] as int?,
-      uuid: map['uuid'] as String?,
+      uuid: map['uuid'] as String,
       // mealId: map['meal_id'] as int,
       // mealUuid: map['meal_uuid'] as String?,
       userId: map['user_id'] as int,
-      productId: map['product_id'] as int,
-      productUuid: map['product_uuid'] as String?,
+      // productId: map['product_id'] as int,
+      productUuid: map['product_uuid'] as String,
       name: map['name'] as String,
       manufacturer: map['manufacturer'] as String?,
       kcal: map['kcal'] as int,
@@ -221,7 +223,7 @@ class MealProductModel extends MealProductEntity {
       // mealId: mealId ?? this.mealId,
       // mealUuid: mealUuid ?? this.mealUuid,
       userId: userId ?? this.userId,
-      productId: productId ?? this.productId,
+      // productId: productId ?? this.productId,
       productUuid: productUuid ?? this.productUuid,
       name: name ?? this.name,
       manufacturer: manufacturer ?? this.manufacturer,

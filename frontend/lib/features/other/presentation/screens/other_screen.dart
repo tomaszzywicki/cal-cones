@@ -3,10 +3,13 @@ import 'package:frontend/core/database/local_database_service.dart';
 import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/goal/presentation/screens/goal_list_screen.dart';
 import 'package:frontend/features/other/presentation/screens/password_reset_page.dart';
 import 'package:frontend/features/other/presentation/widgets/profile_card.dart';
 import 'package:frontend/features/other/presentation/screens/user_info_page.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend/features/recipe/presentation/screens/meal_recommender_screen.dart';
+import 'package:frontend/features/goal/presentation/screens/goal_list_screen.dart';
 
 class OtherScreen extends StatefulWidget {
   const OtherScreen({super.key});
@@ -39,6 +42,7 @@ class _OtherScreenState extends State<OtherScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text(
           'Profile',
           style: TextStyle(color: Colors.black, fontSize: 28, fontWeight: FontWeight.bold),
@@ -66,8 +70,8 @@ class _OtherScreenState extends State<OtherScreen> {
                   },
                 ),
                 _buildDivider(),
-                _buildListTile(icon: Icons.settings_outlined, title: 'Settings', onTap: () {}),
-                _buildDivider(),
+                // _buildListTile(icon: Icons.settings_outlined, title: 'Settings', onTap: () {}),
+                // _buildDivider(),
                 _buildListTile(
                   icon: Icons.lock_outline,
                   title: 'Password',
@@ -106,7 +110,7 @@ class _OtherScreenState extends State<OtherScreen> {
                   title: 'Goals',
                   subtitle: 'Set your nutrition targets',
                   onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => UserInfo()));
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GoalListScreen()));
                   },
                 ),
                 _buildDivider(),
@@ -114,7 +118,11 @@ class _OtherScreenState extends State<OtherScreen> {
                   icon: Icons.restaurant_menu_outlined,
                   title: 'Meal Recommender',
                   subtitle: 'AI-powered meal suggestions',
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute(builder: (_) => const MealRecommenderScreen()));
+                  },
                 ),
               ],
             ),
@@ -136,6 +144,7 @@ class _OtherScreenState extends State<OtherScreen> {
                 ),
               ],
             ),
+            _buildDivider(),
 
             const SizedBox(height: 40),
           ],
