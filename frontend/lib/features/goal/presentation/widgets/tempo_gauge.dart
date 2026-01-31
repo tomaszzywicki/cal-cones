@@ -11,13 +11,12 @@ class TempoGauge extends StatelessWidget {
     super.key,
     required this.tempo,
     this.minTempo = 0.0,
-    this.maxTempo = 1.5, // Bardziej realistyczny limit górny
+    this.maxTempo = 1.5,
     this.size = 150.0,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Animujemy zmianę wartości wskazówki, żeby płynnie chodziła za suwakiem
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: minTempo, end: tempo),
       duration: const Duration(milliseconds: 250),
@@ -25,7 +24,7 @@ class TempoGauge extends StatelessWidget {
       builder: (context, value, child) {
         return SizedBox(
           width: size,
-          height: size / 2 + 10, // Połowa koła + miejsce na wskazówkę
+          height: size / 2 + 10,
           child: CustomPaint(
             painter: _TempoGaugePainter(currentValue: value, minValue: minTempo, maxValue: maxTempo),
           ),
