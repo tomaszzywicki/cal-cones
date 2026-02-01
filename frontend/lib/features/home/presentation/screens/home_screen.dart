@@ -4,6 +4,8 @@ import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/core/mixins/day_refresh_mixin.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/goal/data/daily_target_model.dart';
+import 'package:frontend/features/goal/data/goal_model.dart';
+import 'package:frontend/features/goal/presentation/screens/goal_setup.dart';
 import 'package:frontend/features/goal/services/daily_target_service.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/home/presentation/widgets/day_macro_card.dart';
@@ -198,7 +200,22 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
                         icon: Icons.warning_amber_rounded,
                         color: Colors.orange,
                         buttonText: 'Set Goal',
-                        buttonAction: () {
+                        buttonAction: () async {
+                          final weightLogService = context.read<WeightLogService>();
+
+                          final double currentWeight = weightLogService.latestEntry?.weight ?? 70.0;
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GoalSetupScreen(
+                                currentWeight: currentWeight,
+                                isReplacingExistingGoal: false,
+                              ),
+                            ),
+                          );
+                          if (result == true) {
+                            loadTodayMacros();
+                          }
                           // Navigator.push(
                           //   context,
                           //   MaterialPageRoute(builder: (context) => const GoalSetup()),
