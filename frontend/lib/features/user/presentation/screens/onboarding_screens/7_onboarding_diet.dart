@@ -214,9 +214,9 @@ class _OnboardingDietState extends State<OnboardingDiet> {
           data: SliderTheme.of(context).copyWith(
             trackHeight: 8,
             // Używamy RoundedRectSliderTrackShape, ale dodajemy marginesy w kontenerze nadrzędnym
-            trackShape: const RoundedRectSliderTrackShape(),
+            trackShape: FullWidthTrackShape(),
             overlayShape: isCustom
-                ? const RoundSliderOverlayShape(overlayRadius: 16)
+                ? const RoundSliderOverlayShape(overlayRadius: 8)
                 : SliderComponentShape.noOverlay,
             thumbShape: isCustom
                 ? const RoundSliderThumbShape(enabledThumbRadius: 8, elevation: 2)
@@ -239,5 +239,22 @@ class _OnboardingDietState extends State<OnboardingDiet> {
         ),
       ],
     );
+  }
+}
+
+class FullWidthTrackShape extends RoundedRectSliderTrackShape {
+  @override
+  Rect getPreferredRect({
+    required RenderBox parentBox,
+    Offset offset = Offset.zero,
+    required SliderThemeData sliderTheme,
+    bool isEnabled = false,
+    bool isDiscrete = false,
+  }) {
+    final double trackHeight = sliderTheme.trackHeight!;
+    final double trackLeft = offset.dx;
+    final double trackTop = offset.dy + (parentBox.size.height - trackHeight) / 2;
+    final double trackWidth = parentBox.size.width;
+    return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
   }
 }
