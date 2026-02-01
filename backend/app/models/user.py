@@ -23,6 +23,7 @@ class DietTypeEnum(str, Enum):
     BALANCED = "BALANCED"
     LOW_CARB = "LOW_CARB"
     LOW_FAT = "LOW_FAT"
+    CUSTOM = "CUSTOM"
 
 
 class ActivityLevelEnum(str, Enum):

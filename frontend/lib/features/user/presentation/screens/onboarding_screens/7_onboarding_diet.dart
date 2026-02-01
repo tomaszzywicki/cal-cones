@@ -47,37 +47,61 @@ class _OnboardingDietState extends State<OnboardingDiet> {
     setState(() {
       _selectedDietType = 'custom';
 
-      // Aktualizujemy historię - przesuwamy obecny klucz na początek
+      // Aktualizujemy historię - obecny na początek
       _touchHistory.remove(currentKey);
       _touchHistory.insert(0, currentKey);
 
       double oldValue = _macroSplit[currentKey]!;
       double delta = newValue - oldValue;
 
-      // Klucz, który chcemy zmienić (ten, którego dotykaliśmy najdawniej)
-      String targetKey = _touchHistory.last;
-      // Klucz "przypięty" (ten, którego dotykaliśmy tuż przed obecnym)
-      String pinnedKey = _touchHistory[1];
+      // Suwak, który chcemy zmieniać najpierw (najdawniejszy)
+      String primaryTargetKey = _touchHistory.last;
+      // Suwak "przypięty", który zmieniamy tylko w ostateczności (poprzedni)
+      String secondaryTargetKey = _touchHistory[1];
 
-      double targetValue = _macroSplit[targetKey]!;
+      double primaryValue = _macroSplit[primaryTargetKey]!;
+      double secondaryValue = _macroSplit[secondaryTargetKey]!;
 
-      // Sprawdzamy, ile faktycznie możemy zabrać/dodać do targetu
-      double allowedDelta;
+      double remainingDelta = delta;
+
+      // 1. Próba zmiany na podstawowym celu (primaryTargetKey)
       if (delta > 0) {
-        allowedDelta = delta > targetValue ? targetValue : delta;
+        // Zwiększamy obecny, musimy zmniejszyć inne
+        double takeFromPrimary = remainingDelta > primaryValue ? primaryValue : remainingDelta;
+        _macroSplit[primaryTargetKey] = primaryValue - takeFromPrimary;
+        remainingDelta -= takeFromPrimary;
+
+        // 2. Jeśli nadal brakuje, bierzemy z przypiętego (secondaryTargetKey)
+        if (remainingDelta > 0) {
+          double takeFromSecondary = remainingDelta > secondaryValue ? secondaryValue : remainingDelta;
+          _macroSplit[secondaryTargetKey] = secondaryValue - takeFromSecondary;
+          remainingDelta -= takeFromSecondary;
+        }
       } else {
-        double canAdd = 100 - targetValue;
-        allowedDelta = (-delta) > canAdd ? -canAdd : delta;
+        // Zmniejszamy obecny, musimy zwiększyć inne (do max 100)
+        double canAddPrimary = 100 - primaryValue;
+        double addToPrimary = (-remainingDelta) > canAddPrimary ? canAddPrimary : -remainingDelta;
+        _macroSplit[primaryTargetKey] = primaryValue + addToPrimary;
+        remainingDelta += addToPrimary;
+
+        // 2. Jeśli nadal brakuje, dodajemy do przypiętego
+        if (remainingDelta < 0) {
+          double canAddSecondary = 100 - secondaryValue;
+          double addToSecondary = (-remainingDelta) > canAddSecondary ? canAddSecondary : -remainingDelta;
+          _macroSplit[secondaryTargetKey] = secondaryValue + addToSecondary;
+          remainingDelta += addToSecondary;
+        }
       }
 
-      // Aktualizujemy wartości
-      _macroSplit[currentKey] = oldValue + allowedDelta;
-      _macroSplit[targetKey] = targetValue - allowedDelta;
+      // Aktualizujemy suwak główny o tyle, o ile udało się faktycznie rozdzielić deltę
+      // (zazwyczaj o całość, chyba że suma wszystkich dojdzie do limitów)
+      double actualDistributed = delta - remainingDelta;
+      _macroSplit[currentKey] = oldValue + actualDistributed;
 
-      // Korekta sumy (zaokrąglenia double)
+      // Ostateczna korekta sumy (zaokrąglenia)
       double total = _macroSplit.values.reduce((a, b) => a + b);
       if ((100 - total).abs() > 0.01) {
-        _macroSplit[targetKey] = (_macroSplit[targetKey]! + (100 - total)).clamp(0, 100);
+        _macroSplit[primaryTargetKey] = (_macroSplit[primaryTargetKey]! + (100 - total)).clamp(0, 100);
       }
     });
   }
