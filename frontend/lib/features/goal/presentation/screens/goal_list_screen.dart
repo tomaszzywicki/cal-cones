@@ -128,7 +128,7 @@ class _GoalListScreenState extends State<GoalListScreen> with WidgetsBindingObse
                     color: Colors.white,
                   ),
                   label: Text(
-                    activeGoal != null ? "Edit Current Goal" : "Set New Goal",
+                    activeGoal != null ? "Edit current goal" : "Set your first goal",
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

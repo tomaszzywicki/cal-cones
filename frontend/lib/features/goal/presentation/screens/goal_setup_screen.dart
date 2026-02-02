@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:frontend/features/goal/presentation/widgets/goal_warning_dialog.dart';
 import 'package:intl/intl.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
@@ -30,6 +31,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   final TextEditingController _diffController = TextEditingController();
   bool _isEditingTarget = false;
   bool _isEditingDiff = false;
+  final FocusNode _dummyFocus = FocusNode();
   final FocusNode _targetFocus = FocusNode();
   final FocusNode _diffFocus = FocusNode();
 
@@ -129,10 +131,15 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      SizedBox(
+                        height: 0,
+                        width: 0,
+                        child: Focus(focusNode: _dummyFocus, child: const SizedBox.shrink()),
+                      ),
                       ConstrainedBox(
                         constraints: BoxConstraints(
-                          minHeight: 180,
-                          maxHeight: max(availableHeight * 0.30, 180),
+                          minHeight: 200,
+                          maxHeight: max(availableHeight * 0.30, 200),
                         ),
                         child: _buildTargetWeightCard(),
                       ),
@@ -141,8 +148,11 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
 
                       ConstrainedBox(
                         constraints: BoxConstraints(
-                          minHeight: _isMaintenance ? 220 : 170,
-                          maxHeight: max(availableHeight * 0.35, _isMaintenance ? 220 : 170),
+                          minHeight: _isMaintenance ? 220 : 160,
+                          maxHeight: max(
+                            availableHeight * (_isMaintenance ? 0.35 : 0.30),
+                            _isMaintenance ? 220 : 160,
+                          ),
                         ),
                         child: _isMaintenance ? _buildMaintenanceDurationCard() : _buildWeeklyPaceCard(),
                       ),
@@ -389,6 +399,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                   onTap: () {
                     HapticFeedback.mediumImpact();
                     setState(() => _targetWeight = widget.currentWeight);
+                    _targetWeightController.text = _targetWeight.toStringAsFixed(1);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -440,27 +451,35 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
 
   Widget _buildTargetWeightInput(TextStyle weightStyle) {
     return Container(
-      width: 150,
-      height: 40,
-      alignment: Alignment.center,
-      child: TextField(
-        controller: _targetWeightController,
-        focusNode: _targetFocus,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        textAlign: TextAlign.center,
-        style: weightStyle,
-        decoration: InputDecoration(
-          border: const OutlineInputBorder(borderSide: BorderSide.none),
-          enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
-          focusedBorder: const OutlineInputBorder(borderSide: BorderSide.none),
-          isDense: true,
-          isCollapsed: true,
-          contentPadding: EdgeInsets.zero,
-          suffixText: " kg",
-          suffixStyle: weightStyle.copyWith(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold),
+      // Używamy stylizacji dokładnie takiej jak w Twoim _buildEditableDiffBadge
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      // dzięki czemu suffix "kg" będzie zawsze blisko liczby
+      child: IntrinsicWidth(
+        child: TextField(
+          controller: _targetWeightController,
+          focusNode: _targetFocus,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          textAlign: TextAlign.center,
+          style: weightStyle,
+          decoration: InputDecoration(
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            fillColor: Colors.transparent,
+            isDense: true,
+            isCollapsed: true,
+            contentPadding: EdgeInsets.zero,
+            // Używamy suffixText dokładnie jak w badge'u
+            suffixText: " kg",
+            suffixStyle: weightStyle.copyWith(
+              fontSize: 16, // Proporcjonalnie mniejszy niż główna waga
+              color: Colors.grey.shade500,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          onSubmitted: _handleTargetSubmit,
+          onTapOutside: (_) => _handleTargetSubmit(_targetWeightController.text),
         ),
-        onSubmitted: _handleTargetSubmit,
-        onTapOutside: (_) => _handleTargetSubmit(_targetWeightController.text),
       ),
     );
   }
@@ -764,7 +783,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: goalColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(20),
@@ -839,75 +858,58 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (widget.isReplacingExistingGoal) ...[
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.red.shade100),
-              ),
+            // Subtelny indykator zamiast wielkiego ostrzeżenia
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 18),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "WARNING",
-                          style: TextStyle(
-                            color: Colors.red.shade900,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        Text(
-                          "By setting a new goal, your current goal will be closed. This change is irreversible. Record your current weight first as it has influence on both your current and new goal. ",
-                          style: TextStyle(
-                            color: Colors.red.shade800,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            height: 1.1,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Icon(Icons.info_outline, size: 14, color: Colors.grey.shade400),
+                  const SizedBox(width: 6),
+                  Text(
+                    "This will replace your active goal",
+                    style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 10),
           ],
-          // Zaktualizowany przycisk na wzór GoalListScreen
+
           SizedBox(
             width: double.infinity,
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : ElevatedButton.icon(
-                    onPressed: _saveGoal,
+                    onPressed: () async {
+                      _dummyFocus.requestFocus();
+                      FocusManager.instance.primaryFocus?.unfocus();
+                      await Future.delayed(const Duration(milliseconds: 50));
+
+                      if (!mounted) return;
+                      if (widget.isReplacingExistingGoal) {
+                        showDialog(
+                          context: context,
+                          barrierDismissible: true,
+                          builder: (context) => GoalWarningDialog(onConfirm: _saveGoal),
+                        );
+                      } else {
+                        _saveGoal();
+                      }
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       foregroundColor: Colors.white,
-                      elevation: 4,
-                      shadowColor: Colors.black45,
+                      elevation: 0,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
                     icon: Icon(
-                      widget.isReplacingExistingGoal ? Icons.sports_score_rounded : Icons.add_circle_outline,
-                      size: 24,
-                      color: Colors.white,
+                      widget.isReplacingExistingGoal ? Icons.swap_horiz_rounded : Icons.add_circle_outline,
+                      size: 20,
                     ),
                     label: Text(
-                      widget.isReplacingExistingGoal ? "Close Old & Start New" : "Start Goal",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                        color: Colors.white,
-                        height: 1.2,
-                      ),
+                      widget.isReplacingExistingGoal ? "Review & Start" : "Start Goal",
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                   ),
           ),
@@ -964,7 +966,11 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 8, color: Colors.blueGrey.shade400, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 8,
+            color: isTarget ? (targetColor ?? Colors.black) : Colors.blueGrey.shade400,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -981,7 +987,11 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
             const SizedBox(width: 2),
             Text(
               unit,
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.blueGrey.shade400),
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: isTarget ? (targetColor ?? Colors.black) : Colors.blueGrey.shade400,
+              ),
             ),
           ],
         ),
