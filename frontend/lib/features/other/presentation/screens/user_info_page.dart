@@ -89,9 +89,7 @@ class UserInfo extends StatelessWidget {
                   label: 'Diet Type',
                   value: user?.dietType ?? 'N/A',
                   onTap: () {
-                    Navigator.of(
-                      context,
-                    ).push(MaterialPageRoute(builder: (context) => const EditDietScreen()));
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditDietScreen()));
                   },
                 ),
                 _buildDivider(),

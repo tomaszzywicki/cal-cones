@@ -33,33 +33,34 @@ class _OnboardingDietState extends State<OnboardingDiet> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        child: Column(
-          children: [
-            Expanded(
-              child: DietSelectionBody(
-                initialDietType: widget.initialDietType,
-                initialMacroSplit: widget.initialMacroSplit,
-                onDataChanged: (name, macros) {
-                  setState(() {
-                    _selectedDietType = name;
-                    _macroSplit = macros;
-                  });
-                },
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Column(
+            children: [
+              Expanded(
+                child: DietSelectionBody(
+                  initialDietType: widget.initialDietType,
+                  initialMacroSplit: widget.initialMacroSplit,
+                  onDataChanged: (name, macros) {
+                    setState(() {
+                      _selectedDietType = name;
+                      _macroSplit = macros;
+                    });
+                  },
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            OnboardingButton(
-              text: 'Next',
-              onPressed: _selectedDietType == null
-                  ? () {}
-                  : () {
-                      widget.setDietAndMacro(_selectedDietType!, _macroSplit ?? {});
-                    },
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 30),
+              OnboardingButton(
+                text: 'Next',
+                onPressed: _selectedDietType == null
+                    ? () {}
+                    : () {
+                        widget.setDietAndMacro(_selectedDietType!, _macroSplit ?? {});
+                      },
+              ),
+            ],
+          ),
         ),
       ),
     );

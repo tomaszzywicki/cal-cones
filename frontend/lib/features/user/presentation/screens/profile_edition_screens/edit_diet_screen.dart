@@ -16,45 +16,6 @@ class _EditDietScreenState extends State<EditDietScreen> {
   String? _tempDietType;
   Map<String, int>? _tempMacros;
 
-  @override
-  Widget build(BuildContext context) {
-    final user = context.read<CurrentUserService>().currentUser;
-
-    return Scaffold(
-      backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Edit Diet & Macros',
-          style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w600),
-        ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: DietSelectionBody(
-                initialDietType: user?.dietType,
-                initialMacroSplit: user?.macroSplit?.map((key, value) => MapEntry(key, value as int)),
-                onDataChanged: (type, macros) {
-                  _tempDietType = type;
-                  _tempMacros = macros;
-                },
-              ),
-            ),
-          ),
-          OnboardingButton(text: "Save diet", onPressed: _handleSave),
-        ],
-      ),
-    );
-  }
-
   void _handleSave() async {
     if (_tempDietType != null && _tempMacros != null) {
       try {
@@ -71,5 +32,57 @@ class _EditDietScreenState extends State<EditDietScreen> {
         }
       }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.read<CurrentUserService>().currentUser;
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Profile',
+          style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w600),
+        ),
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Column(
+            children: [
+              const SizedBox(height: 30),
+              Expanded(
+                child: DietSelectionBody(
+                  initialDietType: user?.dietType,
+                  initialMacroSplit: user?.macroSplit?.map((key, value) => MapEntry(key, value.toInt())),
+                  onDataChanged: (name, macros) {
+                    setState(() {
+                      _tempDietType = name;
+                      _tempMacros = macros;
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(height: 30),
+              OnboardingButton(
+                text: 'Save',
+                onPressed: _tempDietType == null
+                    ? () {}
+                    : () {
+                        _handleSave();
+                      },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
