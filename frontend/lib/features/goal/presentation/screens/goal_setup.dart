@@ -131,6 +131,40 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     );
   }
 
+  void _showWeightInputDialog({
+    required String title,
+    required double initialValue,
+    required Function(double) onConfirm,
+  }) {
+    final controller = TextEditingController(text: initialValue.toStringAsFixed(1));
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(title, style: const TextStyle(fontSize: 16)),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          autofocus: true,
+          textAlign: TextAlign.center,
+          decoration: const InputDecoration(suffixText: "kg"),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(
+            onPressed: () {
+              final val = double.tryParse(controller.text.replaceAll(',', '.'));
+              if (val != null) {
+                onConfirm(val);
+              }
+              Navigator.pop(context);
+            },
+            child: const Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTargetWeightCard() {
     final bool isWeightLoss = _targetWeight < widget.currentWeight;
     final double weightDiff = (widget.currentWeight - _targetWeight).abs();
@@ -148,40 +182,72 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
               letterSpacing: 1.0,
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                _targetWeight.toStringAsFixed(1),
-                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.black),
-              ),
-              const SizedBox(width: 4),
-              const Text(
-                "kg",
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey),
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: weightDiff == 0
-                  ? Colors.grey.shade100
-                  : (isWeightLoss ? Colors.green.shade50 : Colors.blue.shade50),
-              borderRadius: BorderRadius.circular(8),
+          // KLIKALNA LICZBA WAGI
+          GestureDetector(
+            onTap: () => _showWeightInputDialog(
+              title: "Set Target Weight",
+              initialValue: _targetWeight,
+              onConfirm: (val) {
+                setState(() {
+                  _targetWeight = val;
+                  _calculateDate();
+                });
+              },
             ),
-            child: Text(
-              weightDiff == 0
-                  ? "Maintenance"
-                  : "${isWeightLoss ? '-' : '+'}${weightDiff.toStringAsFixed(1)} kg",
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  _targetWeight.toStringAsFixed(1),
+                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.black),
+                ),
+                const SizedBox(width: 4),
+                const Text(
+                  "kg",
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+          // KLIKALNE POLE RÓŻNICY (Działające na różnicy wag)
+          GestureDetector(
+            onTap: () => _showWeightInputDialog(
+              title: "Set Weight Difference",
+              initialValue: weightDiff.abs(),
+              onConfirm: (val) {
+                setState(() {
+                  // Jeśli aktualna waga jest większa od docelowej (odchudzanie), odejmujemy różnicę
+                  // W przeciwnym razie dodajemy. Zakładamy, że znak zależy od isWeightLoss
+                  if (isWeightLoss) {
+                    _targetWeight = widget.currentWeight - val;
+                  } else {
+                    _targetWeight = widget.currentWeight + val;
+                  }
+                  _calculateDate();
+                });
+              },
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
                 color: weightDiff == 0
-                    ? Colors.grey.shade700
-                    : (isWeightLoss ? Colors.green.shade700 : Colors.blue.shade700),
+                    ? Colors.grey.shade100
+                    : (isWeightLoss ? Colors.green.shade50 : Colors.blue.shade50),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                weightDiff == 0
+                    ? "Maintenance"
+                    : "${isWeightLoss ? '-' : '+'}${weightDiff.toStringAsFixed(1)} kg",
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: weightDiff == 0
+                      ? Colors.grey.shade700
+                      : (isWeightLoss ? Colors.green.shade700 : Colors.blue.shade700),
+                ),
               ),
             ),
           ),
@@ -232,9 +298,25 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("-15", style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
-                Text(
-                  "Current",
-                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.mediumImpact();
+                    setState(() {
+                      _targetWeight = widget.currentWeight;
+                      _calculateDate(); // Pamiętaj o przeliczeniu daty przy resecie
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Text(
+                      "Current: ${widget.currentWeight.toStringAsFixed(1)} kg",
+                      style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+                    ),
+                  ),
                 ),
                 Text("+15", style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
               ],
