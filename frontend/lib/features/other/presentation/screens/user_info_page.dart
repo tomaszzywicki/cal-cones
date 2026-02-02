@@ -76,7 +76,7 @@ class UserInfo extends StatelessWidget {
                 _buildInfoTile(
                   icon: user?.sex == 'MALE' ? Icons.male : Icons.female,
                   label: 'Sex',
-                  value: user?.sex ?? 'N/A',
+                  value: _formatTileDescription(user?.sex),
                 ),
                 _buildDivider(),
                 _buildInfoTile(
@@ -88,7 +88,7 @@ class UserInfo extends StatelessWidget {
                 _buildInfoTile(
                   icon: Icons.restaurant,
                   label: 'Diet Type',
-                  value: user?.dietType ?? 'N/A',
+                  value: _formatTileDescription(user?.dietType),
                   onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditDietScreen()));
                   },
@@ -100,7 +100,7 @@ class UserInfo extends StatelessWidget {
                 _buildInfoTile(
                   icon: Icons.directions_run,
                   label: 'Activity Level',
-                  value: user?.activityLevel ?? 'N/A',
+                  value: _formatTileDescription(user?.activityLevel),
                   isLast: true,
                 ),
               ],
@@ -316,5 +316,18 @@ class UserInfo extends StatelessWidget {
         ).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const LoginScreen()), (route) => false);
       }
     }
+  }
+
+  String _formatTileDescription(String? dietType) {
+    if (dietType == null) return 'N/A';
+    return dietType
+        .replaceAll('_', ' ')
+        .toLowerCase()
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1);
+        })
+        .join(' ');
   }
 }
