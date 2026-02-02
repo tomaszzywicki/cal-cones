@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'dart:math';
 import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/goal/data/daily_target_model.dart';
@@ -29,7 +28,7 @@ class DailyTargetCalculatorService {
       'Calculating daily target:\n\tWeight: $currentWeight kg\n\tHeight: $height cm\n\tAge: $ageYears years\n\tSex: $sex',
     );
     AppLogger.info(
-      'Activity Level: $activityLevel\nDiet Type: $dietType\nBMR: $bmr kcal\nActivity Factor: $activityFactor\nTDEE: $tdee kcal',
+      'Activity Level: $activityLevel\nBMR: $bmr kcal\nActivity Factor: $activityFactor\nTDEE: $tdee kcal',
     );
 
     const double costToBuildMusclePerKg = 7000; // kcal
@@ -62,7 +61,7 @@ class DailyTargetCalculatorService {
       "Daily Calorie Adjustment: $dailyCalorieAdjustment kcal\nTarget Calories: $targetCalories kcal",
     );
 
-    final macroTargets = _getMacroTargets(dietType, targetCalories);
+    final macroTargets = _getMacroTargets(user, targetCalories);
 
     return DailyTargetModel(
       date: DateTime.now().toUtc().toIso8601String().split('T').first,
@@ -91,36 +90,56 @@ class DailyTargetCalculatorService {
     }
   }
 
-  Map<String, int> _getMacroTargets(String? dietType, int calories) {
-    int proteinG;
-    int carbsG;
-    int fatG;
+  Map<String, int> _getMacroTargets(UserModel user, int calories) {
+    // AppLogger.info('DEBUG: user.macroSplit content: ${user.macroSplit}');
+    // AppLogger.info('DEBUG: user.macroSplit type: ${user.macroSplit.runtimeType}');
 
-    // macro ratios
-    double protein;
-    double carbs;
-    double fat;
+    double proteinRatio;
+    double carbsRatio;
+    double fatRatio;
 
-    switch (dietType) {
-      case 'high_protein':
-        protein = 0.4;
-        carbs = 0.3;
-        fat = 0.3;
-        break;
-      case 'low_carb':
-        protein = 0.4;
-        carbs = 0.2;
-        fat = 0.4;
-        break;
-      default:
-        protein = 0.3;
-        carbs = 0.4;
-        fat = 0.3;
+    // 1. Próba pobrania custom splitu z user.macroSplit
+    final customSplit = user.macroSplit;
+    if (customSplit != null &&
+        customSplit.containsKey('Protein') &&
+        customSplit.containsKey('Carbs') &&
+        customSplit.containsKey('Fat')) {
+      proteinRatio = (customSplit['Protein'] as num).toDouble() / 100.0;
+      carbsRatio = (customSplit['Carbs'] as num).toDouble() / 100.0;
+      fatRatio = (customSplit['Fat'] as num).toDouble() / 100.0;
+
+      AppLogger.info('Using custom macro split from user profile.');
+    } else {
+      // 2. Fallback do predefiniowanych diet, jeśli custom split nie istnieje
+      switch (user.dietType?.toLowerCase()) {
+        case 'high_protein':
+          proteinRatio = 0.4;
+          carbsRatio = 0.3;
+          fatRatio = 0.3;
+          break;
+        case 'low_carb':
+          proteinRatio = 0.4;
+          carbsRatio = 0.2;
+          fatRatio = 0.4;
+          break;
+        default:
+          proteinRatio = 0.3;
+          carbsRatio = 0.4;
+          fatRatio = 0.3;
+      }
+      AppLogger.info('Using default split for diet type: ${user.dietType}');
     }
 
-    proteinG = ((calories * protein) / 4).round();
-    carbsG = ((calories * carbs) / 4).round();
-    fatG = ((calories * fat) / 9).round();
+    AppLogger.info('Macro Ratios:\n\tProtein: $proteinRatio\n\tCarbs: $carbsRatio\n\tFat: $fatRatio');
+
+    int proteinG = ((calories * proteinRatio) / 4).round();
+    int carbsG = ((calories * carbsRatio) / 4).round();
+    int fatG = ((calories * fatRatio) / 9).round();
+
+    AppLogger.info(
+      'Calculated Macro Targets:\n\tProtein: $proteinG g\n\tCarbs: $carbsG g\n\tFat: $fatG g\nUsing diet_type: ${user.dietType}',
+    );
+
     return {'proteinG': proteinG, 'carbsG': carbsG, 'fatG': fatG};
   }
 }
