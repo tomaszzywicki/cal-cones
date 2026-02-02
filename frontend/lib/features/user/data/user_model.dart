@@ -92,6 +92,38 @@ class UserModel extends UserEntity {
     );
   }
 
+  UserModel copyWith({
+    int? id,
+    String? uid,
+    String? email,
+    String? username,
+    DateTime? birthday,
+    String? sex,
+    int? height,
+    DateTime? createdAt,
+    DateTime? lastModifiedAt,
+    String? dietType,
+    Map<String, dynamic>? macroSplit,
+    String? activityLevel,
+    bool? setupCompleted,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      uid: uid ?? this.uid,
+      email: email ?? this.email,
+      username: username ?? this.username,
+      birthday: birthday ?? this.birthday,
+      sex: sex ?? this.sex,
+      height: height ?? this.height,
+      createdAt: createdAt ?? this.createdAt,
+      lastModifiedAt: lastModifiedAt ?? this.lastModifiedAt,
+      dietType: dietType ?? this.dietType,
+      macroSplit: macroSplit ?? this.macroSplit,
+      activityLevel: activityLevel ?? this.activityLevel,
+      setupCompleted: setupCompleted ?? this.setupCompleted,
+    );
+  }
+
   int? get ageYears {
     if (birthday == null) return null;
     final today = DateTime.now();

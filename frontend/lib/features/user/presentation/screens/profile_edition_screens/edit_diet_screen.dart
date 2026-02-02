@@ -1,0 +1,75 @@
+import 'package:flutter/material.dart';
+import 'package:frontend/features/user/presentation/widgets/onboarding_button.dart';
+import 'package:provider/provider.dart';
+import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/user/services/user_service.dart';
+import 'package:frontend/features/user/presentation/widgets/diet_selection_body.dart';
+
+class EditDietScreen extends StatefulWidget {
+  const EditDietScreen({super.key});
+
+  @override
+  State<EditDietScreen> createState() => _EditDietScreenState();
+}
+
+class _EditDietScreenState extends State<EditDietScreen> {
+  String? _tempDietType;
+  Map<String, int>? _tempMacros;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = context.read<CurrentUserService>().currentUser;
+
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Edit Diet & Macros',
+          style: TextStyle(color: Colors.black, fontSize: 20, fontWeight: FontWeight.w600),
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: DietSelectionBody(
+                initialDietType: user?.dietType,
+                initialMacroSplit: user?.macroSplit?.map((key, value) => MapEntry(key, value as int)),
+                onDataChanged: (type, macros) {
+                  _tempDietType = type;
+                  _tempMacros = macros;
+                },
+              ),
+            ),
+          ),
+          OnboardingButton(text: "Save diet", onPressed: _handleSave),
+        ],
+      ),
+    );
+  }
+
+  void _handleSave() async {
+    if (_tempDietType != null && _tempMacros != null) {
+      try {
+        // Wywołujemy przygotowaną metodę w UserService
+        await context.read<UserService>().updateUserDiet(dietType: _tempDietType!, macroSplit: _tempMacros!);
+
+        if (mounted) {
+          // Zamykamy ekran po udanym zainicjowaniu zapisu
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating diet: $e')));
+        }
+      }
+    }
+  }
+}

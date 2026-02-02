@@ -4,6 +4,7 @@ import 'package:frontend/features/goal/data/goal_model.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/user/data/user_model.dart';
 import 'package:frontend/features/user/data/user_onboarding_model.dart';
+import 'package:frontend/features/user/data/user_update_model.dart';
 import 'package:frontend/features/user/services/user_api_service.dart';
 
 class UserService {
@@ -97,5 +98,43 @@ class UserService {
     await goalService.createGoal(userGoal);
 
     AppLogger.info("User goal created for ${user.username} based on onboarding data.");
+  }
+
+  // lib/features/user/services/user_service.dart
+
+  Future<void> updateUserDiet({required String dietType, required Map<String, int> macroSplit}) async {
+    final currentUser = currentUserService.currentUser;
+    if (currentUser == null) throw Exception("No current user found");
+
+    // 1. Tworzymy kopię użytkownika z nowymi danymi używając copyWith
+    // Rzutujemy na UserModel, aby mieć dostęp do copyWith i metod bazy danych
+    final updatedUser = (currentUser).copyWith(
+      dietType: dietType,
+      macroSplit: macroSplit.cast<String, dynamic>(), // Konwersja dla UserEntity
+    );
+
+    try {
+      // 2. Aktualizujemy lokalny stan i bazę danych natychmiast
+      // Dzięki temu UI (UserInfo) zmieni się w ułamku sekundy
+      await currentUserService.updateUser(updatedUser);
+
+      // 3. Przygotowujemy model do wysyłki pod /update/
+      final updateData = UserProfileModel.fromUserModel(updatedUser);
+
+      // 4. Próbujemy wysłać na serwer.
+      // Jeśli nie ma internetu, API Client rzuci wyjątek, który obsłużymy
+      await _userApiService.updateUser(updateData);
+
+      AppLogger.info("User diet updated on server successfully.");
+    } catch (e) {
+      AppLogger.error("Server update failed, adding to sync queue: $e");
+
+      // 5. DODANIE DO KOLEJKI (Logika jak w produktach)
+      // Jeśli API zawiedzie, dodajemy operację do SyncService
+      // syncService.addOperation(SyncOperation(
+      //   type: SyncType.userUpdate,
+      //   data: updateData.toJson(),
+      // ));
+    }
   }
 }

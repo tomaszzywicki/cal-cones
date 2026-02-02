@@ -1,3 +1,5 @@
+import 'package:frontend/features/user/data/user_entity.dart';
+
 class UserOnboardingModel {
   // User Entity Part
   int id;

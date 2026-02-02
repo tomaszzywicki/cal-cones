@@ -3,6 +3,7 @@ import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding.dart';
+import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_diet_screen.dart';
 import 'package:provider/provider.dart';
 
 class UserInfo extends StatelessWidget {
@@ -83,7 +84,16 @@ class UserInfo extends StatelessWidget {
                   value: user?.height != null ? '${user!.height} cm' : 'N/A',
                 ),
                 _buildDivider(),
-                _buildInfoTile(icon: Icons.restaurant, label: 'Diet Type', value: user?.dietType ?? 'N/A'),
+                _buildInfoTile(
+                  icon: Icons.restaurant,
+                  label: 'Diet Type',
+                  value: user?.dietType ?? 'N/A',
+                  onTap: () {
+                    Navigator.of(
+                      context,
+                    ).push(MaterialPageRoute(builder: (context) => const EditDietScreen()));
+                  },
+                ),
                 _buildDivider(),
                 _buildInfoTile(
                   icon: Icons.directions_run,
