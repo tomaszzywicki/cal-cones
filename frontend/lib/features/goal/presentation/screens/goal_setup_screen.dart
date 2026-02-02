@@ -128,18 +128,44 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                     constraints: BoxConstraints(minHeight: constraints.maxHeight - 24.0),
                     child: IntrinsicHeight(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Flexible(flex: 3, fit: FlexFit.tight, child: _buildTargetWeightCard()),
-                          const SizedBox(height: 12),
+                          // KARTA 1: Target Weight
                           Flexible(
-                            flex: 3,
-                            fit: FlexFit.tight,
-                            child: _isMaintenance ? _buildMaintenanceDurationCard() : _buildWeeklyPaceCard(),
+                            fit: FlexFit.loose,
+                            child: ConstrainedBox(
+                              // maxHeight: naturalna wielkość (ok. 180) * 1.2
+                              constraints: const BoxConstraints(maxHeight: 220),
+                              child: _buildTargetWeightCard(),
+                            ),
                           ),
                           const SizedBox(height: 12),
-                          Flexible(flex: 2, fit: FlexFit.tight, child: _buildSummaryCard()),
+
+                          // KARTA 2: Pace / Maintenance
+                          Flexible(
+                            fit: FlexFit.loose,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 220),
+                              child: _isMaintenance
+                                  ? _buildMaintenanceDurationCard()
+                                  : _buildWeeklyPaceCard(),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+
+                          // KARTA 3: Summary
+                          Flexible(
+                            fit: FlexFit.loose,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 180),
+                              child: _buildSummaryCard(),
+                            ),
+                          ),
+
+                          // ELEMENT "WYPEŁNIACZ" (Spacer)
+                          // Ten element przejmie całą resztę pustego miejsca na bardzo dużych ekranach,
+                          // dzięki czemu karty nie urosną powyżej swoich limitów BoxConstraints.
+                          // const Spacer(flex: 1),
                         ],
                       ),
                     ),
@@ -716,60 +742,98 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   }
 
   Widget _buildGoalSummaryHeader() {
-    String goalTitle = "YOUR NEW GOAL";
-    bool isGain = _targetWeight > widget.currentWeight;
+    final bool isGain = _targetWeight > widget.currentWeight;
+    final bool isLoss = _targetWeight < widget.currentWeight;
+
+    // Definicja kolorów i tekstów zależnie od trybu
+    Color goalColor;
+    String goalActionText;
+
+    if (_isMaintenance) {
+      goalColor = Colors.orange.shade700; // Żółty/Bursztynowy dla Maintain
+      goalActionText = "MAINTAIN WEIGHT OF";
+    } else if (isGain) {
+      goalColor = Colors.blue.shade700; // Niebieski dla Gain
+      goalActionText = "GAIN WEIGHT";
+    } else {
+      goalColor = Colors.green.shade700; // Zielony dla Loss
+      goalActionText = "LOSE WEIGHT";
+    }
 
     return Column(
       children: [
-        Text(
-          goalTitle,
-          style: const TextStyle(
-            fontSize: 10,
+        const Text(
+          "YOUR NEW GOAL",
+          style: TextStyle(
+            fontSize: 20, // Większa czcionka zgodnie z prośbą
             fontWeight: FontWeight.w900,
             color: Colors.black,
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 4),
-        _isMaintenance
-            ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "MAINTAIN CURRENT WEIGHT OF",
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.blueGrey.shade400,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    "${widget.currentWeight.toStringAsFixed(1)} kg",
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.black),
-                  ),
-                ],
-              )
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    isGain ? "WEIGHT GAIN" : "WEIGHT LOSS",
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: Colors.blueGrey.shade400,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  _buildWeightInfo("START", "${widget.currentWeight}", "kg"),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Icon(Icons.arrow_forward_rounded, color: Colors.blueGrey.shade300, size: 14),
-                  ),
-                  _buildWeightInfo("TARGET", _targetWeight.toStringAsFixed(1), "kg", isTarget: true),
-                ],
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: goalColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
               ),
+              child: Text(
+                goalActionText,
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  color: goalColor,
+                  letterSpacing: 1.0,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            _isMaintenance
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Text(
+                      //   "CURRENT WEIGHT",
+                      //   style: TextStyle(
+                      //     fontSize: 10,
+                      //     color: Colors.blueGrey.shade400,
+                      //     fontWeight: FontWeight.bold,
+                      //   ),
+                      // ),
+                      // const SizedBox(width: 8),
+                      Text(
+                        "${widget.currentWeight.toStringAsFixed(1)} kg",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.black,
+                        ),
+                      ),
+                    ],
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildWeightInfo("START", widget.currentWeight.toStringAsFixed(1), "kg"),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                        child: Icon(Icons.arrow_forward_rounded, color: goalColor.withOpacity(0.5), size: 20),
+                      ),
+                      _buildWeightInfo(
+                        "TARGET",
+                        _targetWeight.toStringAsFixed(1),
+                        "kg",
+                        isTarget: true,
+                        targetColor: goalColor,
+                      ),
+                    ],
+                  ),
+          ],
+        ),
       ],
     );
   }
@@ -878,12 +942,18 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     );
   }
 
-  Widget _buildWeightInfo(String label, String value, String unit, {bool isTarget = false}) {
+  Widget _buildWeightInfo(
+    String label,
+    String value,
+    String unit, {
+    bool isTarget = false,
+    Color? targetColor,
+  }) {
     return Column(
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 7, color: Colors.blueGrey.shade400, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 8, color: Colors.blueGrey.shade400, fontWeight: FontWeight.bold),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -892,15 +962,15 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
             Text(
               value,
               style: TextStyle(
-                fontSize: 14,
+                fontSize: 18, // Lekko zwiększone dla czytelności
                 fontWeight: isTarget ? FontWeight.w900 : FontWeight.bold,
-                color: isTarget ? Colors.black : Colors.blueGrey.shade600,
+                color: isTarget ? (targetColor ?? Colors.black) : Colors.blueGrey.shade600,
               ),
             ),
-            const SizedBox(width: 1),
+            const SizedBox(width: 2),
             Text(
               unit,
-              style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: Colors.blueGrey.shade400),
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.blueGrey.shade400),
             ),
           ],
         ),
