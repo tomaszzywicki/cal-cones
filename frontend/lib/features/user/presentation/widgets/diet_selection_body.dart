@@ -131,8 +131,9 @@ class _DietSelectionBodyState extends State<DietSelectionBody> {
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
             child: IntrinsicHeight(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
+                  Spacer(),
                   const Text(
                     'What is your diet type?',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
@@ -142,22 +143,23 @@ class _DietSelectionBodyState extends State<DietSelectionBody> {
                     "Carbs": 40,
                     "Protein": 30,
                     "Fat": 30,
-                  }),
-                  const SizedBox(height: 10),
+                  }, constraints),
+                  const SizedBox(height: 4),
                   _dietOption('Low Carb', 'Higher fats & protein', 'low_carb', {
                     "Carbs": 10,
                     "Protein": 30,
                     "Fat": 60,
-                  }),
-                  const SizedBox(height: 10),
+                  }, constraints),
+                  const SizedBox(height: 4),
                   _dietOption('Low Fat', 'Higher carbs & protein', 'low_fat', {
                     "Carbs": 60,
                     "Protein": 30,
                     "Fat": 10,
-                  }),
-                  const SizedBox(height: 10),
-                  _dietOption('Custom', 'Set your own macros', 'custom', _macroSplit),
+                  }, constraints),
+                  const SizedBox(height: 4),
+                  _dietOption('Custom', 'Set your own macros', 'custom', _macroSplit, constraints),
 
+                  const SizedBox(height: 30),
                   const Spacer(),
 
                   Container(
@@ -188,13 +190,23 @@ class _DietSelectionBodyState extends State<DietSelectionBody> {
     );
   }
 
-  Widget _dietOption(String title, String desc, String type, Map<String, double> split) {
+  Widget _dietOption(
+    String title,
+    String desc,
+    String type,
+    Map<String, double> split,
+    BoxConstraints constraints,
+  ) {
     bool isSelected = _selectedDietType == type;
+
+    double targetHeightSelected = (constraints.maxHeight * 0.14).clamp(80.0, 100.0);
+    double targetHeightUnselected = (constraints.maxHeight * 0.10).clamp(55.0, 70.0);
+
     return InkWell(
       onTap: () => _updateDiet(type, split),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        height: isSelected ? 100 : 70,
+        height: isSelected ? targetHeightSelected : targetHeightUnselected,
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(

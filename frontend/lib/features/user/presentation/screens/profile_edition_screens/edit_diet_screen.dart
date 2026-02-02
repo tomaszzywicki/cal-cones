@@ -57,7 +57,7 @@ class _EditDietScreenState extends State<EditDietScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Column(
             children: [
-              const SizedBox(height: 30),
+              SizedBox(height: 30),
               Expanded(
                 child: DietSelectionBody(
                   initialDietType: user?.dietType,
