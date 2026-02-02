@@ -25,6 +25,13 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   DateTime? _estimatedDate;
   bool _isLoading = false;
 
+  final TextEditingController _targetWeightController = TextEditingController();
+  final TextEditingController _diffController = TextEditingController();
+  bool _isEditingTarget = false;
+  bool _isEditingDiff = false;
+  final FocusNode _targetFocus = FocusNode();
+  final FocusNode _diffFocus = FocusNode();
+
   final double _minTempo = 0.05;
   final double _maxTempo = 1.2;
 
@@ -37,6 +44,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     _sliderMinWeight = widget.currentWeight - 15.0;
     _sliderMaxWeight = widget.currentWeight + 15.0;
     _targetWeight = _roundDouble(widget.currentWeight.clamp(_sliderMinWeight, _sliderMaxWeight), 1);
+    _targetWeightController.text = _targetWeight.toStringAsFixed(1);
+    _diffController.text = "0.0";
     _tempo = 0.2;
     _calculateDate();
   }
@@ -131,43 +140,16 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     );
   }
 
-  void _showWeightInputDialog({
-    required String title,
-    required double initialValue,
-    required Function(double) onConfirm,
-  }) {
-    final controller = TextEditingController(text: initialValue.toStringAsFixed(1));
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title, style: const TextStyle(fontSize: 16)),
-        content: TextField(
-          controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          autofocus: true,
-          textAlign: TextAlign.center,
-          decoration: const InputDecoration(suffixText: "kg"),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-          TextButton(
-            onPressed: () {
-              final val = double.tryParse(controller.text.replaceAll(',', '.'));
-              if (val != null) {
-                onConfirm(val);
-              }
-              Navigator.pop(context);
-            },
-            child: const Text("OK"),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildTargetWeightCard() {
     final bool isWeightLoss = _targetWeight < widget.currentWeight;
     final double weightDiff = (widget.currentWeight - _targetWeight).abs();
+
+    const weightStyle = TextStyle(
+      fontSize: 32,
+      fontWeight: FontWeight.w900,
+      color: Colors.black,
+      letterSpacing: -1,
+    );
 
     return _buildSectionContainer(
       child: Column(
@@ -182,75 +164,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
               letterSpacing: 1.0,
             ),
           ),
-          // KLIKALNA LICZBA WAGI
-          GestureDetector(
-            onTap: () => _showWeightInputDialog(
-              title: "Set Target Weight",
-              initialValue: _targetWeight,
-              onConfirm: (val) {
-                setState(() {
-                  _targetWeight = val;
-                  _calculateDate();
-                });
-              },
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.baseline,
-              textBaseline: TextBaseline.alphabetic,
-              children: [
-                Text(
-                  _targetWeight.toStringAsFixed(1),
-                  style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.black),
-                ),
-                const SizedBox(width: 4),
-                const Text(
-                  "kg",
-                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-          // KLIKALNE POLE RÓŻNICY (Działające na różnicy wag)
-          GestureDetector(
-            onTap: () => _showWeightInputDialog(
-              title: "Set Weight Difference",
-              initialValue: weightDiff.abs(),
-              onConfirm: (val) {
-                setState(() {
-                  // Jeśli aktualna waga jest większa od docelowej (odchudzanie), odejmujemy różnicę
-                  // W przeciwnym razie dodajemy. Zakładamy, że znak zależy od isWeightLoss
-                  if (isWeightLoss) {
-                    _targetWeight = widget.currentWeight - val;
-                  } else {
-                    _targetWeight = widget.currentWeight + val;
-                  }
-                  _calculateDate();
-                });
-              },
-            ),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: weightDiff == 0
-                    ? Colors.grey.shade100
-                    : (isWeightLoss ? Colors.green.shade50 : Colors.blue.shade50),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                weightDiff == 0
-                    ? "Maintenance"
-                    : "${isWeightLoss ? '-' : '+'}${weightDiff.toStringAsFixed(1)} kg",
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: weightDiff == 0
-                      ? Colors.grey.shade700
-                      : (isWeightLoss ? Colors.green.shade700 : Colors.blue.shade700),
-                ),
-              ),
-            ),
-          ),
+          _buildTargetWeightInput(weightStyle),
+          _buildEditableDiffBadge(isWeightLoss, weightDiff),
           SizedBox(
             height: 40,
             child: Stack(
@@ -303,7 +218,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                     HapticFeedback.mediumImpact();
                     setState(() {
                       _targetWeight = widget.currentWeight;
-                      _calculateDate(); // Pamiętaj o przeliczeniu daty przy resecie
+                      _calculateDate();
                     });
                   },
                   child: Container(
@@ -327,9 +242,136 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     );
   }
 
+  void _handleTargetSubmit(String val) {
+    double parsedWeight = double.tryParse(val.replaceAll(',', '.')) ?? _targetWeight;
+
+    // Walidacja zakresu suwaka, aby uniknąć błędu z obrazka
+    if (parsedWeight < _sliderMinWeight) parsedWeight = _sliderMinWeight;
+    if (parsedWeight > _sliderMaxWeight) parsedWeight = _sliderMaxWeight;
+
+    setState(() {
+      _targetWeight = _roundDouble(parsedWeight, 1);
+      _targetWeightController.text = _targetWeight.toStringAsFixed(1);
+      _isEditingTarget = false;
+      _calculateDate();
+    });
+    FocusScope.of(context).unfocus();
+  }
+
+  void _handleDiffSubmit(String val, bool isWeightLoss) {
+    final diff = double.tryParse(val.replaceAll(',', '.')) ?? 0;
+    double newTarget;
+
+    if (isWeightLoss) {
+      newTarget = widget.currentWeight - diff;
+    } else {
+      newTarget = widget.currentWeight + diff;
+    }
+
+    // Walidacja zakresu suwaka
+    if (newTarget < _sliderMinWeight) newTarget = _sliderMinWeight;
+    if (newTarget > _sliderMaxWeight) newTarget = _sliderMaxWeight;
+
+    setState(() {
+      _targetWeight = _roundDouble(newTarget, 1);
+      _targetWeightController.text = _targetWeight.toStringAsFixed(1);
+      _isEditingDiff = false;
+      _calculateDate();
+    });
+    FocusScope.of(context).unfocus();
+  }
+
+  Widget _buildTargetWeightInput(TextStyle weightStyle) {
+    return IntrinsicWidth(
+      child: TextField(
+        controller: _targetWeightController,
+        focusNode: _targetFocus,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        textAlign: TextAlign.center,
+        autofocus: true,
+        style: weightStyle,
+        decoration: InputDecoration(
+          border: const OutlineInputBorder(borderSide: BorderSide.none),
+          enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
+          focusedBorder: const OutlineInputBorder(borderSide: BorderSide.none),
+          isDense: true,
+          contentPadding: EdgeInsets.zero,
+          suffixText: " kg",
+          suffixStyle: weightStyle.copyWith(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold),
+        ),
+        onSubmitted: _handleTargetSubmit,
+        onTapOutside: (_) => _handleTargetSubmit(_targetWeightController.text),
+      ),
+    );
+  }
+
+  Widget _buildEditableDiffBadge(bool isWeightLoss, double weightDiff) {
+    Color baseColor = weightDiff < 0.1 ? Colors.grey : (isWeightLoss ? Colors.green : Colors.blue);
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _diffController.text = weightDiff.toStringAsFixed(1);
+          _isEditingDiff = true;
+        });
+        _diffFocus.requestFocus();
+      },
+      child: Container(
+        width: 100,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: BoxDecoration(
+          color: baseColor.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: _isEditingDiff ? baseColor.withOpacity(0.5) : baseColor.withOpacity(0.15),
+            // width: _isEditingDiff ? 1.5 : 1,
+            width: 1,
+          ),
+        ),
+        child: _isEditingDiff
+            ? TextField(
+                controller: _diffController,
+                focusNode: _diffFocus,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                textAlign: TextAlign.center,
+                autofocus: true,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: baseColor.withOpacity(0.8).withRed(baseColor.red),
+                ),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  fillColor: Colors.transparent,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                  prefixText: weightDiff < 0.1 ? "" : (isWeightLoss ? "-" : "+"),
+                  suffixText: " kg",
+                ),
+                onSubmitted: (val) => _handleDiffSubmit(val, isWeightLoss),
+                onTapOutside: (_) => _handleDiffSubmit(_diffController.text, isWeightLoss),
+              )
+            : Text(
+                weightDiff < 0.1
+                    ? "Maintenance"
+                    : "${isWeightLoss ? '-' : '+'}${weightDiff.toStringAsFixed(1)} kg",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  color: weightDiff < 0.1
+                      ? Colors.grey.shade700
+                      : (isWeightLoss ? Colors.green.shade700 : Colors.blue.shade700),
+                ),
+              ),
+      ),
+    );
+  }
+
   Widget _buildWeeklyPaceCard() {
     final bool isGain = _targetWeight > widget.currentWeight;
-
     final IconData iconType;
     final String title;
     final String message;
@@ -421,7 +463,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
               thumbColor: Colors.blueGrey.shade900,
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
-              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
             ),
             child: Slider(
               value: _tempo,
@@ -442,10 +484,10 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     );
   }
 
-  _buildTempoInfoCard(IconData iconType, String title, String message, MaterialColor color) {
+  Widget _buildTempoInfoCard(IconData iconType, String title, String message, MaterialColor color) {
     return Container(
       width: 94,
-      constraints: BoxConstraints(minHeight: 66),
+      constraints: const BoxConstraints(minHeight: 66),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: color.shade50,
@@ -559,7 +601,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                 border: Border.all(color: Colors.red.shade100),
               ),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 18),
                   const SizedBox(width: 10),
@@ -576,7 +617,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                           ),
                         ),
                         Text(
-                          "By setting a new goal, your current goal will be closed. Record your current weight first.",
+                          "By setting a new goal, your current goal will be closed. This change is irreversible. Record your current weight first as it has influence on both your current and new goal. ",
                           style: TextStyle(
                             color: Colors.red.shade800,
                             fontSize: 10,
