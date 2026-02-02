@@ -6,12 +6,6 @@ import 'package:frontend/features/user/data/user_model.dart';
 
 class DailyTargetCalculatorService {
   DailyTargetModel calculateDailyTarget(UserModel user, GoalModel goal, double currentWeight) {
-    // if (user.id == null) {
-    //   throw Exception('User ID is null. Cannot calculate daily target.');
-    // }
-    // if (user.height == null || user.ageYears == null || user.sex == null) {
-    //   throw Exception('User data incomplete for BMR calculation. Cannot calculate daily target.');
-    // }
     int ageYears = user.ageYears ?? 30;
     String sex = user.sex?.toLowerCase() ?? 'male';
     int height = user.height ?? (sex == 'male' ? 175 : 160);
@@ -31,30 +25,91 @@ class DailyTargetCalculatorService {
       'Activity Level: $activityLevel\nBMR: $bmr kcal\nActivity Factor: $activityFactor\nTDEE: $tdee kcal',
     );
 
-    const double costToBuildMusclePerKg = 7000; // kcal
+    const double costToBuildMusclePerKg = 1800; // kcal
     const double costToBuildFatPerKg = 8000; // kcal
+    const double energyInKgMuscleLoss = 1200; // kcal
     const double energyInKgFatLoss = 7700; // kcal
-    const double maxMuscleGainPerWeek = 0.25; // kg
+
+    // The assumption is that:
+    //   - muscle gain from 0.0 to 0.2 kg/week does not result in fat gain.
+    //   - muscle gain from 0.2 to 0.5 kg/week results in some fat gain. Linearly growing from 0 fat gain at 0.2 muscle gain to 0.5 fat gain at 0.5 muscle gain.
+    //   - muscle gain above 0.5 kg/week is not realistic and should be capped. Any extra tempo above 0.5 kg/week is considered as fat gain.
+    //
+    //   - calorie surplus induces greater non-exercise activity thermogenesis and food-induced thermogenesis, burning some of the excess calories, so we assume that not all surplus calories result in body mass gain.
+    //   - based on [Slater_2019], we assume that up to 200 kcal of surplus gets burned through increased thermogenesis when in a calorie surplus.
+    //   - It follows logically though that greater surplus will induce greater thermogenesis.
+    //   - It would also be unrealistic to assume that more than 50% of surplus calories get burned through thermogenesis.
+    //   - Therefore, we agreed on a model where 100% of surplus calories up to 200 kcal get added, which increases the final surplus
+    //
+    //   - muscle loss up to 0.9 kg/week does not result in muscle loss. [Garthe_2011] shows that athletes were able to lose up to ~0.9 kg/week while preserving muscle mass with proper nutrition and training.
+    //   - muscle loss above 0.9 kg/week results in both fat loss and muscle loss. Baser fat loss is 0.9 kg/week. Any extra tempo above 0.9 kg/week is divided between fat and muscle loss equally.
+
+    const double lowerMuscleGainThreshold = 0.2; // kg
+    const double upperMuscleGainThreshold = 0.5; // kg
+    const double fatGainAtLowerThreshold = 0.0; // kg
+    const double fatGainAtUpperThreshold = 0.5; // kg
+
+    const double calorieSurplusThermogenesisThreshold = 200.0; // kcal
+
+    const double safeWeightLossThreshold = 0.9; // kg
 
     double muscleGain;
+    double muscleLoss;
     double fatGain;
     double fatLoss;
     double signedTempo = goal.isWeightLoss ? -goal.tempo : goal.tempo;
-    if (signedTempo > maxMuscleGainPerWeek) {
-      muscleGain = maxMuscleGainPerWeek;
-      fatGain = signedTempo - maxMuscleGainPerWeek;
-    } else {
-      muscleGain = max(0, signedTempo);
+
+    if (signedTempo > upperMuscleGainThreshold + fatGainAtUpperThreshold) {
+      muscleGain = upperMuscleGainThreshold;
+      fatGain = signedTempo - upperMuscleGainThreshold;
+      muscleLoss = 0;
+      fatLoss = 0;
+    } else if (signedTempo >= lowerMuscleGainThreshold) {
+      muscleGain =
+          (signedTempo - lowerMuscleGainThreshold) *
+              (upperMuscleGainThreshold - lowerMuscleGainThreshold) /
+              (upperMuscleGainThreshold +
+                  fatGainAtUpperThreshold -
+                  lowerMuscleGainThreshold -
+                  fatGainAtLowerThreshold) +
+          lowerMuscleGainThreshold;
+      fatGain = (signedTempo - muscleGain);
+      muscleLoss = 0;
+      fatLoss = 0;
+    } else if (signedTempo >= 0) {
+      muscleGain = signedTempo;
       fatGain = 0;
+      muscleLoss = 0;
+      fatLoss = 0;
+    } else if (signedTempo >= -safeWeightLossThreshold) {
+      muscleGain = 0;
+      fatGain = 0;
+      muscleLoss = 0;
+      fatLoss = -signedTempo;
+    } else {
+      muscleGain = 0;
+      fatGain = 0;
+      muscleLoss = (-signedTempo - safeWeightLossThreshold) / 2.0;
+      fatLoss = safeWeightLossThreshold + muscleLoss;
     }
-    fatLoss = min(0, signedTempo);
+    muscleGain = double.parse(muscleGain.toStringAsFixed(3));
+    fatGain = double.parse(fatGain.toStringAsFixed(3));
+    muscleLoss = double.parse(muscleLoss.toStringAsFixed(3));
+    fatLoss = double.parse(fatLoss.toStringAsFixed(3));
+    AppLogger.info(
+      'Calculated weekly body composition changes:\n\tMuscle Gain: $muscleGain kg\n\tFat Gain: $fatGain kg\n\tMuscle Loss: $muscleLoss kg\n\tFat Loss: $fatLoss kg',
+    );
 
     double weeklyCalorieAdjustment =
         ((muscleGain * costToBuildMusclePerKg) +
         (fatGain * costToBuildFatPerKg) -
-        (fatLoss.abs() * energyInKgFatLoss));
+        (muscleLoss * energyInKgMuscleLoss) -
+        (fatLoss * energyInKgFatLoss));
 
     double dailyCalorieAdjustment = weeklyCalorieAdjustment / 7.0;
+    if (dailyCalorieAdjustment > 0) {
+      dailyCalorieAdjustment += min(dailyCalorieAdjustment, calorieSurplusThermogenesisThreshold);
+    }
     int targetCalories = (tdee + dailyCalorieAdjustment).round();
 
     AppLogger.info(

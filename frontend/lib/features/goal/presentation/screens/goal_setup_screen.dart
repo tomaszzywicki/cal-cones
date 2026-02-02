@@ -571,7 +571,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
         color = Colors.blue;
       }
     } else {
-      if (_tempo > 0.6) {
+      if (_tempo > 0.9) {
         iconType = Icons.warning_amber_rounded;
         title = "Fast pace";
         message = "Increased risk of muscle loss and nutrient deficiencies.";
