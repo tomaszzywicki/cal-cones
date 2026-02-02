@@ -321,7 +321,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                                     value: _tempo,
                                     min: _minTempo,
                                     max: _maxTempo,
-                                    divisions: 22,
+                                    divisions: 23,
                                     onChanged: (val) {
                                       setState(() {
                                         _tempo = _roundDouble(val, 2);
