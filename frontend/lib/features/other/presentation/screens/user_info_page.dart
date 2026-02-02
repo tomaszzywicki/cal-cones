@@ -12,7 +12,7 @@ class UserInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
-    final currentUserService = Provider.of<CurrentUserService>(context, listen: false);
+    final currentUserService = Provider.of<CurrentUserService>(context, listen: true);
     final user = currentUserService.currentUser;
 
     return Scaffold(

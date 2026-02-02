@@ -36,7 +36,7 @@ class _EditDietScreenState extends State<EditDietScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.read<CurrentUserService>().currentUser;
+    final user = context.watch<CurrentUserService>().currentUser;
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -73,11 +73,19 @@ class _EditDietScreenState extends State<EditDietScreen> {
               const SizedBox(height: 30),
               OnboardingButton(
                 text: 'Save',
-                onPressed: _tempDietType == null
-                    ? () {}
-                    : () {
-                        _handleSave();
-                      },
+                onPressed: () {
+                  if (_tempDietType == null) {
+                    setState(() {
+                      _tempDietType = user?.dietType;
+                    });
+                  }
+                  if (_tempMacros == null) {
+                    setState(() {
+                      _tempMacros = user?.macroSplit?.map((key, value) => MapEntry(key, value.toInt()));
+                    });
+                  }
+                  _handleSave();
+                },
               ),
             ],
           ),
