@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/mixins/day_refresh_mixin.dart';
-import 'package:frontend/features/goal/presentation/screens/goal_setup.dart';
+import 'package:frontend/features/goal/presentation/screens/goal_setup_screen.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';

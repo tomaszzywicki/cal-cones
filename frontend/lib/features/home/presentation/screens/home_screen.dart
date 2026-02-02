@@ -5,7 +5,7 @@ import 'package:frontend/core/mixins/day_refresh_mixin.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/goal/data/daily_target_model.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';
-import 'package:frontend/features/goal/presentation/screens/goal_setup.dart';
+import 'package:frontend/features/goal/presentation/screens/goal_setup_screen.dart';
 import 'package:frontend/features/goal/services/daily_target_service.dart';
 import 'package:frontend/features/goal/services/goal_service.dart';
 import 'package:frontend/features/home/presentation/widgets/day_macro_card.dart';

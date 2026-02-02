@@ -246,13 +246,13 @@ class UserInfo extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     value,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: valueColor ?? Colors.black,
                     ),

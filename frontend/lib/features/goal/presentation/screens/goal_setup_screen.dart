@@ -23,8 +23,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   late double _targetWeight;
   late double _tempo;
   DateTime? _estimatedDate;
-  // Nowa zmienna przechowująca datę specyficzną dla trybu maintenance
-  DateTime? _maintenanceDate;
+  DateTime? _maintenanceDate; // Os/bna data dla trybu maintenance
   bool _isLoading = false;
 
   final TextEditingController _targetWeightController = TextEditingController();
@@ -40,7 +39,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   late double _sliderMinWeight;
   late double _sliderMaxWeight;
 
-  bool get _isMaintenance => (_targetWeight - widget.currentWeight).abs() < 0.1;
+  bool get _isMaintenance => (_targetWeight - widget.currentWeight).abs() < 1;
 
   final List<int> _presetDays = [15, 29, 61, 91, 181, 271, 366, 731];
 
@@ -53,20 +52,17 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     _targetWeightController.text = _targetWeight.toStringAsFixed(1);
     _diffController.text = "0.0";
     _tempo = 0.2;
-    // Inicjalizacja domyślnej daty dla maintenance
     _maintenanceDate = DateTime.now().add(const Duration(days: 30));
     _calculateDate();
   }
 
   void _calculateDate() {
-    // Jeśli jesteśmy w trybie maintenance, nie dotykamy _estimatedDate,
-    // widok będzie korzystał z _maintenanceDate
     if (_isMaintenance) return;
 
     final double rawDiff = (widget.currentWeight - _targetWeight).abs();
     final double diff = _roundDouble(rawDiff, 1);
 
-    if (diff < 0.1 || _tempo <= 0.05) {
+    if (diff == 0.0 || _tempo <= 0.05) {
       setState(() => _estimatedDate = DateTime.now().add(const Duration(days: 30)));
       return;
     }
@@ -83,7 +79,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     setState(() => _isLoading = true);
     try {
       final userId = context.read<CurrentUserService>().getUserId();
-      // Wybieramy odpowiednią datę w zależności od trybu
       final finalDate = _isMaintenance ? _maintenanceDate! : _estimatedDate!;
 
       final newGoal = GoalModel(
@@ -184,8 +179,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
           ),
           const SizedBox(height: 12),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             alignment: WrapAlignment.center,
             children: [
               _buildDateOption("2 Weeks", 15),
@@ -207,13 +202,18 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
 
   Widget _buildCustomDatePickerButton() {
     bool isCustomSelected = true;
-    if (_maintenanceDate != null) {
-      final diff = _maintenanceDate!.difference(DateTime.now()).inDays;
-      for (var day in _presetDays) {
-        if ((diff - day).abs() < 2) {
-          isCustomSelected = false;
-          break;
-        }
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    for (var day in _presetDays) {
+      final presetDate = today.add(Duration(days: day));
+      if (_maintenanceDate != null &&
+          _maintenanceDate!.year == presetDate.year &&
+          _maintenanceDate!.month == presetDate.month &&
+          _maintenanceDate!.day == presetDate.day) {
+        isCustomSelected = false;
+        break;
       }
     }
 
@@ -257,14 +257,22 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
       context: context,
       initialDate: _maintenanceDate ?? DateTime.now().add(const Duration(days: 30)),
       firstDate: DateTime.now().add(const Duration(days: 7)),
-      lastDate: DateTime.now().add(const Duration(days: 730)),
+      lastDate: DateTime.now().add(const Duration(days: 4000)),
     );
     if (picked != null) setState(() => _maintenanceDate = picked);
   }
 
   Widget _buildDateOption(String label, int days) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final targetDate = today.add(Duration(days: days));
+
+    // 2. Porównujemy czy wybrana data to ten sam dzień co preset
     bool isSelected =
-        _maintenanceDate != null && (_maintenanceDate!.difference(DateTime.now()).inDays - days).abs() < 2;
+        _maintenanceDate != null &&
+        _maintenanceDate!.year == targetDate.year &&
+        _maintenanceDate!.month == targetDate.month &&
+        _maintenanceDate!.day == targetDate.day;
 
     return GestureDetector(
       onTap: () {
@@ -293,7 +301,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   Widget _buildTargetWeightCard() {
     final bool isWeightLoss = _targetWeight < widget.currentWeight;
     final double weightDiff = (widget.currentWeight - _targetWeight).abs();
-
     const weightStyle = TextStyle(
       fontSize: 32,
       fontWeight: FontWeight.w900,
@@ -348,6 +355,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                     onChanged: (val) {
                       setState(() {
                         _targetWeight = _roundDouble(val, 1);
+                        _targetWeightController.text = _targetWeight.toStringAsFixed(1);
                         _calculateDate();
                       });
                       HapticFeedback.selectionClick();
@@ -366,10 +374,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.mediumImpact();
-                    setState(() {
-                      _targetWeight = widget.currentWeight;
-                      // Nie wywołujemy _calculateDate tutaj, aby nie nadpisać daty maintenance
-                    });
+                    setState(() => _targetWeight = widget.currentWeight);
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -396,7 +401,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     double parsedWeight = double.tryParse(val.replaceAll(',', '.')) ?? _targetWeight;
     if (parsedWeight < _sliderMinWeight) parsedWeight = _sliderMinWeight;
     if (parsedWeight > _sliderMaxWeight) parsedWeight = _sliderMaxWeight;
-
     setState(() {
       _targetWeight = _roundDouble(parsedWeight, 1);
       _targetWeightController.text = _targetWeight.toStringAsFixed(1);
@@ -409,10 +413,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   void _handleDiffSubmit(String val, bool isWeightLoss) {
     final diff = double.tryParse(val.replaceAll(',', '.')) ?? 0;
     double newTarget = isWeightLoss ? widget.currentWeight - diff : widget.currentWeight + diff;
-
     if (newTarget < _sliderMinWeight) newTarget = _sliderMinWeight;
     if (newTarget > _sliderMaxWeight) newTarget = _sliderMaxWeight;
-
     setState(() {
       _targetWeight = _roundDouble(newTarget, 1);
       _targetWeightController.text = _targetWeight.toStringAsFixed(1);
@@ -423,7 +425,10 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   }
 
   Widget _buildTargetWeightInput(TextStyle weightStyle) {
-    return IntrinsicWidth(
+    return Container(
+      width: 150,
+      height: 40,
+      alignment: Alignment.center,
       child: TextField(
         controller: _targetWeightController,
         focusNode: _targetFocus,
@@ -435,6 +440,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
           enabledBorder: const OutlineInputBorder(borderSide: BorderSide.none),
           focusedBorder: const OutlineInputBorder(borderSide: BorderSide.none),
           isDense: true,
+          isCollapsed: true,
           contentPadding: EdgeInsets.zero,
           suffixText: " kg",
           suffixStyle: weightStyle.copyWith(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.bold),
@@ -446,8 +452,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   }
 
   Widget _buildEditableDiffBadge(bool isWeightLoss, double weightDiff) {
-    Color baseColor = weightDiff < 0.1 ? Colors.grey : (isWeightLoss ? Colors.green : Colors.blue);
-
+    Color baseColor = weightDiff == 0.0 ? Colors.grey : (isWeightLoss ? Colors.green : Colors.blue);
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -458,6 +463,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
       },
       child: Container(
         width: 100,
+        height: 28,
+        alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
           color: baseColor.withOpacity(0.05),
@@ -479,24 +486,25 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
+                  isCollapsed: true,
                   fillColor: Colors.transparent,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
-                  prefixText: weightDiff < 0.1 ? "" : (isWeightLoss ? "-" : "+"),
+                  prefixText: weightDiff == 0.0 ? "" : (isWeightLoss ? "-" : "+"),
                   suffixText: " kg",
                 ),
                 onSubmitted: (val) => _handleDiffSubmit(val, isWeightLoss),
                 onTapOutside: (_) => _handleDiffSubmit(_diffController.text, isWeightLoss),
               )
             : Text(
-                weightDiff < 0.1
+                weightDiff == 0.0
                     ? "Maintenance"
                     : "${isWeightLoss ? '-' : '+'}${weightDiff.toStringAsFixed(1)} kg",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
-                  color: weightDiff < 0.1
+                  color: weightDiff == 0.0
                       ? Colors.grey.shade700
                       : (isWeightLoss ? Colors.green.shade700 : Colors.blue.shade700),
                 ),
@@ -622,7 +630,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   Widget _buildTempoInfoCard(IconData iconType, String title, String message, MaterialColor color) {
     return Container(
       width: 94,
-      constraints: const BoxConstraints(minHeight: 66),
+      constraints: const BoxConstraints(minHeight: 68),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       decoration: BoxDecoration(
         color: color.shade50,
@@ -653,7 +661,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   }
 
   Widget _buildSummaryCard() {
-    // Używamy daty z maintenance lub obliczonej, zależnie od trybu
     final displayDate = _isMaintenance ? _maintenanceDate! : (_estimatedDate ?? DateTime.now());
     final int daysDuration = displayDate.difference(DateTime.now()).inDays;
 
@@ -667,19 +674,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _isMaintenance
-              ? _buildMaintenanceSummaryHeader()
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildWeightInfo("START", "${widget.currentWeight}", "kg"),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                      child: Icon(Icons.arrow_forward_rounded, color: Colors.blueGrey.shade300, size: 18),
-                    ),
-                    _buildWeightInfo("Target", _targetWeight.toStringAsFixed(1), "kg", isTarget: true),
-                  ],
-                ),
+          _buildGoalSummaryHeader(),
+          const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
             decoration: BoxDecoration(
@@ -719,24 +715,61 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     );
   }
 
-  Widget _buildMaintenanceSummaryHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildGoalSummaryHeader() {
+    String goalTitle = "YOUR NEW GOAL";
+    bool isGain = _targetWeight > widget.currentWeight;
+
+    return Column(
       children: [
         Text(
-          "MAINTAIN CURRENT WEIGHT OF ",
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.blueGrey.shade400,
-            fontWeight: FontWeight.bold,
+          goalTitle,
+          style: const TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            color: Colors.black,
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(width: 16),
-        Text(
-          "${widget.currentWeight.toStringAsFixed(1)} kg",
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
-        ),
+        const SizedBox(height: 4),
+        _isMaintenance
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "MAINTAIN CURRENT WEIGHT OF",
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.blueGrey.shade400,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    "${widget.currentWeight.toStringAsFixed(1)} kg",
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: Colors.black),
+                  ),
+                ],
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    isGain ? "WEIGHT GAIN" : "WEIGHT LOSS",
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.blueGrey.shade400,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  _buildWeightInfo("START", "${widget.currentWeight}", "kg"),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Icon(Icons.arrow_forward_rounded, color: Colors.blueGrey.shade300, size: 14),
+                  ),
+                  _buildWeightInfo("TARGET", _targetWeight.toStringAsFixed(1), "kg", isTarget: true),
+                ],
+              ),
       ],
     );
   }
@@ -849,13 +882,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     return Column(
       children: [
         Text(
-          label.toUpperCase(),
-          style: TextStyle(
-            fontSize: 9,
-            color: Colors.blueGrey.shade400,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
+          label,
+          style: TextStyle(fontSize: 7, color: Colors.blueGrey.shade400, fontWeight: FontWeight.bold),
         ),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -864,15 +892,15 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
             Text(
               value,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 14,
                 fontWeight: isTarget ? FontWeight.w900 : FontWeight.bold,
                 color: isTarget ? Colors.black : Colors.blueGrey.shade600,
               ),
             ),
-            const SizedBox(width: 2),
+            const SizedBox(width: 1),
             Text(
               unit,
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.blueGrey.shade400),
+              style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: Colors.blueGrey.shade400),
             ),
           ],
         ),
@@ -890,9 +918,7 @@ class _SliderScalePainter extends CustomPainter {
   final double min;
   final double max;
   final double centerValue;
-
   _SliderScalePainter({required this.min, required this.max, required this.centerValue});
-
   @override
   void paint(Canvas canvas, Size size) {
     final double width = size.width;
@@ -904,7 +930,6 @@ class _SliderScalePainter extends CustomPainter {
       ..color = Colors.grey.shade500
       ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round;
-
     final double centerX = width / 2;
     canvas.drawLine(
       Offset(centerX, 0),
@@ -913,7 +938,6 @@ class _SliderScalePainter extends CustomPainter {
         ..color = Colors.blueGrey.withOpacity(0.1)
         ..strokeWidth = 1.5,
     );
-
     const int totalSteps = 30;
     for (int i = 0; i <= totalSteps; i++) {
       final double x = (i / totalSteps) * width;
