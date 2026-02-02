@@ -122,53 +122,50 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
+                // Obliczamy dostępną wysokość (uwzględniając paddingi)
+                final availableHeight = constraints.maxHeight - 24.0;
+
                 return SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: constraints.maxHeight - 24.0),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // KARTA 1: Target Weight
-                          Flexible(
-                            fit: FlexFit.loose,
-                            child: ConstrainedBox(
-                              // maxHeight: naturalna wielkość (ok. 180) * 1.2
-                              constraints: const BoxConstraints(maxHeight: 220),
-                              child: _buildTargetWeightCard(),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Zamiast Spacerów i Flexible w scrollu (które wywalają błąd),
+                      // używamy Containerów z ograniczoną wysokością zależną od ekranu.
 
-                          // KARTA 2: Pace / Maintenance
-                          Flexible(
-                            fit: FlexFit.loose,
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxHeight: 220),
-                              child: _isMaintenance
-                                  ? _buildMaintenanceDurationCard()
-                                  : _buildWeeklyPaceCard(),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // KARTA 3: Summary
-                          Flexible(
-                            fit: FlexFit.loose,
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxHeight: 180),
-                              child: _buildSummaryCard(),
-                            ),
-                          ),
-
-                          // ELEMENT "WYPEŁNIACZ" (Spacer)
-                          // Ten element przejmie całą resztę pustego miejsca na bardzo dużych ekranach,
-                          // dzięki czemu karty nie urosną powyżej swoich limitów BoxConstraints.
-                          // const Spacer(flex: 1),
-                        ],
+                      // KARTA 1: Target Weight
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: 180,
+                          // Pozwalamy urosnąć do ok. 25% dostępnego miejsca
+                          maxHeight: max(availableHeight * 0.30, 180),
+                        ),
+                        child: _buildTargetWeightCard(),
                       ),
-                    ),
+
+                      const SizedBox(height: 12),
+
+                      // KARTA 2: Pace / Maintenance
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: _isMaintenance ? 220 : 170,
+                          // Maintenance potrzebuje więcej miejsca, więc dajemy mu większy max
+                          maxHeight: max(availableHeight * 0.35, _isMaintenance ? 220 : 170),
+                        ),
+                        child: _isMaintenance ? _buildMaintenanceDurationCard() : _buildWeeklyPaceCard(),
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      // KARTA 3: Summary
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: 160,
+                          maxHeight: max(availableHeight * 0.30, 160),
+                        ),
+                        child: _buildSummaryCard(),
+                      ),
+                    ],
                   ),
                 );
               },
