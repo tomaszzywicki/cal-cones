@@ -23,6 +23,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   late double _targetWeight;
   late double _tempo;
   DateTime? _estimatedDate;
+  // Nowa zmienna przechowująca datę specyficzną dla trybu maintenance
+  DateTime? _maintenanceDate;
   bool _isLoading = false;
 
   final TextEditingController _targetWeightController = TextEditingController();
@@ -38,6 +40,10 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   late double _sliderMinWeight;
   late double _sliderMaxWeight;
 
+  bool get _isMaintenance => (_targetWeight - widget.currentWeight).abs() < 0.1;
+
+  final List<int> _presetDays = [15, 29, 61, 91, 181, 271, 366, 731];
+
   @override
   void initState() {
     super.initState();
@@ -47,10 +53,16 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     _targetWeightController.text = _targetWeight.toStringAsFixed(1);
     _diffController.text = "0.0";
     _tempo = 0.2;
+    // Inicjalizacja domyślnej daty dla maintenance
+    _maintenanceDate = DateTime.now().add(const Duration(days: 30));
     _calculateDate();
   }
 
   void _calculateDate() {
+    // Jeśli jesteśmy w trybie maintenance, nie dotykamy _estimatedDate,
+    // widok będzie korzystał z _maintenanceDate
+    if (_isMaintenance) return;
+
     final double rawDiff = (widget.currentWeight - _targetWeight).abs();
     final double diff = _roundDouble(rawDiff, 1);
 
@@ -71,13 +83,16 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     setState(() => _isLoading = true);
     try {
       final userId = context.read<CurrentUserService>().getUserId();
+      // Wybieramy odpowiednią datę w zależności od trybu
+      final finalDate = _isMaintenance ? _maintenanceDate! : _estimatedDate!;
+
       final newGoal = GoalModel(
         userId: userId,
         startDate: DateTime.now(),
-        targetDate: _estimatedDate!,
+        targetDate: finalDate,
         startWeight: widget.currentWeight,
         targetWeight: _targetWeight,
-        tempo: _tempo,
+        tempo: _isMaintenance ? 0.0 : _tempo,
         isCurrent: true,
       );
 
@@ -123,7 +138,11 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                         children: [
                           Flexible(flex: 3, fit: FlexFit.tight, child: _buildTargetWeightCard()),
                           const SizedBox(height: 12),
-                          Flexible(flex: 2, fit: FlexFit.tight, child: _buildWeeklyPaceCard()),
+                          Flexible(
+                            flex: 3,
+                            fit: FlexFit.tight,
+                            child: _isMaintenance ? _buildMaintenanceDurationCard() : _buildWeeklyPaceCard(),
+                          ),
                           const SizedBox(height: 12),
                           Flexible(flex: 2, fit: FlexFit.tight, child: _buildSummaryCard()),
                         ],
@@ -136,6 +155,137 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
           ),
           _buildBottomActionArea(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMaintenanceDurationCard() {
+    return _buildSectionContainer(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Column(
+            children: [
+              const Text(
+                "MAINTENANCE DURATION",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w900,
+                  color: Colors.black,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                "How long do you want to maintain this weight?",
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            alignment: WrapAlignment.center,
+            children: [
+              _buildDateOption("2 Weeks", 15),
+              _buildDateOption("4 Weeks", 29),
+              _buildDateOption("2 Months", 61),
+              _buildDateOption("3 Months", 91),
+              _buildDateOption("6 Months", 181),
+              _buildDateOption("9 Months", 271),
+              _buildDateOption("1 Year", 366),
+              _buildDateOption("2 Years", 731),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _buildCustomDatePickerButton(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCustomDatePickerButton() {
+    bool isCustomSelected = true;
+    if (_maintenanceDate != null) {
+      final diff = _maintenanceDate!.difference(DateTime.now()).inDays;
+      for (var day in _presetDays) {
+        if ((diff - day).abs() < 2) {
+          isCustomSelected = false;
+          break;
+        }
+      }
+    }
+
+    return GestureDetector(
+      onTap: () => _selectCustomDate(),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isCustomSelected ? Colors.black : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: isCustomSelected ? Colors.black : Colors.grey.shade200),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.calendar_today_rounded,
+              size: 14,
+              color: isCustomSelected ? Colors.white : Colors.grey.shade600,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              isCustomSelected && _maintenanceDate != null
+                  ? DateFormat('MMM d, yyyy').format(_maintenanceDate!)
+                  : "Select end date",
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: isCustomSelected ? Colors.white : Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectCustomDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _maintenanceDate ?? DateTime.now().add(const Duration(days: 30)),
+      firstDate: DateTime.now().add(const Duration(days: 7)),
+      lastDate: DateTime.now().add(const Duration(days: 730)),
+    );
+    if (picked != null) setState(() => _maintenanceDate = picked);
+  }
+
+  Widget _buildDateOption(String label, int days) {
+    bool isSelected =
+        _maintenanceDate != null && (_maintenanceDate!.difference(DateTime.now()).inDays - days).abs() < 2;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() => _maintenanceDate = DateTime.now().add(Duration(days: days)));
+        HapticFeedback.lightImpact();
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.black : Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: isSelected ? Colors.black : Colors.grey.shade300),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+            color: isSelected ? Colors.white : Colors.grey.shade700,
+          ),
+        ),
       ),
     );
   }
@@ -218,7 +368,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                     HapticFeedback.mediumImpact();
                     setState(() {
                       _targetWeight = widget.currentWeight;
-                      _calculateDate();
+                      // Nie wywołujemy _calculateDate tutaj, aby nie nadpisać daty maintenance
                     });
                   },
                   child: Container(
@@ -244,8 +394,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
 
   void _handleTargetSubmit(String val) {
     double parsedWeight = double.tryParse(val.replaceAll(',', '.')) ?? _targetWeight;
-
-    // Walidacja zakresu suwaka, aby uniknąć błędu z obrazka
     if (parsedWeight < _sliderMinWeight) parsedWeight = _sliderMinWeight;
     if (parsedWeight > _sliderMaxWeight) parsedWeight = _sliderMaxWeight;
 
@@ -260,15 +408,8 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
 
   void _handleDiffSubmit(String val, bool isWeightLoss) {
     final diff = double.tryParse(val.replaceAll(',', '.')) ?? 0;
-    double newTarget;
+    double newTarget = isWeightLoss ? widget.currentWeight - diff : widget.currentWeight + diff;
 
-    if (isWeightLoss) {
-      newTarget = widget.currentWeight - diff;
-    } else {
-      newTarget = widget.currentWeight + diff;
-    }
-
-    // Walidacja zakresu suwaka
     if (newTarget < _sliderMinWeight) newTarget = _sliderMinWeight;
     if (newTarget > _sliderMaxWeight) newTarget = _sliderMaxWeight;
 
@@ -288,7 +429,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
         focusNode: _targetFocus,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         textAlign: TextAlign.center,
-        autofocus: true,
         style: weightStyle,
         decoration: InputDecoration(
           border: const OutlineInputBorder(borderSide: BorderSide.none),
@@ -324,7 +464,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: _isEditingDiff ? baseColor.withOpacity(0.5) : baseColor.withOpacity(0.15),
-            // width: _isEditingDiff ? 1.5 : 1,
             width: 1,
           ),
         ),
@@ -335,11 +474,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 textAlign: TextAlign.center,
                 autofocus: true,
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: baseColor.withOpacity(0.8).withRed(baseColor.red),
-                ),
+                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: baseColor),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
@@ -518,7 +653,9 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   }
 
   Widget _buildSummaryCard() {
-    final int daysDuration = _estimatedDate?.difference(DateTime.now()).inDays ?? 0;
+    // Używamy daty z maintenance lub obliczonej, zależnie od trybu
+    final displayDate = _isMaintenance ? _maintenanceDate! : (_estimatedDate ?? DateTime.now());
+    final int daysDuration = displayDate.difference(DateTime.now()).inDays;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -530,17 +667,19 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildWeightInfo("START", "${widget.currentWeight}", "kg"),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Icon(Icons.arrow_forward_rounded, color: Colors.blueGrey.shade300, size: 18),
-              ),
-              _buildWeightInfo("Target", _targetWeight.toStringAsFixed(1), "kg", isTarget: true),
-            ],
-          ),
+          _isMaintenance
+              ? _buildMaintenanceSummaryHeader()
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _buildWeightInfo("START", "${widget.currentWeight}", "kg"),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Icon(Icons.arrow_forward_rounded, color: Colors.blueGrey.shade300, size: 18),
+                    ),
+                    _buildWeightInfo("Target", _targetWeight.toStringAsFixed(1), "kg", isTarget: true),
+                  ],
+                ),
           Container(
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
             decoration: BoxDecoration(
@@ -568,7 +707,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                 _buildSummaryItem(
                   Icons.event_available_outlined,
                   "ESTIMATED FINISH",
-                  DateFormat('MMM d, yyyy').format(_estimatedDate!),
+                  DateFormat('MMM d, yyyy').format(displayDate),
                   Colors.blue.shade300,
                   Colors.blue.shade800,
                 ),
@@ -577,6 +716,28 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMaintenanceSummaryHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Text(
+          "MAINTAIN CURRENT WEIGHT OF ",
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.blueGrey.shade400,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Text(
+          "${widget.currentWeight.toStringAsFixed(1)} kg",
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black),
+        ),
+      ],
     );
   }
 
