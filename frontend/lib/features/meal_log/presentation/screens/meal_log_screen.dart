@@ -22,7 +22,6 @@ class MealLogScreen extends StatefulWidget {
   State<MealLogScreen> createState() => MealLogScreenState();
 }
 
-// CHANGED: Removed underscore to make class public
 class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserver, DayRefreshMixin {
   late MealService _mealService;
 
@@ -144,7 +143,6 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: GestureDetector(
-        // Allow touches to pass through to children (crucial for empty areas)
         behavior: HitTestBehavior.translucent,
         onHorizontalDragEnd: (DragEndDetails details) {
           if (details.primaryVelocity == null) return;

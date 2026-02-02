@@ -153,7 +153,6 @@ class DailyTargetCalculatorService {
     double carbsRatio;
     double fatRatio;
 
-    // 1. Próba pobrania custom splitu z user.macroSplit
     final customSplit = user.macroSplit;
     if (customSplit != null &&
         customSplit.containsKey('Protein') &&
@@ -165,7 +164,6 @@ class DailyTargetCalculatorService {
 
       AppLogger.info('Using custom macro split from user profile.');
     } else {
-      // 2. Fallback do predefiniowanych diet, jeśli custom split nie istnieje
       switch (user.dietType?.toLowerCase()) {
         case 'high_protein':
           proteinRatio = 0.4;

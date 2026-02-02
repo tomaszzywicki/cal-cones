@@ -30,7 +30,6 @@ class ProductService {
 
     await _productSyncService.onCreate(savedProduct);
 
-    // try to sync
     if (_connectivityService.isConnected) {
       await _productSyncService.syncToServer();
     }
@@ -45,7 +44,6 @@ class ProductService {
 
     await _productSyncService.onUpdate(customProduct);
 
-    // try to sync
     if (_connectivityService.isConnected) {
       await _productSyncService.syncToServer();
     }
@@ -54,12 +52,10 @@ class ProductService {
   Future<int> deleteCustomProduct(ProductModel customProduct) async {
     final userId = _currentUserService.getUserId();
 
-    // 1. Do kolejki
     await _productSyncService.onDelete(customProduct.uuid);
 
     final result = await _productRepository.deleteCustomProduct(customProduct, userId);
 
-    // try to sync
     if (_connectivityService.isConnected) {
       await _productSyncService.syncToServer();
     }

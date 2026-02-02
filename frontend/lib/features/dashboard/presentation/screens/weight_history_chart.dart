@@ -31,14 +31,12 @@ class WeightHistoryChart extends StatefulWidget {
 class _WeightHistoryChartState extends State<WeightHistoryChart> {
   ChartPeriod _selectedPeriod = ChartPeriod.month;
 
-  // Przechowujemy Future w zmiennej, aby uniknąć lagów (identycznie jak w CurrentGoalCard)
+  // Przechowujemy Future w zmiennej, aby uniknąć lagów
   Future<GoalModel?>? _activeGoalFuture;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Watch zapewnia, że gdy GoalService wywoła notifyListeners(),
-    // didChangeDependencies odpali się ponownie i zaktualizuje Future.
     final goalService = context.watch<GoalService>();
     _activeGoalFuture = goalService.getActiveGoal();
   }

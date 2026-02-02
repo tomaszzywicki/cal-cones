@@ -101,11 +101,9 @@ class _BmiScreenState extends State<BmiScreen> {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
-              // Karta BMI (Prawie kwadratowa)
               BMIcard(isExpanded: true),
               const SizedBox(height: 30),
 
-              // Opis co to jest BMI
               Text(
                 "What is BMI?",
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
@@ -123,7 +121,7 @@ class _BmiScreenState extends State<BmiScreen> {
                       ).textTheme.bodyMedium?.copyWith(color: Colors.grey[700], height: 1.5),
                     ),
                     const SizedBox(height: 16),
-                    const Divider(), // Oczekiwana linia podziału
+                    const Divider(),
                     const SizedBox(height: 8),
                     Column(
                       children: [
@@ -214,7 +212,6 @@ class _BmiScreenState extends State<BmiScreen> {
           ),
           const SizedBox(height: 20),
 
-          // Legenda
           _buildLegendRow(context, "Underweight", "less than 18.5", Colors.blue),
           _buildLegendRow(context, "Normal weight", "18.5 – 25", Colors.green),
           _buildLegendRow(context, "Overweight", "25 – 30", Colors.orange),
@@ -303,7 +300,7 @@ class _BmiScreenState extends State<BmiScreen> {
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 5),
           height: 10,
-          width: _currentPage == index ? 20 : 10, // Aktywna kropka jest szersza
+          width: _currentPage == index ? 20 : 10,
           decoration: BoxDecoration(
             color: _currentPage == index ? const Color(0xff44638b) : Colors.grey[400],
             borderRadius: BorderRadius.circular(5),

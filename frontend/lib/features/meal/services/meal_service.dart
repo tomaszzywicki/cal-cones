@@ -31,7 +31,7 @@ class MealService with ChangeNotifier {
       _mealSyncService.syncToServer();
     }
 
-    notifyListeners(); // Powiadomienie o zmianie danych
+    notifyListeners();
     return savedMealProduct;
   }
 
@@ -44,7 +44,7 @@ class MealService with ChangeNotifier {
       await _mealSyncService.syncToServer();
     }
 
-    notifyListeners(); // Powiadomienie o zmianie danych
+    notifyListeners();
   }
 
   Future<int> deleteMealProduct(MealProductModel mealProduct) async {
@@ -56,7 +56,7 @@ class MealService with ChangeNotifier {
       await _mealSyncService.syncToServer();
     }
 
-    notifyListeners(); // Powiadomienie o zmianie danych
+    notifyListeners();
     return result;
   }
 
@@ -104,7 +104,7 @@ class MealService with ChangeNotifier {
       _mealSyncService.syncToServer();
     }
 
-    notifyListeners(); // Powiadomienie o zmianie danych
+    notifyListeners();
     return addedProducts;
   }
 }

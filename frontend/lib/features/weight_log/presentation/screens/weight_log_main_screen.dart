@@ -3,7 +3,6 @@ import 'package:flutter/rendering.dart';
 import 'package:frontend/core/mixins/day_refresh_mixin.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
 import 'package:frontend/features/weight_log/presentation/widgets/weight_entry_container.dart';
-import 'package:frontend/features/weight_log/presentation/widgets/weight_entry_list.dart';
 import 'package:frontend/features/weight_log/presentation/screens/weight_log_header_delegate.dart';
 
 class WeightLogMainScreen extends StatefulWidget {
@@ -18,10 +17,8 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen>
   late ScrollController _scrollController;
   bool _showAddButton = true;
 
-  // Zmienna do śledzenia ostatniego ruchu (kierunku i prędkości)
   double _lastScrollDelta = 0.0;
 
-  // Konfiguracja wysokości
   final double _expandedHeight = 530.0; // Waga + Wykres
   final double _collapsedHeight = 170.0; // Tylko ściśnięta Waga
 
@@ -125,7 +122,6 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen>
     return Scaffold(
       backgroundColor: Colors.grey[50],
       body: SafeArea(
-        // LISTENER: Wykrywa surowe zdarzenia dotyku (w tym podniesienie palca)
         child: Listener(
           onPointerUp: _onPointerUp,
           child: NotificationListener<ScrollNotification>(
@@ -159,15 +155,10 @@ class _WeightLogMainScreenState extends State<WeightLogMainScreen>
 
                 SliverToBoxAdapter(child: const SizedBox(height: 16)),
 
-                // 2. LISTA WPISÓW
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Padding(padding: const EdgeInsets.only(bottom: 100), child: WeightEntryContainer()),
                 ),
-                // SliverPadding(
-                //   padding: const EdgeInsets.only(bottom: 100),
-                //   sliver: SliverToBoxAdapter(child: const WeightEntryContainer()),
-                // ),
               ],
             ),
           ),

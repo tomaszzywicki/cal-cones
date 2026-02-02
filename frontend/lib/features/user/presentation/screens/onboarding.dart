@@ -225,12 +225,10 @@ class _Onboarding extends State<Onboarding> {
       body: SafeArea(
         child: Column(
           children: [
-            // Header: Back Button + Indicator
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 8.0),
               child: Column(
                 children: [
-                  // Page Indicator (Top)
                   SmoothPageIndicator(
                     controller: _pageController,
                     count: pages.length,
@@ -245,7 +243,6 @@ class _Onboarding extends State<Onboarding> {
 
                   const SizedBox(height: 16),
 
-                  // Back Button (Below, Left-aligned)
                   SizedBox(
                     height: 40,
                     child: Align(
