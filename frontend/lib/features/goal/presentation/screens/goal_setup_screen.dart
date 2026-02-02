@@ -39,7 +39,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   late double _sliderMinWeight;
   late double _sliderMaxWeight;
 
-  bool get _isMaintenance => (_targetWeight - widget.currentWeight).abs() < 1;
+  bool get _isMaintenance => (_targetWeight - widget.currentWeight).abs() < 0.05;
 
   final List<int> _presetDays = [14, 28, 60, 90, 180, 270, 365, 730];
 
@@ -122,7 +122,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
           Expanded(
             child: LayoutBuilder(
               builder: (context, constraints) {
-                // Obliczamy dostępną wysokość (uwzględniając paddingi)
                 final availableHeight = constraints.maxHeight - 24.0;
 
                 return SingleChildScrollView(
@@ -130,14 +129,9 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Zamiast Spacerów i Flexible w scrollu (które wywalają błąd),
-                      // używamy Containerów z ograniczoną wysokością zależną od ekranu.
-
-                      // KARTA 1: Target Weight
                       ConstrainedBox(
                         constraints: BoxConstraints(
                           minHeight: 180,
-                          // Pozwalamy urosnąć do ok. 25% dostępnego miejsca
                           maxHeight: max(availableHeight * 0.30, 180),
                         ),
                         child: _buildTargetWeightCard(),
@@ -145,11 +139,9 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
 
                       const SizedBox(height: 12),
 
-                      // KARTA 2: Pace / Maintenance
                       ConstrainedBox(
                         constraints: BoxConstraints(
                           minHeight: _isMaintenance ? 220 : 170,
-                          // Maintenance potrzebuje więcej miejsca, więc dajemy mu większy max
                           maxHeight: max(availableHeight * 0.35, _isMaintenance ? 220 : 170),
                         ),
                         child: _isMaintenance ? _buildMaintenanceDurationCard() : _buildWeeklyPaceCard(),
@@ -157,7 +149,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
 
                       const SizedBox(height: 12),
 
-                      // KARTA 3: Summary
                       ConstrainedBox(
                         constraints: BoxConstraints(
                           minHeight: 160,
@@ -352,7 +343,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
               alignment: Alignment.center,
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
                   child: CustomPaint(
                     size: const Size(double.infinity, 30),
                     painter: _SliderScalePainter(
@@ -393,7 +384,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("-15", style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
+                Text("-15", style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
                 GestureDetector(
                   onTap: () {
                     HapticFeedback.mediumImpact();
@@ -411,7 +402,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                     ),
                   ),
                 ),
-                Text("+15", style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
+                Text("+15", style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
               ],
             ),
           ),
@@ -888,13 +879,36 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
             ),
             const SizedBox(height: 10),
           ],
+          // Zaktualizowany przycisk na wzór GoalListScreen
           SizedBox(
             width: double.infinity,
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
-                : OnboardingButton(
-                    text: widget.isReplacingExistingGoal ? "Close Old & Start New" : "Start Goal",
+                : ElevatedButton.icon(
                     onPressed: _saveGoal,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      elevation: 4,
+                      shadowColor: Colors.black45,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    icon: Icon(
+                      widget.isReplacingExistingGoal ? Icons.sports_score_rounded : Icons.add_circle_outline,
+                      size: 24,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      widget.isReplacingExistingGoal ? "Close Old & Start New" : "Start Goal",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        color: Colors.white,
+                        height: 1.2,
+                      ),
+                    ),
                   ),
           ),
         ],
