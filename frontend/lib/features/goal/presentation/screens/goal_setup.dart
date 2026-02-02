@@ -36,10 +36,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     super.initState();
     _sliderMinWeight = widget.currentWeight - 15.0;
     _sliderMaxWeight = widget.currentWeight + 15.0;
-
-    // 1. Wyjściowa waga równa currentWeight
     _targetWeight = _roundDouble(widget.currentWeight.clamp(_sliderMinWeight, _sliderMaxWeight), 1);
-
     _tempo = 0.2;
     _calculateDate();
   }
@@ -76,7 +73,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
       );
 
       await context.read<GoalService>().setNewGoal(newGoal, closedGoalFinalWeight: widget.currentWeight);
-
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
@@ -87,10 +83,6 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isWeightLoss = _targetWeight < widget.currentWeight;
-    final double weightDiff = (widget.currentWeight - _targetWeight).abs();
-    final int daysDuration = _estimatedDate?.difference(DateTime.now()).inDays ?? 0;
-
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -114,297 +106,17 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                 return SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 24.0, // uwzględnienie paddingu vertical
-                    ),
+                    constraints: BoxConstraints(minHeight: constraints.maxHeight - 24.0),
                     child: IntrinsicHeight(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // 1. TARGET WEIGHT CARD
-                          _buildSectionContainer(
-                            child: Column(
-                              children: [
-                                const Text(
-                                  "TARGET WEIGHT",
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey,
-                                    letterSpacing: 1.0,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                                  textBaseline: TextBaseline.alphabetic,
-                                  children: [
-                                    Text(
-                                      _targetWeight.toStringAsFixed(1),
-                                      style: const TextStyle(
-                                        fontSize: 32,
-                                        fontWeight: FontWeight.w900,
-                                        color: Colors.black,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Text(
-                                      "kg",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                Container(
-                                  margin: const EdgeInsets.only(top: 2, bottom: 8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                                  decoration: BoxDecoration(
-                                    color: weightDiff == 0
-                                        ? Colors.grey.shade100
-                                        : (isWeightLoss ? Colors.green.shade50 : Colors.blue.shade50),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Text(
-                                    weightDiff == 0
-                                        ? "Maintenance"
-                                        : "${isWeightLoss ? '-' : '+'}${weightDiff.toStringAsFixed(1)} kg",
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                      color: weightDiff == 0
-                                          ? Colors.grey.shade700
-                                          : (isWeightLoss ? Colors.green.shade700 : Colors.blue.shade700),
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  height: 45,
-                                  child: Stack(
-                                    alignment: Alignment.center,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                                        child: CustomPaint(
-                                          size: const Size(double.infinity, 35),
-                                          painter: _SliderScalePainter(
-                                            min: _sliderMinWeight,
-                                            max: _sliderMaxWeight,
-                                            centerValue: widget.currentWeight,
-                                          ),
-                                        ),
-                                      ),
-                                      SliderTheme(
-                                        data: SliderTheme.of(context).copyWith(
-                                          trackHeight: 2.0,
-                                          activeTrackColor: Colors.black,
-                                          inactiveTrackColor: Colors.transparent,
-                                          thumbColor: Colors.black,
-                                          overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
-                                          thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 9),
-                                        ),
-                                        child: Slider(
-                                          value: _targetWeight,
-                                          min: _sliderMinWeight,
-                                          max: _sliderMaxWeight,
-                                          onChanged: (val) {
-                                            setState(() {
-                                              _targetWeight = _roundDouble(val, 1);
-                                              _calculateDate();
-                                            });
-                                            HapticFeedback.selectionClick();
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        "-15",
-                                        style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
-                                      ),
-                                      Text(
-                                        "Current",
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                      ),
-                                      Text(
-                                        "+15",
-                                        style: TextStyle(fontSize: 10, color: Colors.grey.shade400),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // 2. WEEKLY PACE CARD
-                          _buildSectionContainer(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width: 70,
-                                        height: 45,
-                                        child: TempoGauge(
-                                          tempo: _tempo,
-                                          minTempo: _minTempo,
-                                          maxTempo: _maxTempo,
-                                          size: 70,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 20),
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                        children: [
-                                          const Text(
-                                            "WEEKLY PACE",
-                                            style: TextStyle(
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.grey,
-                                              letterSpacing: 1.0,
-                                            ),
-                                          ),
-                                          Text(
-                                            "${_tempo.toStringAsFixed(2)} kg",
-                                            style: const TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w800,
-                                              color: Colors.black,
-                                            ),
-                                          ),
-                                          Text(
-                                            _tempo < 0.4
-                                                ? "Sustainable"
-                                                : (_tempo > 0.9 ? "Aggressive" : "Moderate"),
-                                            style: TextStyle(
-                                              fontSize: 11,
-                                              color: Colors.grey.shade600,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                SliderTheme(
-                                  data: SliderTheme.of(context).copyWith(
-                                    trackHeight: 3.0,
-                                    activeTrackColor: Colors.blueGrey.shade800,
-                                    inactiveTrackColor: Colors.blueGrey.shade100,
-                                    thumbColor: Colors.blueGrey.shade900,
-                                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
-                                  ),
-                                  child: Slider(
-                                    value: _tempo,
-                                    min: _minTempo,
-                                    max: _maxTempo,
-                                    divisions: 23,
-                                    onChanged: (val) {
-                                      setState(() {
-                                        _tempo = _roundDouble(val, 2);
-                                        _calculateDate();
-                                      });
-                                      HapticFeedback.selectionClick();
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          // 3. SUMMARY CARD
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            decoration: BoxDecoration(
-                              color: Colors.blueGrey.shade50,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: Colors.blueGrey.shade100),
-                            ),
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    _buildWeightInfo("START", "${widget.currentWeight}", "kg"),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                                      child: Icon(
-                                        Icons.arrow_forward_rounded,
-                                        color: Colors.blueGrey.shade300,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    _buildWeightInfo(
-                                      "Target",
-                                      _targetWeight.toStringAsFixed(1),
-                                      "kg",
-                                      isTarget: true,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 16),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.blueGrey.withOpacity(0.05),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      _buildSummaryItem(
-                                        Icons.timer_outlined,
-                                        "DURATION",
-                                        "$daysDuration days",
-                                        Colors.blueGrey.shade400,
-                                        Colors.blueGrey.shade800,
-                                      ),
-                                      Container(height: 25, width: 1, color: Colors.blueGrey.shade100),
-                                      _buildSummaryItem(
-                                        Icons.event_available_outlined,
-                                        "ESTIMATED FINISH",
-                                        DateFormat('MMM d, yyyy').format(_estimatedDate!),
-                                        Colors.blue.shade300,
-                                        Colors.blue.shade800,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                          Flexible(flex: 3, fit: FlexFit.tight, child: _buildTargetWeightCard()),
+                          const SizedBox(height: 12),
+                          Flexible(flex: 2, fit: FlexFit.tight, child: _buildWeeklyPaceCard()),
+                          const SizedBox(height: 12),
+                          Flexible(flex: 2, fit: FlexFit.tight, child: _buildSummaryCard()),
                         ],
                       ),
                     ),
@@ -413,70 +125,328 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
               },
             ),
           ),
+          _buildBottomActionArea(),
+        ],
+      ),
+    );
+  }
 
-          // --- BOTTOM ACTIONS CONTAINER ---
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4)),
-              ],
+  Widget _buildTargetWeightCard() {
+    final bool isWeightLoss = _targetWeight < widget.currentWeight;
+    final double weightDiff = (widget.currentWeight - _targetWeight).abs();
+
+    return _buildSectionContainer(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          const Text(
+            "TARGET WEIGHT",
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+              letterSpacing: 1.0,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.baseline,
+            textBaseline: TextBaseline.alphabetic,
+            children: [
+              Text(
+                _targetWeight.toStringAsFixed(1),
+                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: Colors.black),
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                "kg",
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.grey),
+              ),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: weightDiff == 0
+                  ? Colors.grey.shade100
+                  : (isWeightLoss ? Colors.green.shade50 : Colors.blue.shade50),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              weightDiff == 0
+                  ? "Maintenance"
+                  : "${isWeightLoss ? '-' : '+'}${weightDiff.toStringAsFixed(1)} kg",
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: weightDiff == 0
+                    ? Colors.grey.shade700
+                    : (isWeightLoss ? Colors.green.shade700 : Colors.blue.shade700),
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 40,
+            child: Stack(
+              alignment: Alignment.center,
               children: [
-                if (widget.isReplacingExistingGoal) ...[
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.red.shade100),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 20),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "WARNING",
-                                style: TextStyle(
-                                  color: Colors.red.shade900,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                "By setting a new goal, your current goal will be closed. This change is irreversible. Make sure to record your current weight as a closing weight for the old goal.",
-                                style: TextStyle(
-                                  color: Colors.red.shade800,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w600,
-                                  height: 1.2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: CustomPaint(
+                    size: const Size(double.infinity, 30),
+                    painter: _SliderScalePainter(
+                      min: _sliderMinWeight,
+                      max: _sliderMaxWeight,
+                      centerValue: widget.currentWeight,
                     ),
                   ),
-                  const SizedBox(height: 12),
-                ],
+                ),
+                SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2.0,
+                    activeTrackColor: Colors.black,
+                    inactiveTrackColor: Colors.transparent,
+                    thumbColor: Colors.black,
+                    overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+                    thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+                  ),
+                  child: Slider(
+                    value: _targetWeight,
+                    min: _sliderMinWeight,
+                    max: _sliderMaxWeight,
+                    onChanged: (val) {
+                      setState(() {
+                        _targetWeight = _roundDouble(val, 1);
+                        _calculateDate();
+                      });
+                      HapticFeedback.selectionClick();
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("-15", style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
+                Text(
+                  "Current",
+                  style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: Colors.grey.shade600),
+                ),
+                Text("+15", style: TextStyle(fontSize: 9, color: Colors.grey.shade400)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeeklyPaceCard() {
+    final bool isGain = _targetWeight > widget.currentWeight;
+
+    final IconData iconType;
+    final String title;
+    final String message;
+    final MaterialColor color;
+
+    if (isGain) {
+      if (_tempo > 0.6) {
+        iconType = Icons.warning_amber_rounded;
+        title = "Risky pace";
+        message = "Fat build-up more prominent than muscle gain.";
+        color = Colors.red;
+      } else if (_tempo > 0.3) {
+        iconType = Icons.warning_amber_rounded;
+        title = "Fast pace";
+        message = "High chance of fat build-up along with muscle gain.";
+        color = Colors.orange;
+      } else {
+        iconType = Icons.check_circle_rounded;
+        title = "Safe pace";
+        message = "Optimal for muscle gain with minimal fat build-up.";
+        color = Colors.blue;
+      }
+    } else {
+      if (_tempo > 0.6) {
+        iconType = Icons.warning_amber_rounded;
+        title = "Fast pace";
+        message = "Increased risk of muscle loss and nutrient deficiencies.";
+        color = Colors.orange;
+      } else {
+        iconType = Icons.check_circle_rounded;
+        title = "Safe pace";
+        message = "Reduction achievable with minimal muscle loss.";
+        color = Colors.green;
+      }
+    }
+
+    return _buildSectionContainer(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
                 SizedBox(
-                  width: double.infinity,
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : OnboardingButton(
-                          text: widget.isReplacingExistingGoal ? "Close Old & Start New" : "Start Goal",
-                          onPressed: _saveGoal,
-                        ),
+                  width: 90,
+                  height: 60,
+                  child: TempoGauge(tempo: _tempo, minTempo: _minTempo, maxTempo: _maxTempo, size: 10.0),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "WEEKLY PACE",
+                      style: TextStyle(
+                        fontSize: 8,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                        letterSpacing: 0.8,
+                      ),
+                    ),
+                    Text(
+                      "${_tempo.toStringAsFixed(2)} kg",
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.black),
+                    ),
+                    Text(
+                      _tempo <= 0.3 ? "Sustainable" : (_tempo > 0.6 ? "Aggressive" : "Moderate"),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade600,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 16),
+                _buildTempoInfoCard(iconType, title, message, color),
+              ],
+            ),
+          ),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              trackHeight: 2.0,
+              activeTrackColor: Colors.blueGrey.shade800,
+              inactiveTrackColor: Colors.blueGrey.shade100,
+              thumbColor: Colors.blueGrey.shade900,
+              overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+              padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+            ),
+            child: Slider(
+              value: _tempo,
+              min: _minTempo,
+              max: _maxTempo,
+              divisions: 23,
+              onChanged: (val) {
+                setState(() {
+                  _tempo = _roundDouble(val, 2);
+                  _calculateDate();
+                });
+                HapticFeedback.selectionClick();
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  _buildTempoInfoCard(IconData iconType, String title, String message, MaterialColor color) {
+    return Container(
+      width: 94,
+      constraints: BoxConstraints(minHeight: 66),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.shade100),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Icon(iconType, color: color.shade700, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                title,
+                style: TextStyle(color: color.shade800, fontSize: 10, fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            message,
+            style: TextStyle(color: color.shade700, fontSize: 8, fontWeight: FontWeight.w500, height: 1.1),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard() {
+    final int daysDuration = _estimatedDate?.difference(DateTime.now()).inDays ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.shade50,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.blueGrey.shade100),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildWeightInfo("START", "${widget.currentWeight}", "kg"),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Icon(Icons.arrow_forward_rounded, color: Colors.blueGrey.shade300, size: 18),
+              ),
+              _buildWeightInfo("Target", _targetWeight.toStringAsFixed(1), "kg", isTarget: true),
+            ],
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blueGrey.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildSummaryItem(
+                  Icons.timer_outlined,
+                  "DURATION",
+                  "$daysDuration days",
+                  Colors.blueGrey.shade400,
+                  Colors.blueGrey.shade800,
+                ),
+                Container(height: 20, width: 1, color: Colors.blueGrey.shade100),
+                _buildSummaryItem(
+                  Icons.event_available_outlined,
+                  "ESTIMATED FINISH",
+                  DateFormat('MMM d, yyyy').format(_estimatedDate!),
+                  Colors.blue.shade300,
+                  Colors.blue.shade800,
                 ),
               ],
             ),
@@ -486,21 +456,89 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     );
   }
 
+  Widget _buildBottomActionArea() {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4)),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (widget.isReplacingExistingGoal) ...[
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red.shade100),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.red.shade700, size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "WARNING",
+                          style: TextStyle(
+                            color: Colors.red.shade900,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        Text(
+                          "By setting a new goal, your current goal will be closed. Record your current weight first.",
+                          style: TextStyle(
+                            color: Colors.red.shade800,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            height: 1.1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+          SizedBox(
+            width: double.infinity,
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : OnboardingButton(
+                    text: widget.isReplacingExistingGoal ? "Close Old & Start New" : "Start Goal",
+                    onPressed: _saveGoal,
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSummaryItem(IconData icon, String label, String value, Color iconColor, Color textColor) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: iconColor),
-        const SizedBox(width: 8),
+        Icon(icon, size: 14, color: iconColor),
+        const SizedBox(width: 6),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
-              style: TextStyle(fontSize: 9, color: Colors.blueGrey.shade400, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 8, color: Colors.blueGrey.shade400, fontWeight: FontWeight.bold),
             ),
             Text(
               value,
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: textColor),
+              style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: textColor),
             ),
           ],
         ),
@@ -529,13 +567,12 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
         Text(
           label.toUpperCase(),
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 9,
             color: Colors.blueGrey.shade400,
             fontWeight: FontWeight.bold,
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 4),
         Row(
           crossAxisAlignment: CrossAxisAlignment.baseline,
           textBaseline: TextBaseline.alphabetic,
@@ -551,7 +588,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
             const SizedBox(width: 2),
             Text(
               unit,
-              style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Colors.blueGrey.shade400),
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: Colors.blueGrey.shade400),
             ),
           ],
         ),
@@ -577,11 +614,11 @@ class _SliderScalePainter extends CustomPainter {
     final double width = size.width;
     final Paint smallTickPaint = Paint()
       ..color = Colors.grey.shade300
-      ..strokeWidth = 1.5
+      ..strokeWidth = 1.0
       ..strokeCap = StrokeCap.round;
     final Paint mainTickPaint = Paint()
       ..color = Colors.grey.shade500
-      ..strokeWidth = 2.5
+      ..strokeWidth = 2.0
       ..strokeCap = StrokeCap.round;
 
     final double centerX = width / 2;
@@ -590,28 +627,16 @@ class _SliderScalePainter extends CustomPainter {
       Offset(centerX, size.height),
       Paint()
         ..color = Colors.blueGrey.withOpacity(0.1)
-        ..strokeWidth = 2,
+        ..strokeWidth = 1.5,
     );
 
     const int totalSteps = 30;
     for (int i = 0; i <= totalSteps; i++) {
       final double x = (i / totalSteps) * width;
-      final bool isMainTick = i % 5 == 0;
-
-      if (isMainTick) {
-        const double tickHeight = 12.0;
-        canvas.drawLine(
-          Offset(x, size.height / 2 - tickHeight / 2),
-          Offset(x, size.height / 2 + tickHeight / 2),
-          mainTickPaint,
-        );
+      if (i % 5 == 0) {
+        canvas.drawLine(Offset(x, size.height / 2 - 5), Offset(x, size.height / 2 + 5), mainTickPaint);
       } else {
-        const double tickHeight = 6.0;
-        canvas.drawLine(
-          Offset(x, size.height / 2 - tickHeight / 2),
-          Offset(x, size.height / 2 + tickHeight / 2),
-          smallTickPaint,
-        );
+        canvas.drawLine(Offset(x, size.height / 2 - 2), Offset(x, size.height / 2 + 2), smallTickPaint);
       }
     }
   }
