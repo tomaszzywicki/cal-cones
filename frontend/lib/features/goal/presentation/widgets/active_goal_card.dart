@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:frontend/features/home/presentation/widgets/warning_card.dart';
+import 'package:frontend/features/weight_log/presentation/widgets/add_weight_entry_bottom_sheet.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/goal/data/goal_model.dart';
@@ -145,37 +146,42 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
             // --- CURRENT WEIGHT & DIFFERENCE ---
             Column(
               children: [
-                const Text(
-                  "CURRENT WEIGHT",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      hasCurrentWeight ? currentWeight.toStringAsFixed(1) : " ? ",
-                      style: TextStyle(
-                        fontSize: 64,
-                        fontWeight: FontWeight.w900,
-                        color: hasCurrentWeight ? Colors.black87 : Colors.grey,
-                        letterSpacing: -2.5,
+                if (hasCurrentWeight)
+                  Column(
+                    children: [
+                      const Text(
+                        "CURRENT WEIGHT",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey,
+                          letterSpacing: 1.2,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text(
-                      "kg",
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.grey),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            currentWeight.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontSize: 64,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.black87,
+                              letterSpacing: -2.5,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            "kg",
+                            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 if (!hasCurrentWeight)
                   WarningCard(
                     title: "Missing Weight Data",
@@ -183,7 +189,14 @@ class _ActiveGoalCardState extends State<ActiveGoalCard> with TickerProviderStat
                     icon: Icons.monitor_weight_outlined,
                     color: Colors.red,
                     buttonText: "Log Weight",
-                    buttonAction: () => Navigator.of(context).pushNamed('/weight-log'),
+                    buttonAction: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (context) => const AddWeightEntryBottomSheet(),
+                      );
+                    },
                     buttonUnder: true,
                   )
                 else
