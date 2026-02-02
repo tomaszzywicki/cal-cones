@@ -28,16 +28,26 @@ class _DietSelectionBodyState extends State<DietSelectionBody> {
   void initState() {
     super.initState();
 
-    // Domyślnie "balanced" jeśli nic nie przekazano (szczególnie w onboarding)
     _selectedDietType = widget.initialDietType?.toLowerCase() ?? "balanced";
 
     if (widget.initialMacroSplit != null) {
-      _macroSplit = widget.initialMacroSplit!.map((k, v) => MapEntry(k, v.toDouble()));
+      // Mapujemy klucze na wersję z Wielką Literą, aby pasowały do reszty logiki
+      _macroSplit = {
+        "Carbs": (widget.initialMacroSplit!['carbs'] ?? widget.initialMacroSplit!['Carbs'] ?? 40).toDouble(),
+        "Protein": (widget.initialMacroSplit!['protein'] ?? widget.initialMacroSplit!['Protein'] ?? 30)
+            .toDouble(),
+        "Fat":
+            (widget.initialMacroSplit!['fat'] ??
+                    widget.initialMacroSplit!['Fat'] ??
+                    widget.initialMacroSplit!['fats'] ??
+                    widget.initialMacroSplit!['Fats'] ??
+                    30)
+                .toDouble(),
+      };
       if (_selectedDietType == "custom") {
         _customMacroSplit = Map.from(_macroSplit);
       }
     } else {
-      // Wartości domyślne dla Balanced
       _macroSplit = {"Carbs": 40, "Protein": 30, "Fat": 30};
     }
   }
@@ -237,7 +247,7 @@ class _DietSelectionBodyState extends State<DietSelectionBody> {
   }
 
   Widget _macroRow(String key, Color color) {
-    double value = _macroSplit[key]!;
+    double value = _macroSplit[key] ?? 0.0;
     bool isCustom = _selectedDietType == 'custom';
 
     return Column(

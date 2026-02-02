@@ -11,9 +11,9 @@ class MacroSplitIndicator extends StatelessWidget {
     if (split == null) return const SizedBox.shrink();
 
     // Pobieramy wartości, dbając o to, by suma była bazą dla proporcji
-    final carbs = (split!['Carbs'] ?? 0).toDouble();
-    final protein = (split!['Protein'] ?? 0).toDouble();
-    final fat = (split!['Fat'] ?? 0).toDouble();
+    final carbs = (split!['Carbs'] ?? split!['carbs'] ?? 0).toDouble();
+    final protein = (split!['Protein'] ?? split!['protein'] ?? 0).toDouble();
+    final fat = (split!['Fat'] ?? split!['fat'] ?? split!['Fats'] ?? split!['fats'] ?? 0).toDouble();
     final total = carbs + protein + fat;
 
     if (total == 0) return const SizedBox.shrink();

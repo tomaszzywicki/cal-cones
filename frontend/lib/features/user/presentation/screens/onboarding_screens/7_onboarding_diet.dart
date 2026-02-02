@@ -54,7 +54,11 @@ class _OnboardingDietState extends State<OnboardingDiet> {
               OnboardingButton(
                 text: 'Next',
                 onPressed: _selectedDietType == null
-                    ? () {}
+                    ? () {
+                        _selectedDietType = "BALANCED";
+                        _macroSplit = {"protein": 30, "carbs": 40, "fats": 30};
+                        widget.setDietAndMacro(_selectedDietType!, _macroSplit!);
+                      }
                     : () {
                         widget.setDietAndMacro(_selectedDietType!, _macroSplit ?? {});
                       },

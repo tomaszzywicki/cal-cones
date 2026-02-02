@@ -196,7 +196,7 @@ class _Onboarding extends State<Onboarding> {
       ),
 
       // 8.
-      OnbboardingGoalData(
+      OnboardingGoalData(
         setGoalData: (startDate, targetDate, targetWeight, tempo) =>
             _updateGoalData(startDate, targetDate, targetWeight, tempo),
         initialStartDate: _startDate,
@@ -249,7 +249,7 @@ class _Onboarding extends State<Onboarding> {
                   SizedBox(
                     height: 40,
                     child: Align(
-                      alignment: Alignment.centerLeft,
+                      alignment: Alignment.bottomLeft,
                       child: !onFirstPage
                           ? IconButton(
                               icon: const Icon(Icons.arrow_back_ios_new, size: 22, color: Colors.black87),
