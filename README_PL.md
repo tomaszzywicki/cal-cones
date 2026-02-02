@@ -93,3 +93,5 @@ flutter run
 ## 📊 Wyniki Modeli AI
 
 Zastosowany model **YOLOv11m** osiągnął precyzję detekcji na poziomie **0.808** (mAP50: **0.702**). Średni czas analizy zdjęcia wynosi ok. **2.5 sekundy**, co zapewnia wysoką płynność działania aplikacji.
+
+© 2026 Politechnika Warszawska
