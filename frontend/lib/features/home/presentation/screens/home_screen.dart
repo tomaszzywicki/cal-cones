@@ -81,12 +81,14 @@ class HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver, Day
         'Targets=${targets != null ? 'calories=${targets.calories}, carbsG=${targets.carbsG}, proteinG=${targets.proteinG}, fatG=${targets.fatG}' : 'null'}',
       );
 
+      if (!mounted) return;
       setState(() {
         _todayProducts = products;
         _todayTargets = targets;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       // Suppress error snackbars during rapid tab switching
       debugPrint('Error loading macros: $e');

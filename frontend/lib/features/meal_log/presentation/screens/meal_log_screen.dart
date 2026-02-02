@@ -47,12 +47,14 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
 
   @override
   void onDayChanged() {
+    if (!mounted) return;
     setState(() {
       _updateDateString();
     });
   }
 
   Future<void> loadMealProducts() async {
+    if (!mounted) return;
     setState(() => _isLoading = true);
 
     try {
@@ -64,6 +66,8 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
 
       final mealProducts = await _mealService.getMealProductsForDate(selectedDate);
       final dailyTargets = await dailyTargetService.getDailyTargetForDate(selectedDate);
+
+      if (!mounted) return;
       setState(() {
         _mealProducts = mealProducts;
         _dailyTargets = dailyTargets;
@@ -71,6 +75,7 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
         _calculateTotals();
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error loading products: $e')));
@@ -93,6 +98,7 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
   }
 
   void _goToPreviousDay() async {
+    if (!mounted) return;
     setState(() {
       selectedDate = selectedDate.subtract(const Duration(days: 1));
       _updateDateString();
@@ -101,6 +107,7 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
   }
 
   void _goToNextDay() async {
+    if (!mounted) return;
     setState(() {
       selectedDate = selectedDate.add(const Duration(days: 1));
       _updateDateString();
@@ -109,6 +116,7 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
   }
 
   Future<void> goToDate(DateTime date) async {
+    if (!mounted) return;
     setState(() {
       selectedDate = date;
       _updateDateString();
@@ -326,6 +334,7 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
     final MealProductModel backupItem = mealProduct;
 
     // 2. Immediately remove from UI
+    if (!mounted) return;
     setState(() {
       _mealProducts.remove(mealProduct);
       _calculateTotals(); // Refresh calorie/macro bars immediately

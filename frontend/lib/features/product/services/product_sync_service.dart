@@ -97,6 +97,7 @@ class ProductSyncService {
         await syncQueueRepository.remove(op.id!);
       } catch (e) {
         AppLogger.error('[ProductSync] Failed: ${op.operation.name} ${op.entityUuid}: $e');
+        rethrow;
       }
     }
   }
