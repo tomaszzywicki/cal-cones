@@ -475,7 +475,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
   }
 
   Widget _buildEditableDiffBadge(bool isWeightLoss, double weightDiff) {
-    Color baseColor = weightDiff == 0.0 ? Colors.grey : (isWeightLoss ? Colors.green : Colors.blue);
+    Color baseColor = weightDiff == 0.0 ? Colors.orange : (isWeightLoss ? Colors.green : Colors.blue);
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -528,7 +528,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: weightDiff == 0.0
-                      ? Colors.grey.shade700
+                      ? Colors.orangeAccent.shade700
                       : (isWeightLoss ? Colors.green.shade700 : Colors.blue.shade700),
                 ),
               ),
