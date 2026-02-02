@@ -21,21 +21,35 @@ class _DietSelectionBodyState extends State<DietSelectionBody> {
   List<String> _touchHistory = ["Carbs", "Protein", "Fat"];
   Map<String, double> _macroSplit = {"Carbs": 40, "Protein": 30, "Fat": 30};
 
+  // Pamięć dla ustawień Custom
+  Map<String, double> _customMacroSplit = {"Carbs": 40, "Protein": 30, "Fat": 30};
+
   @override
   void initState() {
     super.initState();
-    if (widget.initialDietType != null) {
-      _selectedDietType = widget.initialDietType!.toLowerCase();
-      if (widget.initialMacroSplit != null) {
-        _macroSplit = widget.initialMacroSplit!.map((k, v) => MapEntry(k, v.toDouble()));
+
+    // Domyślnie "balanced" jeśli nic nie przekazano (szczególnie w onboarding)
+    _selectedDietType = widget.initialDietType?.toLowerCase() ?? "balanced";
+
+    if (widget.initialMacroSplit != null) {
+      _macroSplit = widget.initialMacroSplit!.map((k, v) => MapEntry(k, v.toDouble()));
+      if (_selectedDietType == "custom") {
+        _customMacroSplit = Map.from(_macroSplit);
       }
+    } else {
+      // Wartości domyślne dla Balanced
+      _macroSplit = {"Carbs": 40, "Protein": 30, "Fat": 30};
     }
   }
 
   void _updateDiet(String type, Map<String, double> split) {
     setState(() {
       _selectedDietType = type;
-      _macroSplit = Map.from(split);
+      if (type == 'custom') {
+        _macroSplit = Map.from(_customMacroSplit);
+      } else {
+        _macroSplit = Map.from(split);
+      }
     });
     _notify();
   }
@@ -48,6 +62,11 @@ class _DietSelectionBodyState extends State<DietSelectionBody> {
   void _onSliderChanged(String currentKey, double newValue) {
     setState(() {
       _selectedDietType = 'custom';
+
+      // Minimalna wartość 1%
+      if (newValue < 1) newValue = 1;
+      if (newValue > 98) newValue = 98;
+
       _touchHistory.remove(currentKey);
       _touchHistory.insert(0, currentKey);
 
@@ -62,12 +81,18 @@ class _DietSelectionBodyState extends State<DietSelectionBody> {
       double remainingDelta = delta;
 
       if (delta > 0) {
-        double takeFromPrimary = remainingDelta > primaryValue ? primaryValue : remainingDelta;
+        double availableFromPrimary = primaryValue - 1;
+        double takeFromPrimary = remainingDelta > availableFromPrimary
+            ? availableFromPrimary
+            : remainingDelta;
         _macroSplit[primaryTargetKey] = primaryValue - takeFromPrimary;
         remainingDelta -= takeFromPrimary;
 
         if (remainingDelta > 0) {
-          double takeFromSecondary = remainingDelta > secondaryValue ? secondaryValue : remainingDelta;
+          double availableFromSecondary = secondaryValue - 1;
+          double takeFromSecondary = remainingDelta > availableFromSecondary
+              ? availableFromSecondary
+              : remainingDelta;
           _macroSplit[secondaryTargetKey] = secondaryValue - takeFromSecondary;
           remainingDelta -= takeFromSecondary;
         }
@@ -85,13 +110,14 @@ class _DietSelectionBodyState extends State<DietSelectionBody> {
         }
       }
 
-      double actualDistributed = delta - remainingDelta;
-      _macroSplit[currentKey] = oldValue + actualDistributed;
+      _macroSplit[currentKey] = newValue;
 
       double total = _macroSplit.values.reduce((a, b) => a + b);
       if ((100 - total).abs() > 0.01) {
-        _macroSplit[primaryTargetKey] = (_macroSplit[primaryTargetKey]! + (100 - total)).clamp(0, 100);
+        _macroSplit[primaryTargetKey] = (_macroSplit[primaryTargetKey]! + (100 - total)).clamp(1, 98);
       }
+
+      _customMacroSplit = Map.from(_macroSplit);
     });
     _notify();
   }
@@ -103,19 +129,15 @@ class _DietSelectionBodyState extends State<DietSelectionBody> {
         return SingleChildScrollView(
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: SizedBox(
-              // To kluczowe: SizedBox o wymuszonej wysokości pozwala Spacerowi działać
-              height: constraints.maxHeight,
+            child: IntrinsicHeight(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   const Text(
-                    'Choose your diet type',
+                    'What is your diet type?',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
                   ),
-
-                  Spacer(),
-
+                  const SizedBox(height: 20),
                   _dietOption('Balanced', 'Optimal balance for health', 'balanced', {
                     "Carbs": 40,
                     "Protein": 30,
