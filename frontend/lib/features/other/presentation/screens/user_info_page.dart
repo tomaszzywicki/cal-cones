@@ -4,6 +4,7 @@ import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding.dart';
 import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_diet_screen.dart';
+import 'package:frontend/features/user/presentation/widgets/macro_split_indicator.dart';
 import 'package:provider/provider.dart';
 
 class UserInfo extends StatelessWidget {
@@ -91,6 +92,9 @@ class UserInfo extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditDietScreen()));
                   },
+                  trailingWidget: MacroSplitIndicator(
+                    split: user?.macroSplit?.map((key, value) => MapEntry(key, value.toInt())),
+                  ),
                 ),
                 _buildDivider(),
                 _buildInfoTile(
@@ -210,6 +214,7 @@ class UserInfo extends StatelessWidget {
     bool isFirst = false,
     bool isLast = false,
     VoidCallback? onTap,
+    Widget? trailingWidget,
   }) {
     return Material(
       color: Colors.transparent,
@@ -236,28 +241,29 @@ class UserInfo extends StatelessWidget {
                 child: Icon(icon, color: Colors.black87, size: 20),
               ),
               const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      label,
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: valueColor ?? Colors.black,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      value,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: valueColor ?? Colors.black,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
+              Spacer(),
+              if (trailingWidget != null) ...[trailingWidget, const SizedBox(width: 16)],
+
               if (onTap != null) const Icon(Icons.chevron_right, size: 20, color: Colors.grey),
             ],
           ),
