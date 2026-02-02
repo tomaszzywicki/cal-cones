@@ -41,7 +41,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
 
   bool get _isMaintenance => (_targetWeight - widget.currentWeight).abs() < 1;
 
-  final List<int> _presetDays = [15, 29, 61, 91, 181, 271, 366, 731];
+  final List<int> _presetDays = [14, 28, 60, 90, 180, 270, 365, 730];
 
   @override
   void initState() {
@@ -52,7 +52,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     _targetWeightController.text = _targetWeight.toStringAsFixed(1);
     _diffController.text = "0.0";
     _tempo = 0.2;
-    _maintenanceDate = DateTime.now().add(const Duration(days: 30));
+    _maintenanceDate = DateTime.now().add(const Duration(days: 29));
     _calculateDate();
   }
 
@@ -63,7 +63,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
     final double diff = _roundDouble(rawDiff, 1);
 
     if (diff == 0.0 || _tempo <= 0.05) {
-      setState(() => _estimatedDate = DateTime.now().add(const Duration(days: 30)));
+      setState(() => _estimatedDate = DateTime.now().add(const Duration(days: 28)));
       return;
     }
 
@@ -463,7 +463,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
       },
       child: Container(
         width: 100,
-        height: 28,
+        height: 30,
         alignment: Alignment.center,
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         decoration: BoxDecoration(
@@ -481,7 +481,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 textAlign: TextAlign.center,
                 autofocus: true,
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: baseColor),
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: baseColor),
                 decoration: InputDecoration(
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
@@ -502,7 +502,7 @@ class _GoalSetupScreenState extends State<GoalSetupScreen> {
                     : "${isWeightLoss ? '-' : '+'}${weightDiff.toStringAsFixed(1)} kg",
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: weightDiff == 0.0
                       ? Colors.grey.shade700
