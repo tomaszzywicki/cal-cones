@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "218935698909",
+    "project_id": "cal-cones",
+    "storage_bucket": "cal-cones.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:218935698909:android:730a146b11932f4c8b0234",
+        "android_client_info": {
+          "package_name": "com.example.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBjKKN1YuJsFCk9l9iWo1FzbI_rFRqM1i0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

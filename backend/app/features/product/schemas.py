@@ -1,0 +1,52 @@
+from datetime import datetime
+from pydantic import BaseModel, ConfigDict, UUID4
+
+
+class ProductCreate(BaseModel):
+    uuid: UUID4 | None = None
+    name: str
+    manufacturer: str | None
+    kcal: int
+    carbs: float
+    protein: float
+    fat: float
+    created_at: datetime
+    last_modified_at: datetime
+    from_model: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProductResponse(BaseModel):
+    uuid: UUID4
+    user_id: int
+    name: str
+    manufacturer: str | None
+    kcal: int
+    carbs: float
+    protein: float
+    fat: float
+    created_at: datetime
+    last_modified_at: datetime
+    from_model: bool
+    name_from_model: str | None
+    average_portion: float | None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ProductUpdate(BaseModel):
+    uuid: UUID4
+    name: str | None
+    manufacturer: str | None
+    kcal: int | None
+    carbs: float | None
+    protein: float | None
+    fat: float | None
+    created_at: datetime | None
+    last_modified_at: datetime | None
+    from_model: bool | None
+    name_from_model: str | None
+    average_portion: float | None
+
+    model_config = ConfigDict(from_attributes=True)

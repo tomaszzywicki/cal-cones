@@ -1,0 +1,11 @@
+__pycache__/
+*.py[codz]
+*$py.class
+
+.env
+model/data/
+model/model_env
+model/__pycache__/
+model/classification_models/
+*api_client.dart
+cal-cones-firebase*
