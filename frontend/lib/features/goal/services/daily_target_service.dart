@@ -28,7 +28,20 @@ class DailyTargetService with ChangeNotifier {
   );
 
   void updateWeightLogService(WeightLogService newService) {
+    _weightLogService.removeListener(_onWeightLogChanged);
     _weightLogService = newService;
+    _weightLogService.addListener(_onWeightLogChanged);
+  }
+
+  void _onWeightLogChanged() {
+    AppLogger.debug('DailyTargetService: Detected weight log change, refreshing today\'s target.');
+    refreshTargetForToday();
+  }
+
+  @override
+  void dispose() {
+    _weightLogService?.removeListener(_onWeightLogChanged);
+    super.dispose();
   }
 
   Future<void> ensureHistoryIsPopulated() async {
