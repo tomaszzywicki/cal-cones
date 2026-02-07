@@ -138,14 +138,27 @@ void main() async {
             return WeightLogService(currentUserId, weightLogRepository);
           },
         ),
-        ProxyProvider<WeightLogService, DailyTargetService>(
-          update: (context, weightLogService, previous) => DailyTargetService(
+        ChangeNotifierProxyProvider<WeightLogService, DailyTargetService>(
+          create: (_) => DailyTargetService(
             dailyTargetRepository,
             currentUserService,
             goalService,
-            weightLogService,
+            WeightLogService(currentUserService.getUserId(), weightLogRepository),
             dailyTargetCalculatorService,
           ),
+          update: (context, weightLogService, previous) {
+            if (previous != null) {
+              previous.updateWeightLogService(weightLogService);
+              return previous;
+            }
+            return DailyTargetService(
+              dailyTargetRepository,
+              currentUserService,
+              goalService,
+              weightLogService,
+              dailyTargetCalculatorService,
+            );
+          },
         ),
       ],
       child: MainApp(),

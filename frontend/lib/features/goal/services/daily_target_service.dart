@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
@@ -10,12 +11,13 @@ import 'package:frontend/features/user/services/user_service.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 import 'package:intl/intl.dart';
 
-class DailyTargetService {
+class DailyTargetService with ChangeNotifier {
   final DailyTargetRepository _dailyTargetRepository;
   final CurrentUserService _currentUserService;
   final GoalService _goalService;
-  final WeightLogService _weightLogService;
   final DailyTargetCalculatorService _calculatorService;
+
+  WeightLogService _weightLogService;
 
   DailyTargetService(
     this._dailyTargetRepository,
@@ -24,6 +26,10 @@ class DailyTargetService {
     this._weightLogService,
     this._calculatorService,
   );
+
+  void updateWeightLogService(WeightLogService newService) {
+    _weightLogService = newService;
+  }
 
   Future<void> ensureHistoryIsPopulated() async {
     AppLogger.debug("DailyTargetService: Ensuring daily target history is populated...");
@@ -86,6 +92,8 @@ class DailyTargetService {
     AppLogger.info(
       'DailyTargetService: Filled $filledDays days of daily targets from ${_dateToString(startDate)} to ${_dateToString(today)} for user ID: $userId',
     );
+
+    notifyListeners();
   }
 
   Future<void> refreshTargetForToday() async {
@@ -118,6 +126,8 @@ class DailyTargetService {
     DailyTargetModel dailyTargetModel = todaysTarget.copyWith(date: _dateToString(today));
     await _dailyTargetRepository.saveDailyTarget(dailyTargetModel);
     AppLogger.info('DailyTargetService: Refreshed daily target for today for user ID: $userId');
+
+    notifyListeners();
   }
 
   Future<DailyTargetModel?> getDailyTargetForDate(DateTime date) async {

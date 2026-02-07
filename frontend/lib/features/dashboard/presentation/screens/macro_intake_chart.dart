@@ -21,6 +21,25 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
   double _maxY = 100;
   MacroType _selectedType = MacroType.calories;
 
+  late MealService _mealService;
+  late DailyTargetService _targetService;
+
+  @override
+  void initState() {
+    super.initState();
+    _mealService = context.read<MealService>();
+    _targetService = context.read<DailyTargetService>();
+    _mealService.addListener(_loadData);
+    _targetService.addListener(_loadData);
+  }
+
+  @override
+  void dispose() {
+    _mealService.removeListener(_loadData);
+    _targetService.removeListener(_loadData);
+    super.dispose();
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -28,8 +47,11 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
   }
 
   Future<void> _loadData() async {
-    final mealService = context.read<MealService>();
-    final targetService = context.read<DailyTargetService>();
+    if (!mounted) return;
+
+    final mealService = _mealService;
+    _targetService = context.read<DailyTargetService>();
+    final targetService = _targetService;
 
     // 1. Upewnij się, że historia celów jest wygenerowana w bazie danych
     try {
@@ -43,7 +65,6 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
     double currentMax = 0;
 
     for (int i = 6; i >= 0; i--) {
-      // 2. Używamy DateTime.utc, aby uniknąć przesunięć stref czasowych przy konwersji w serwisie
       final date = DateTime.utc(now.year, now.month, now.day).subtract(Duration(days: i));
 
       final products = await mealService.getMealProductsForDate(date);
@@ -253,8 +274,8 @@ class _MacroIntakeChartState extends State<MacroIntakeChart> {
       alignment: WrapAlignment.center,
       children: [
         _macroSelector("Calories", MacroType.calories, Colors.blue),
-        _macroSelector("Protein", MacroType.protein, Colors.red),
         _macroSelector("Carbs", MacroType.carbs, Colors.green),
+        _macroSelector("Protein", MacroType.protein, Colors.red),
         _macroSelector("Fat", MacroType.fat, Colors.orange),
       ],
     );
