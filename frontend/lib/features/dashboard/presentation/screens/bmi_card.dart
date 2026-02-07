@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/core/logger/app_logger.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
+import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_height_screen.dart';
 import 'package:frontend/features/weight_log/services/weight_log_service.dart';
 // Dodano import ekranu wagi
 import 'package:frontend/features/weight_log/presentation/screens/weight_log_main_screen.dart';
@@ -42,44 +43,44 @@ class BMIcard extends StatelessWidget {
   }
 
   // Funkcja do zmiany wzrostu
-  void _showEditHeightDialog(BuildContext context, int? currentHeight) {
-    final TextEditingController controller = TextEditingController(text: currentHeight?.toString() ?? '');
+  // void _showEditHeightDialog(BuildContext context, int? currentHeight) {
+  //   final TextEditingController controller = TextEditingController(text: currentHeight?.toString() ?? '');
 
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Update Height"),
-          content: TextField(
-            controller: controller,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: "Height",
-              suffixText: "cm",
-              border: OutlineInputBorder(),
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
-            FilledButton(
-              onPressed: () {
-                final newHeight = int.tryParse(controller.text);
-                if (newHeight != null && newHeight > 50 && newHeight < 300) {
-                  // TODO: Tutaj wywołaj swój serwis do aktualizacji użytkownika
-                  // np. context.read<UserApiService>().updateHeight(newHeight);
+  //   showDialog(
+  //     context: context,
+  //     builder: (context) {
+  //       return AlertDialog(
+  //         title: const Text("Update Height"),
+  //         content: TextField(
+  //           controller: controller,
+  //           keyboardType: TextInputType.number,
+  //           decoration: const InputDecoration(
+  //             labelText: "Height",
+  //             suffixText: "cm",
+  //             border: OutlineInputBorder(),
+  //           ),
+  //         ),
+  //         actions: [
+  //           TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+  //           FilledButton(
+  //             onPressed: () {
+  //               final newHeight = int.tryParse(controller.text);
+  //               if (newHeight != null && newHeight > 50 && newHeight < 300) {
+  //                 // TODO: Tutaj wywołaj swój serwis do aktualizacji użytkownika
+  //                 // np. context.read<UserApiService>().updateHeight(newHeight);
 
-                  // Na razie tylko logujemy dla sprawdzenia
-                  AppLogger.info("New height entered: $newHeight");
-                  Navigator.pop(context);
-                }
-              },
-              child: const Text("Save"),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  //                 // Na razie tylko logujemy dla sprawdzenia
+  //                 AppLogger.info("New height entered: $newHeight");
+  //                 Navigator.pop(context);
+  //               }
+  //             },
+  //             child: const Text("Save"),
+  //           ),
+  //         ],
+  //       );
+  //     },
+  //   );
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +148,6 @@ class BMIcard extends StatelessWidget {
           value: weight != null ? "${weight.toStringAsFixed(1)} kg" : "-- kg",
           icon: Icons.monitor_weight_outlined,
           onTap: () {
-            // Przekierowanie do ekranu wagi
             Navigator.push(context, MaterialPageRoute(builder: (context) => const WeightLogMainScreen()));
           },
         ),
@@ -158,8 +158,9 @@ class BMIcard extends StatelessWidget {
           value: height != null ? "$height cm" : "-- cm",
           icon: Icons.height,
           onTap: () {
-            // Edycja wzrostu
-            _showEditHeightDialog(context, height);
+            Navigator.of(
+              context,
+            ).push(MaterialPageRoute(builder: (context) => EditHeightScreen(currentHeight: height ?? 170)));
           },
         ),
         const SizedBox(height: 8),
