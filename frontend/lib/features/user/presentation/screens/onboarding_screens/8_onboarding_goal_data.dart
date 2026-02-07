@@ -281,7 +281,10 @@ class _OnboardingGoalDataState extends State<OnboardingGoalData> {
         textAlign: TextAlign.center,
         style: weightStyle,
         decoration: InputDecoration(
-          border: const OutlineInputBorder(borderSide: BorderSide.none),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          focusColor: Colors.transparent,
           isDense: true,
           contentPadding: EdgeInsets.zero,
           suffixText: " kg",
@@ -337,6 +340,10 @@ class _OnboardingGoalDataState extends State<OnboardingGoalData> {
                 style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: baseColor),
                 decoration: InputDecoration(
                   border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  isCollapsed: true,
+                  fillColor: Colors.transparent,
                   isDense: true,
                   contentPadding: EdgeInsets.zero,
                   prefixText: weightDiff == 0.0 ? "" : (isWeightLoss ? "-" : "+"),

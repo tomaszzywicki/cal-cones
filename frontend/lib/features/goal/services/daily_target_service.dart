@@ -40,7 +40,7 @@ class DailyTargetService with ChangeNotifier {
 
   @override
   void dispose() {
-    _weightLogService?.removeListener(_onWeightLogChanged);
+    _weightLogService.removeListener(_onWeightLogChanged);
     super.dispose();
   }
 

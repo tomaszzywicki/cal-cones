@@ -105,6 +105,7 @@ class _EditSexScreenState extends State<EditSexScreen> {
       child: GestureDetector(
         onTap: () => setState(() => selectedSex = sex),
         child: Container(
+          constraints: const BoxConstraints(maxHeight: 200),
           decoration: BoxDecoration(
             color: isSelected ? color.withOpacity(0.1) : Colors.grey[100],
             borderRadius: BorderRadius.circular(20),
