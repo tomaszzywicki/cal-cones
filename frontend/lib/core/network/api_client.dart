@@ -4,7 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
 class ApiClient {
-  static const String baseUrl = 'http://35.224.136.139:8000';
+  // static const String baseUrl = 'http://35.224.136.139:8000';
+  static const String baseUrl = 'http://35.242.250.77:8000';
   final FirebaseAuthService _firebaseAuthService;
 
   ApiClient(this._firebaseAuthService);
