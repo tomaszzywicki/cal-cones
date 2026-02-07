@@ -41,7 +41,21 @@ class MealLogScreenState extends State<MealLogScreen> with WidgetsBindingObserve
   void initState() {
     super.initState();
     _mealService = Provider.of<MealService>(context, listen: false);
+
+    _mealService.addListener(_onMealServiceChanged);
+
     loadMealProducts();
+  }
+
+  void _onMealServiceChanged() {
+    if (!mounted) return;
+    loadMealProducts();
+  }
+
+  @override
+  void dispose() {
+    _mealService.removeListener(_onMealServiceChanged);
+    super.dispose();
   }
 
   @override
