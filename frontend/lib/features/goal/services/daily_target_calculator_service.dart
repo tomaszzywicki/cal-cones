@@ -9,7 +9,7 @@ class DailyTargetCalculatorService {
     int ageYears = user.ageYears ?? 30;
     String sex = user.sex?.toLowerCase() ?? 'male';
     int height = user.height ?? (sex == 'male' ? 175 : 160);
-    String activityLevel = user.activityLevel?.toLowerCase() ?? 'sedentary';
+    String activityLevel = user.activityLevel?.toLowerCase() ?? 'moderately_active';
     String dietType = user.dietType?.toLowerCase() ?? 'balanced';
 
     double s = (sex == 'male') ? 5.0 : -161.0;
@@ -136,10 +136,14 @@ class DailyTargetCalculatorService {
     switch (activityLevel) {
       case 'sedentary':
         return 1.2;
+      case 'lightly_active':
+        return 1.4;
       case 'moderately_active':
         return 1.55;
       case 'very_active':
         return 1.8;
+      case 'super_active':
+        return 2.2;
       default:
         return 1.2;
     }

@@ -69,7 +69,12 @@ class _EditHeightScreenState extends State<EditHeightScreen> {
               const SizedBox(height: 30),
               const Text("How tall are you?", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
-              const Text("This helps us calculate your needs", style: TextStyle(color: Colors.grey)),
+              const Text(
+                "We use this to calculate your daily caloric and macronutrient needs.",
+                style: TextStyle(color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 40),
               Expanded(
                 child: Stack(
                   alignment: Alignment.center,

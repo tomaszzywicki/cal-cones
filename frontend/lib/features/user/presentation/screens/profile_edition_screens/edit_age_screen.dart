@@ -2,32 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/user/services/user_service.dart';
 import 'package:frontend/features/user/data/user_update_model.dart';
+import 'package:intl/intl.dart';
 
-class EditSexScreen extends StatefulWidget {
-  final String currentSex;
-  const EditSexScreen({super.key, required this.currentSex});
+class EditAgeScreen extends StatefulWidget {
+  final DateTime currentBirthday;
+  const EditAgeScreen({super.key, required this.currentBirthday});
 
   @override
-  State<EditSexScreen> createState() => _EditSexScreenState();
+  State<EditAgeScreen> createState() => _EditAgeScreenState();
 }
 
-class _EditSexScreenState extends State<EditSexScreen> {
-  late String selectedSex;
+class _EditAgeScreenState extends State<EditAgeScreen> {
+  late DateTime selectedDate;
 
   @override
   void initState() {
     super.initState();
-    selectedSex = widget.currentSex;
+    selectedDate = widget.currentBirthday;
   }
 
-  Future<void> _saveSex() async {
+  Future<void> _saveAge() async {
     final userService = context.read<UserService>();
     try {
-      await userService.updateUserSex(selectedSex);
+      await userService.updateUserAge(selectedDate);
       if (mounted) Navigator.pop(context);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating sex: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error updating birthday: $e')));
       }
     }
   }
@@ -44,7 +45,7 @@ class _EditSexScreenState extends State<EditSexScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text(
-          "Your sex",
+          "Your age",
           style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
       ),
@@ -53,23 +54,39 @@ class _EditSexScreenState extends State<EditSexScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
           child: Column(
             children: [
-              const SizedBox(height: 20),
-              const Text("What is your sex?", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 40),
+              const Text("When were you born?", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
               const Text(
                 "We use this to calculate your daily caloric and macronutrient needs.",
                 style: TextStyle(color: Colors.grey),
                 textAlign: TextAlign.center,
               ),
+
               const SizedBox(height: 40),
               Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Row(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      _sexCard("male", Icons.male, Colors.blue),
-                      const SizedBox(width: 20),
-                      _sexCard("female", Icons.female, Colors.pink),
+                      Text(
+                        DateFormat('MMMM dd, yyyy').format(selectedDate),
+                        style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.blue),
+                      ),
+                      const SizedBox(height: 20),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final DateTime? picked = await showDatePicker(
+                            context: context,
+                            initialDate: selectedDate,
+                            firstDate: DateTime(1900),
+                            lastDate: DateTime.now(),
+                          );
+                          if (picked != null) setState(() => selectedDate = picked);
+                        },
+                        icon: const Icon(Icons.calendar_today),
+                        label: const Text("Select Date"),
+                      ),
                     ],
                   ),
                 ),
@@ -80,7 +97,7 @@ class _EditSexScreenState extends State<EditSexScreen> {
                   width: double.infinity,
                   height: 55,
                   child: ElevatedButton(
-                    onPressed: _saveSex,
+                    onPressed: _saveAge,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -90,37 +107,6 @@ class _EditSexScreenState extends State<EditSexScreen> {
                       style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _sexCard(String sex, IconData icon, Color color) {
-    bool isSelected = selectedSex == sex;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => selectedSex = sex),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isSelected ? color.withOpacity(0.1) : Colors.grey[100],
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: isSelected ? color : Colors.transparent, width: 2),
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 80, color: isSelected ? color : Colors.grey),
-              const SizedBox(height: 10),
-              Text(
-                sex.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? color : Colors.grey,
                 ),
               ),
             ],

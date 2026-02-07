@@ -173,4 +173,40 @@ class UserService {
       // Dodaj do kolejki synchronizacji
     }
   }
+
+  Future<void> updateUserAge(DateTime newBirthday) async {
+    final currentUser = currentUserService.currentUser;
+    if (currentUser == null) throw Exception("No current user found");
+
+    final updatedUser = (currentUser).copyWith(birthday: newBirthday);
+
+    try {
+      await currentUserService.updateUser(updatedUser);
+      final updateData = UserProfileModel.fromUserModel(updatedUser);
+      await _userApiService.updateUser(updateData);
+
+      AppLogger.info("User birthday updated on server successfully.");
+    } catch (e) {
+      AppLogger.error("Server update failed, adding to sync queue: $e");
+      // Dodaj do kolejki synchronizacji
+    }
+  }
+
+  Future<void> updateUserActivityLevel(String newActivityLevel) async {
+    final currentUser = currentUserService.currentUser;
+    if (currentUser == null) throw Exception("No current user found");
+
+    final updatedUser = (currentUser).copyWith(activityLevel: newActivityLevel);
+
+    try {
+      await currentUserService.updateUser(updatedUser);
+      final updateData = UserProfileModel.fromUserModel(updatedUser);
+      await _userApiService.updateUser(updateData);
+
+      AppLogger.info("User activity level updated on server successfully.");
+    } catch (e) {
+      AppLogger.error("Server update failed, adding to sync queue: $e");
+      // Dodaj do kolejki synchronizacji
+    }
+  }
 }

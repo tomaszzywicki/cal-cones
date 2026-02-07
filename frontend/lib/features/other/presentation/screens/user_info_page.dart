@@ -3,9 +3,11 @@ import 'package:frontend/features/auth/presentation/screens/login_screen.dart';
 import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding.dart';
+import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_age_screen.dart';
 import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_diet_screen.dart';
 import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_height_screen.dart';
 import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_sex_screen.dart';
+import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_activity_level_screen.dart';
 import 'package:frontend/features/user/presentation/widgets/macro_split_indicator.dart';
 import 'package:provider/provider.dart';
 
@@ -72,6 +74,14 @@ class UserInfo extends StatelessWidget {
                   label: 'Age',
                   value: user?.age?.toString() ?? 'N/A',
                   isFirst: true,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            EditAgeScreen(currentBirthday: user?.birthday ?? DateTime(1990, 1, 1)),
+                      ),
+                    );
+                  },
                 ),
                 _buildDivider(),
                 _buildInfoTile(
@@ -114,6 +124,14 @@ class UserInfo extends StatelessWidget {
                   icon: Icons.directions_run,
                   label: 'Activity Level',
                   value: _formatTileDescription(user?.activityLevel),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            EditActivityLevelScreen(currentActivity: user?.activityLevel ?? 'SEDENTARY'),
+                      ),
+                    );
+                  },
                   isLast: true,
                 ),
               ],
