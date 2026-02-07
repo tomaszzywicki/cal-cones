@@ -69,21 +69,35 @@ class _EditDietScreenState extends State<EditDietScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              OnboardingButton(
-                text: 'Save',
-                onPressed: () {
-                  if (_tempDietType == null) {
-                    setState(() {
-                      _tempDietType = user?.dietType;
-                    });
-                  }
-                  if (_tempMacros == null) {
-                    setState(() {
-                      _tempMacros = user?.macroSplit?.map((key, value) => MapEntry(key, value.toInt()));
-                    });
-                  }
-                  _handleSave();
-                },
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_tempDietType == null) {
+                        setState(() {
+                          _tempDietType = user?.dietType;
+                        });
+                      }
+                      if (_tempMacros == null) {
+                        setState(() {
+                          _tempMacros = user?.macroSplit?.map((key, value) => MapEntry(key, value.toInt()));
+                        });
+                      }
+                      _handleSave();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    ),
+                    child: const Text(
+                      "Save",
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

@@ -5,6 +5,7 @@ import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding.dart';
 import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_diet_screen.dart';
 import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_height_screen.dart';
+import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_sex_screen.dart';
 import 'package:frontend/features/user/presentation/widgets/macro_split_indicator.dart';
 import 'package:provider/provider.dart';
 
@@ -69,7 +70,6 @@ class UserInfo extends StatelessWidget {
                 _buildInfoTile(
                   icon: Icons.cake_outlined,
                   label: 'Age',
-                  // Używamy gettera 'age' z UserEntity
                   value: user?.age?.toString() ?? 'N/A',
                   isFirst: true,
                 ),
@@ -78,6 +78,11 @@ class UserInfo extends StatelessWidget {
                   icon: user?.sex == 'MALE' ? Icons.male : Icons.female,
                   label: 'Sex',
                   value: _formatTileDescription(user?.sex),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (context) => EditSexScreen(currentSex: user?.sex ?? 'MALE')),
+                    );
+                  },
                 ),
                 _buildDivider(),
                 _buildInfoTile(

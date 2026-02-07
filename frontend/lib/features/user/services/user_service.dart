@@ -155,4 +155,22 @@ class UserService {
       // Dodaj do kolejki synchronizacji
     }
   }
+
+  Future<void> updateUserSex(String newSex) async {
+    final currentUser = currentUserService.currentUser;
+    if (currentUser == null) throw Exception("No current user found");
+
+    final updatedUser = (currentUser).copyWith(sex: newSex);
+
+    try {
+      await currentUserService.updateUser(updatedUser);
+      final updateData = UserProfileModel.fromUserModel(updatedUser);
+      await _userApiService.updateUser(updateData);
+
+      AppLogger.info("User sex updated on server successfully.");
+    } catch (e) {
+      AppLogger.error("Server update failed, adding to sync queue: $e");
+      // Dodaj do kolejki synchronizacji
+    }
+  }
 }

@@ -115,11 +115,23 @@ class _EditHeightScreenState extends State<EditHeightScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              OnboardingButton(
-                text: 'Save',
-                onPressed: () {
-                  _saveHeight();
-                },
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 55,
+                  child: ElevatedButton(
+                    onPressed: _saveHeight,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    ),
+                    child: const Text(
+                      "Save",
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
