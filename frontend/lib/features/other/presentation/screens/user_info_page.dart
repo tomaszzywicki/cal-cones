@@ -4,6 +4,7 @@ import 'package:frontend/features/auth/services/auth_service.dart';
 import 'package:frontend/features/auth/services/current_user_service.dart';
 import 'package:frontend/features/user/presentation/screens/onboarding.dart';
 import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_diet_screen.dart';
+import 'package:frontend/features/user/presentation/screens/profile_edition_screens/edit_height_screen.dart';
 import 'package:frontend/features/user/presentation/widgets/macro_split_indicator.dart';
 import 'package:provider/provider.dart';
 
@@ -83,6 +84,13 @@ class UserInfo extends StatelessWidget {
                   icon: Icons.height,
                   label: 'Height',
                   value: user?.height != null ? '${user!.height} cm' : 'N/A',
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => EditHeightScreen(currentHeight: user?.height ?? 170),
+                      ),
+                    );
+                  },
                 ),
                 _buildDivider(),
                 _buildInfoTile(

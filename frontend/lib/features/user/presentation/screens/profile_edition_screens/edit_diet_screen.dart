@@ -19,11 +19,9 @@ class _EditDietScreenState extends State<EditDietScreen> {
   void _handleSave() async {
     if (_tempDietType != null && _tempMacros != null) {
       try {
-        // Wywołujemy przygotowaną metodę w UserService
         await context.read<UserService>().updateUserDiet(dietType: _tempDietType!, macroSplit: _tempMacros!);
 
         if (mounted) {
-          // Zamykamy ekran po udanym zainicjowaniu zapisu
           Navigator.pop(context);
         }
       } catch (e) {
