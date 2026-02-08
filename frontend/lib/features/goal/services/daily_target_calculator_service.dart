@@ -41,8 +41,8 @@ class DailyTargetCalculatorService {
     //   - It would also be unrealistic to assume that more than 50% of surplus calories get burned through thermogenesis.
     //   - Therefore, we agreed on a model where 100% of surplus calories up to 200 kcal get added, which increases the final surplus
     //
-    //   - muscle loss up to 0.9 kg/week does not result in muscle loss. [Garthe_2011] shows that athletes were able to lose up to ~0.9 kg/week while preserving muscle mass with proper nutrition and training.
-    //   - muscle loss above 0.9 kg/week results in both fat loss and muscle loss. Baser fat loss is 0.9 kg/week. Any extra tempo above 0.9 kg/week is divided between fat and muscle loss equally.
+    //   - weight loss up to 0.9 kg/week does not result in muscle loss. [Garthe_2011] shows that athletes were able to lose up to ~0.9 kg/week while preserving muscle mass with proper nutrition and training.
+    //   - weight loss above 0.9 kg/week results in both fat loss and muscle loss. Base fat loss is 0.9 kg/week. Any extra tempo above 0.9 kg/week is divided between fat and muscle loss equally.
 
     const double lowerMuscleGainThreshold = 0.2; // kg
     const double upperMuscleGainThreshold = 0.5; // kg
