@@ -106,15 +106,6 @@ class _OtherScreenState extends State<OtherScreen> {
             _buildSection(
               children: [
                 _buildListTile(
-                  icon: Icons.flag_outlined,
-                  title: 'Goals',
-                  subtitle: 'Set your nutrition targets',
-                  onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GoalListScreen()));
-                  },
-                ),
-                _buildDivider(),
-                _buildListTile(
                   icon: Icons.restaurant_menu_outlined,
                   title: 'Meal Recommender',
                   subtitle: 'AI-powered meal suggestions',
@@ -122,6 +113,15 @@ class _OtherScreenState extends State<OtherScreen> {
                     Navigator.of(
                       context,
                     ).push(MaterialPageRoute(builder: (_) => const MealRecommenderScreen()));
+                  },
+                ),
+                _buildDivider(),
+                _buildListTile(
+                  icon: Icons.flag_outlined,
+                  title: 'Goals',
+                  subtitle: 'Set your nutrition targets',
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const GoalListScreen()));
                   },
                 ),
               ],
