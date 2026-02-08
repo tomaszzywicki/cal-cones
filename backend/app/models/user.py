@@ -44,7 +44,7 @@ class User(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     uid: Mapped[str] = mapped_column(String(30), unique=True)  # TODO nie pamiętam ile to ma zmienić potem
     email: Mapped[str] = mapped_column(String(100))
-    username: Mapped[str] = mapped_column(String(30), nullable=True, unique=True)
+    username: Mapped[str] = mapped_column(String(30), nullable=True)
     birthday: Mapped[date] = mapped_column(Date, nullable=True)
     sex: Mapped[SexEnum] = mapped_column(ENUM(SexEnum), nullable=True)
     height: Mapped[int] = mapped_column(Integer, nullable=True)
